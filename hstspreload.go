@@ -41,28 +41,24 @@ func gen404(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "No such resource", 404)
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	page, err := os.Open("page.html")
+func serveFile(w http.ResponseWriter, r *http.Request, fileName string, contentType string) {
+	page, err := os.Open(fileName)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 	defer page.Close()
 
-	w.Header().Set("Content-type", "text/html; charset=utf-8")
+	w.Header().Set("Content-type", contentType)
 	io.Copy(w, page)
 }
 
-func styleCSS(w http.ResponseWriter, r *http.Request) {
-	page, err := os.Open("style.css")
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	defer page.Close()
+func index(w http.ResponseWriter, r *http.Request) {
+	serveFile(w, r, "page.html", "text/html; charset=utf-8")
+}
 
-	w.Header().Set("Content-type", "text/css; charset=utf-8")
-	io.Copy(w, page)
+func styleCSS(w http.ResponseWriter, r *http.Request) {
+	serveFile(w, r, "style.css", "text/css; charset=utf-8")
 }
 
 type replyJSON struct {
