@@ -27,6 +27,7 @@ import (
 func init() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/style.css", styleCSS)
+	http.HandleFunc("/index.js", indexJS)
 	http.HandleFunc("/submit/", submit)
 	http.HandleFunc("/clear/", clear)
 	http.HandleFunc("/pending", pending)
@@ -59,6 +60,10 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 func styleCSS(w http.ResponseWriter, r *http.Request) {
 	serveFile(w, r, "style.css", "text/css; charset=utf-8")
+}
+
+func indexJS(w http.ResponseWriter, r *http.Request) {
+	serveFile(w, r, "index.js", "text/javascript; charset=utf-8")
 }
 
 type replyJSON struct {
