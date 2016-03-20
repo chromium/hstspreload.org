@@ -55,7 +55,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileName string, contentT
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	serveFile(w, r, "page.html", "text/html; charset=utf-8")
+	serveFile(w, r, "index.html", "text/html; charset=utf-8")
 }
 
 func styleCSS(w http.ResponseWriter, r *http.Request) {
