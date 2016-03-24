@@ -1,14 +1,11 @@
-application: hstspreload
-version: 9
 runtime: go
+vm: true
 api_version: go1
 
 handlers:
 - url: /
   script: _go_app
 - url: /style.css
-  script: _go_app
-- url: /index.js
   script: _go_app
 - url: /submit/.*
   script: _go_app
