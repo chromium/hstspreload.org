@@ -30,7 +30,7 @@ func main() {
 func submit(w http.ResponseWriter, r *http.Request) {
 	domain := r.URL.Path[8:]
 
-	err := hstspreload.MayPreload(domain)
+	err := hstspreload.CheckDomain(domain)
 
 	if err != nil {
 		fmt.Fprintf(w, "Error: %s\n", err.Error())
