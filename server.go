@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/chromium/hstspreload"
 )
 
 func main() {
@@ -25,7 +28,15 @@ func main() {
 
 
 func submit(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /submit", 404)
+	domain := r.URL.Path[8:]
+
+	err := hstspreload.MayPreload(domain)
+
+	if err != nil {
+		fmt.Fprintf(w, "Error: %s\n", err.Error())
+	} else {
+		fmt.Fprintf(w, "Success!\n")
+	}
 }
 
 func clear(w http.ResponseWriter, r *http.Request) {
