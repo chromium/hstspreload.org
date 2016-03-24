@@ -4,7 +4,7 @@ serve: check
 
 .PHONY: deploy
 deploy: check
-	DYLD_INSERT_LIBRARIES="" aedeploy gcloud preview app deploy app.yaml --promote
+	aedeploy gcloud preview app deploy app.yaml --promote
 
 CURRENT_DIR = "$(shell pwd)"
 EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload/hstspreload.appspot.com"
