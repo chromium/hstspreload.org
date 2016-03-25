@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -26,35 +27,38 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-
 func submit(w http.ResponseWriter, r *http.Request) {
 	domain := r.URL.Path[8:]
 
-	err := hstspreload.CheckDomain(domain)
+	issues := hstspreload.CheckDomain(domain)
 
-	if err != nil {
-		fmt.Fprintf(w, "Error: %s\n", err.Error())
-	} else {
+	if len(issues.Errors) == 0 && len(issues.Warnings) == 0 {
 		fmt.Fprintf(w, "Success!\n")
+	} else {
+		jsonString, err := json.MarshalIndent(issues, "", "  ")
+		if err != nil {
+			http.Error(w, "JSON encoding error.", 501)
+		}
+		fmt.Fprintf(w, "\n%s\n", jsonString)
 	}
 }
 
 func clear(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /clear", 404)
+	http.Error(w, "Unimplemented: /clear", 501)
 }
 
 func pending(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /pending", 404)
+	http.Error(w, "Unimplemented: /pending", 501)
 }
 
 func update(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /update", 404)
+	http.Error(w, "Unimplemented: /update", 501)
 }
 
 func setMessage(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /setMessage", 404)
+	http.Error(w, "Unimplemented: /setMessage", 501)
 }
 
 func setMessages(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /setMessages", 404)
+	http.Error(w, "Unimplemented: /setMessages", 501)
 }
