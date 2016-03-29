@@ -17,6 +17,8 @@ func main() {
 	http.HandleFunc("/robots.txt", http.NotFound)
 	http.HandleFunc("/favicon.ico", http.NotFound)
 
+	http.HandleFunc("/checkdomain/", checkdomain)
+
 	http.HandleFunc("/submit/", submit)
 	http.HandleFunc("/clear/", clear)
 	http.HandleFunc("/pending", pending)
@@ -27,20 +29,21 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func submit(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Path[8:]
+func checkdomain(w http.ResponseWriter, r *http.Request) {
+	domain := r.URL.Path[len("/checkdomain/"):]
 
 	issues := hstspreload.CheckDomain(domain)
 
-	if len(issues.Errors) == 0 && len(issues.Warnings) == 0 {
-		fmt.Fprintf(w, "Success!\n")
+	b, err := json.MarshalIndent(hstspreload.MakeSlices(issues), "", "  ")
+	if err != nil {
+		http.Error(w, "Internal error: could not encode JSON.", 500)
 	} else {
-		jsonString, err := json.MarshalIndent(issues, "", "  ")
-		if err != nil {
-			http.Error(w, "JSON encoding error.", 501)
-		}
-		fmt.Fprintf(w, "\n%s\n", jsonString)
+		fmt.Fprintf(w, "%s\n", b)
 	}
+}
+
+func submit(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Unimplemented: /submit", 501)
 }
 
 func clear(w http.ResponseWriter, r *http.Request) {

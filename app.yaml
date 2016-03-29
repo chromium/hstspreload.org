@@ -7,6 +7,8 @@ handlers:
   script: _go_app
 - url: /style.css
   script: _go_app
+- url: /checkdomain/.*
+  script: _go_app
 - url: /submit/.*
   script: _go_app
 - url: /clear/.*
