@@ -36,7 +36,7 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.MarshalIndent(hstspreload.MakeSlices(issues), "", "  ")
 	if err != nil {
-		http.Error(w, "Internal error: could not encode JSON.", 500)
+		http.Error(w, "Internal error: could not encode JSON.", http.StatusInternalServerError)
 	} else {
 		fmt.Fprintf(w, "%s\n", b)
 	}
@@ -47,7 +47,7 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +61,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 	state, err := stateForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -82,7 +82,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	state, stateErr := stateForDomain(domain)
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 	}
 
 	switch state.Status {
@@ -131,7 +131,7 @@ func pending(w http.ResponseWriter, r *http.Request) {
 	names, err := domainsWithStatus(StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve pending list. (%s)\n", err)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -171,7 +171,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 			"Internal error: could not retrieve latest preload list. (%s)\b",
 			listErr,
 		)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 	var actualPreload []chromiumpreload.Domain
@@ -188,7 +188,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
 			dbErr,
 		)
-		http.Error(w, msg, 500)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
@@ -226,7 +226,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	written := false
 	f, ok := w.(http.Flusher)
 	if !ok {
-		http.Error(w, "Internal error: Could not create `http.Flusher`.", 500)
+		http.Error(w, "Internal error: Could not create `http.Flusher`.", http.StatusInternalServerError)
 		return
 	}
 	statusReport := func(format string, args ...interface{}) {
@@ -243,10 +243,11 @@ func update(w http.ResponseWriter, r *http.Request) {
 			putErr,
 		)
 		if written {
-			// The header has already been sent, so we can't return 500.
+			// The header and part of the body have already been sent, so we
+			// can't change the status code anymore.
 			fmt.Fprintf(w, msg)
 		} else {
-			http.Error(w, msg, 500)
+			http.Error(w, msg, http.StatusInternalServerError)
 		}
 		return
 	}
