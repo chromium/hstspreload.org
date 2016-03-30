@@ -1,6 +1,6 @@
 .PHONY: serve
 serve: check
-	go run server.go
+	go run *.go
 
 .PHONY: deploy
 deploy: check
