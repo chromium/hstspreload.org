@@ -36,7 +36,7 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.MarshalIndent(hstspreload.MakeSlices(issues), "", "  ")
 	if err != nil {
-		http.Error(w, "Internal error: could not encode JSON.", http.StatusInternalServerError)
+		http.Error(w, "Internal error: could not encode JSON.\n", http.StatusInternalServerError)
 	} else {
 		fmt.Fprintf(w, "%s\n", b)
 	}
@@ -98,7 +98,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 		})
 		if putErr != nil {
 			issues = hstspreload.Issues{
-				Errors:   append(issues.Errors, "Internal error: Unable to save to the pending list."),
+				Errors:   append(issues.Errors, "Internal error: Unable to save to the pending list.\n"),
 				Warnings: issues.Warnings,
 			}
 		}
@@ -106,22 +106,22 @@ func submit(w http.ResponseWriter, r *http.Request) {
 		formattedDate := state.SubmissionDate.Format("Monday, _2 January 2006")
 		issues = hstspreload.Issues{
 			Errors:   issues.Errors,
-			Warnings: append(issues.Warnings, fmt.Sprintf("Domain is already pending. It was submitted on %s.", formattedDate)),
+			Warnings: append(issues.Warnings, fmt.Sprintf("Domain is already pending. It was submitted on %s.\n", formattedDate)),
 		}
 	case StatusPreloaded:
 		issues = hstspreload.Issues{
-			Errors:   append(issues.Errors, "Domain is already preloaded."),
+			Errors:   append(issues.Errors, "Domain is already preloaded.\n"),
 			Warnings: issues.Warnings,
 		}
 	case StatusRejected:
-		rejectedMsg := fmt.Sprintf("Domain has been rejected. (%s)", state.Message)
+		rejectedMsg := fmt.Sprintf("Domain has been rejected. (%s)\n", state.Message)
 		issues = hstspreload.Issues{
 			Errors:   append(issues.Warnings, rejectedMsg),
 			Warnings: issues.Warnings,
 		}
 	default:
 		issues = hstspreload.Issues{
-			Errors:   append(issues.Warnings, "Cannot preload."),
+			Errors:   append(issues.Warnings, "Cannot preload.\n"),
 			Warnings: issues.Warnings,
 		}
 	}
@@ -170,7 +170,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	preloadList, listErr := chromiumpreload.GetLatest()
 	if listErr != nil {
 		msg := fmt.Sprintf(
-			"Internal error: could not retrieve latest preload list. (%s)\b",
+			"Internal error: could not retrieve latest preload list. (%s)\n",
 			listErr,
 		)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -228,7 +228,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	written := false
 	f, ok := w.(http.Flusher)
 	if !ok {
-		http.Error(w, "Internal error: Could not create `http.Flusher`.", http.StatusInternalServerError)
+		http.Error(w, "Internal error: Could not create `http.Flusher`.\n", http.StatusInternalServerError)
 		return
 	}
 	statusReport := func(format string, args ...interface{}) {
