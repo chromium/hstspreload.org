@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromiumpreload"
@@ -89,8 +90,9 @@ func submit(w http.ResponseWriter, r *http.Request) {
 		fallthrough
 	case StatusRemoved:
 		putErr := putState(DomainState{
-			Name:   domain,
-			Status: StatusPending,
+			Name:           domain,
+			Status:         StatusPending,
+			SubmissionDate: time.Now(),
 		})
 		if putErr != nil {
 			issues = hstspreload.Issues{
@@ -99,9 +101,10 @@ func submit(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	case StatusPending:
+		formattedDate := state.SubmissionDate.Format("Monday, _2 January 2006")
 		issues = hstspreload.Issues{
 			Errors:   issues.Errors,
-			Warnings: append(issues.Warnings, "Domain is already pending."),
+			Warnings: append(issues.Warnings, fmt.Sprintf("Domain is already pending. It was submitted on %s.", formattedDate)),
 		}
 	case StatusPreloaded:
 		issues = hstspreload.Issues{

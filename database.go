@@ -40,6 +40,8 @@ type DomainState struct {
 	// A custom message from the preload list maintainer explaining the
 	// current status of the site (usually to explain a StatusException).
 	Message string `datastore:",noindex" json:"messsage,omitempty"`
+	// The Unix time this domain was last submitted.
+	SubmissionDate time.Time `json:"-"`
 }
 
 // Updates the given domain updates in batches.
