@@ -44,6 +44,19 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// writeJSON  should only be called if nothing has been written yet.
+func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
+		http.Error(w, msg, 500)
+		return
+	}
+
+	fmt.Fprintf(w, "%s\n", b)
+	return
+}
+
 func status(w http.ResponseWriter, r *http.Request) {
 	domain := chromiumpreload.Domain(r.URL.Path[len("/status/"):])
 
@@ -64,18 +77,63 @@ func status(w http.ResponseWriter, r *http.Request) {
 		Message: state.Message,
 	}
 
-	b, err := json.MarshalIndent(domainStateJSON, "", "  ")
-	if err != nil {
-		msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
-		http.Error(w, msg, 500)
-		return
-	}
-
-	fmt.Fprintf(w, "%s\n", b)
+	writeJSONOrBust(w, domainStateJSON)
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /submit", 501)
+	domainStr := r.URL.Path[len("/submit/"):]
+	domain := chromiumpreload.Domain(domainStr)
+
+	issues := hstspreload.CheckDomain(domainStr)
+	if len(issues.Errors) > 0 {
+		writeJSONOrBust(w, issues)
+		return
+	}
+
+	state, stateErr := stateForDomain(domain)
+	if stateErr != nil {
+		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
+		http.Error(w, msg, 500)
+	}
+
+	switch state.Status {
+	case StatusUnknown:
+		fallthrough
+	case StatusRemoved:
+		putErr := putState(DomainState{
+			Name:   domain,
+			Status: StatusPending,
+		})
+		if putErr != nil {
+			issues = hstspreload.Issues{
+				Errors:   append(issues.Errors, "Internal error: Unable to save to the pending list."),
+				Warnings: issues.Warnings,
+			}
+		}
+	case StatusPending:
+		issues = hstspreload.Issues{
+			Errors:   issues.Errors,
+			Warnings: append(issues.Warnings, "Domain is already pending."),
+		}
+	case StatusPreloaded:
+		issues = hstspreload.Issues{
+			Errors:   append(issues.Errors, "Domain is already preloaded."),
+			Warnings: issues.Warnings,
+		}
+	case StatusRejected:
+		rejectedMsg := fmt.Sprintf("Domain has been rejected. (%s)", state.Message)
+		issues = hstspreload.Issues{
+			Errors:   append(issues.Warnings, rejectedMsg),
+			Warnings: issues.Warnings,
+		}
+	default:
+		issues = hstspreload.Issues{
+			Errors:   append(issues.Warnings, "Cannot preload."),
+			Warnings: issues.Warnings,
+		}
+	}
+
+	writeJSONOrBust(w, hstspreload.MakeSlices(issues))
 }
 
 func clear(w http.ResponseWriter, r *http.Request) {

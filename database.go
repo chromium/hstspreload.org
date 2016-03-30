@@ -99,6 +99,11 @@ func putStates(updates []DomainState, statusReport func(format string, args ...i
 	return nil
 }
 
+func putState(update DomainState) error {
+	ignoreStatus := func(format string, args ...interface{}) {}
+	return putStates([]DomainState{update}, ignoreStatus)
+}
+
 func statesForQuery(query *datastore.Query) (states []DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
