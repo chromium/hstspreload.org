@@ -42,8 +42,10 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// writeJSON  should only be called if nothing has been written yet.
+// writeJSONOrBust should only be called if nothing has been written yet.
 func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
+	w.Header().Set("Content-type", "text/css; charset=utf-8")
+
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
