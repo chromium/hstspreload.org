@@ -28,6 +28,7 @@ func init() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/style.css", styleCSS)
 	http.HandleFunc("/index.js", indexJS)
+	http.HandleFunc("/all", all)
 	http.HandleFunc("/submit/", submit)
 	http.HandleFunc("/clear/", clear)
 	http.HandleFunc("/pending", pending)
@@ -116,6 +117,48 @@ func clear(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal error", 409)
 		return
 	}
+}
+
+func all(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	w.Header().Set("Content-type", "text/plain; charset=utf-8")
+
+	query := datastore.NewQuery("HostState").Filter("Status >=", 0)
+	iter := query.Run(c)
+
+	type DomainStateJSON struct {
+		Name    string `json:"name"`
+		Status  int    `json:"status"`
+		Message string `json:"messsage,omitempty"`
+	}
+
+	var states []DomainStateJSON
+
+	for {
+		var state HostState
+
+		key, err := iter.Next(&state)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			fmt.Fprintf(w, "Error from iterator: %s\n", err.Error())
+			return
+		}
+
+		states = append(states, DomainStateJSON{
+			Name:    key.StringID(),
+			Status:  state.Status,
+			Message: state.Message,
+		})
+	}
+
+	b, err := json.MarshalIndent(states, "", "  ")
+	if err != nil {
+		fmt.Fprintf(w, "Error: %s\n", err)
+		return
+	}
+	fmt.Fprintf(w, "%s\n", b)
 }
 
 func pending(w http.ResponseWriter, r *http.Request) {
@@ -418,7 +461,7 @@ func setMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (r.Header.Get("referer") != "https://hstspreload.appspot.com/setmessage") {
+	if r.Header.Get("referer") != "https://hstspreload.appspot.com/setmessage" {
 		http.Error(w, "Not authorised", 403)
 		return
 	}
@@ -467,7 +510,7 @@ func setMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (r.Header.Get("referer") != "https://hstspreload.appspot.com/setmessages") {
+	if r.Header.Get("referer") != "https://hstspreload.appspot.com/setmessages" {
 		http.Error(w, "Not authorised", 403)
 		return
 	}
