@@ -178,6 +178,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// Create statusReport function to show progress.
+	written := false
 	f, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "Internal error: Could not create `http.Flusher`.", 500)
@@ -186,16 +187,22 @@ func update(w http.ResponseWriter, r *http.Request) {
 	statusReport := func(format string, args ...interface{}) {
 		fmt.Fprintf(w, format, args...)
 		f.Flush()
+		written = true
 	}
 
 	// Update the database
 	putErr := putStates(updates, statusReport)
 	if putErr != nil {
 		msg := fmt.Sprintf(
-			"Internal error: datastore update failed. (%s)\b",
+			"Internal error: datastore update failed. (%s)\n",
 			putErr,
 		)
-		http.Error(w, msg, 500)
+		if written {
+			// The header has already been sent, so we can't return 500.
+			fmt.Fprintf(w, msg)
+		} else {
+			http.Error(w, msg, 500)
+		}
 		return
 	}
 

@@ -66,14 +66,14 @@ func putStates(updates []DomainState, statusReport func(format string, args ...i
 	}
 
 	putMulti := func(keys []*datastore.Key, values []*DomainState) error {
-		statusReport("Updating %d entries.\n", len(keys))
+		statusReport("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
-			statusReport("failed.\n")
+			statusReport(" failed.\n")
 			return err
 		}
 
-		statusReport("done.\n")
+		statusReport(" done.\n")
 		return nil
 	}
 
