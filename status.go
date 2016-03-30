@@ -27,6 +27,14 @@ const (
 	StatusRemoved
 )
 
+var statusToString map[int]string = map[int]string{
+	StatusUnknown:   "unknown",
+	StatusPending:   "pending",
+	StatusPreloaded: "preloaded",
+	StatusRejected:  "rejected",
+	StatusRemoved:   "removed",
+}
+
 // DomainState represents the state stored for a domain in the hstspreload
 // submission app database.
 type DomainState struct {
@@ -136,6 +144,31 @@ func domainsForQuery(query *datastore.Query) (domains []chromiumpreload.Domain, 
 	}
 
 	return domains, nil
+}
+
+// Get the state for the given domain.
+// The Name field of `state` will not be set.
+func stateForDomain(domain chromiumpreload.Domain) (state DomainState, err error) {
+	// Set up the datastore context.
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := datastore.NewClient(c, projectId)
+	if datastoreErr != nil {
+		return state, datastoreErr
+	}
+
+	key := datastore.NewKey(c, domainStateKind, string(domain), 0, nil)
+	getErr := client.Get(c, key, &state)
+	if getErr != nil {
+		if getErr == datastore.ErrNoSuchEntity {
+			return DomainState{Status: StatusUnknown}, nil
+		} else {
+			return state, getErr
+		}
+	}
+
+	return state, nil
 }
 
 func allDomainStates() (states []DomainState, err error) {

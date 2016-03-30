@@ -19,6 +19,7 @@ func main() {
 	http.HandleFunc("/favicon.ico", http.NotFound)
 
 	http.HandleFunc("/checkdomain/", checkdomain)
+	http.HandleFunc("/status/", status)
 
 	http.HandleFunc("/submit/", submit)
 	http.HandleFunc("/clear/", clear)
@@ -41,6 +42,36 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprintf(w, "%s\n", b)
 	}
+}
+
+func status(w http.ResponseWriter, r *http.Request) {
+	domain := chromiumpreload.Domain(r.URL.Path[len("/status/"):])
+
+	state, err := stateForDomain(domain)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
+		http.Error(w, msg, 500)
+		return
+	}
+
+	domainStateJSON := struct {
+		Name    chromiumpreload.Domain `json:"name"`
+		Status  string                 `json:"status,name"`
+		Message string                 `json:"messsage,omitempty"`
+	}{
+		Name:    domain,
+		Status:  statusToString[state.Status],
+		Message: state.Message,
+	}
+
+	b, err := json.MarshalIndent(domainStateJSON, "", "  ")
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
+		http.Error(w, msg, 500)
+		return
+	}
+
+	fmt.Fprintf(w, "%s\n", b)
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {
