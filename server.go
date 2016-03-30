@@ -22,11 +22,8 @@ func main() {
 	http.HandleFunc("/status/", status)
 
 	http.HandleFunc("/submit/", submit)
-	http.HandleFunc("/clear/", clear)
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
-	http.HandleFunc("/setmessage", setMessage)
-	http.HandleFunc("/setmessages", setMessages)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -134,10 +131,6 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONOrBust(w, hstspreload.MakeSlices(issues))
-}
-
-func clear(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /clear", 501)
 }
 
 func pending(w http.ResponseWriter, r *http.Request) {
@@ -265,12 +258,4 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "Success. %d domain states updated.\n", len(updates))
-}
-
-func setMessage(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /setMessage", 501)
-}
-
-func setMessages(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unimplemented: /setMessages", 501)
 }

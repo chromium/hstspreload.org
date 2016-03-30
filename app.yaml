@@ -13,8 +13,6 @@ handlers:
   script: _go_app
 - url: /submit/.*
   script: _go_app
-- url: /clear/.*
-  script: _go_app
 - url: /pending
   script: _go_app
 - url: /update
@@ -22,8 +20,4 @@ handlers:
 - url: /robots.txt
   script: _go_app
 - url: /favicon.ico
-  script: _go_app
-- url: /setmessage
-  script: _go_app
-- url: /setmessages
   script: _go_app
