@@ -19,33 +19,27 @@ const (
 	domainStateKind = "DomainState"
 )
 
-const (
-	StatusUnknown = iota
-	StatusPending
-	StatusPreloaded
-	StatusRejected
-	StatusRemoved
-)
+type PreloadStatus string
 
-var statusToString map[int]string = map[int]string{
-	StatusUnknown:   "unknown",
-	StatusPending:   "pending",
-	StatusPreloaded: "preloaded",
-	StatusRejected:  "rejected",
-	StatusRemoved:   "removed",
-}
+const (
+	StatusUnknown   = "unknown"
+	StatusPending   = "pending"
+	StatusPreloaded = "preloaded"
+	StatusRejected  = "rejected"
+	StatusRemoved   = "removed"
+)
 
 // DomainState represents the state stored for a domain in the hstspreload
 // submission app database.
 type DomainState struct {
 	// Name is the key in the datastore, so we don't include it as a field
 	// in the stored value.
-	Name chromiumpreload.Domain `datastore:"-"`
+	Name chromiumpreload.Domain `datastore:"-" json:"name"`
 	// e.g. StatusPending or StatusPreloaded
-	Status int
+	Status PreloadStatus `json:"status"`
 	// A custom message from the preload list maintainer explaining the
 	// current status of the site (usually to explain a StatusException).
-	Message string `datastore:",noindex"`
+	Message string `datastore:",noindex" json:"messsage,omitempty"`
 }
 
 // Updates the given domain updates in batches.
@@ -180,6 +174,6 @@ func allDomainStates() (states []DomainState, err error) {
 	return statesForQuery(datastore.NewQuery("DomainState"))
 }
 
-func domainsWithStatus(status int) (domains []chromiumpreload.Domain, err error) {
-	return domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", status))
+func domainsWithStatus(status PreloadStatus) (domains []chromiumpreload.Domain, err error) {
+	return domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
