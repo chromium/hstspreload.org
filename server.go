@@ -66,7 +66,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 
 	domainStateJSON := struct {
 		Name    chromiumpreload.Domain `json:"name"`
-		Status  string                 `json:"status,name"`
+		Status  string                 `json:"status"`
 		Message string                 `json:"messsage,omitempty"`
 	}{
 		Name:    domain,
