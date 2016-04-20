@@ -90,6 +90,8 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	switch state.Status {
 	case StatusUnknown:
 		fallthrough
+	case StatusRejected:
+		fallthrough
 	case StatusRemoved:
 		putErr := putState(DomainState{
 			Name:           domain,
@@ -111,12 +113,6 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	case StatusPreloaded:
 		issues = hstspreload.Issues{
 			Errors:   append(issues.Errors, "Domain is already preloaded.\n"),
-			Warnings: issues.Warnings,
-		}
-	case StatusRejected:
-		rejectedMsg := fmt.Sprintf("Domain has been rejected. (%s)\n", state.Message)
-		issues = hstspreload.Issues{
-			Errors:   append(issues.Warnings, rejectedMsg),
 			Warnings: issues.Warnings,
 		}
 	default:
