@@ -38,7 +38,7 @@ type DomainState struct {
 	// e.g. StatusPending or StatusPreloaded
 	Status PreloadStatus `json:"status"`
 	// A custom message from the preload list maintainer explaining the
-	// current status of the site (usually to explain a StatusException).
+	// current status of the site (usually to explain a StatusRejected).
 	Message string `datastore:",noindex" json:"messsage,omitempty"`
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
