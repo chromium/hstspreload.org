@@ -32,7 +32,7 @@ func main() {
 func checkdomain(w http.ResponseWriter, r *http.Request) {
 	domain := r.URL.Path[len("/checkdomain/"):]
 
-	issues := hstspreload.CheckDomain(domain)
+	issues := hstspreload.PreloadableDomain(domain)
 
 	b, err := json.MarshalIndent(hstspreload.MakeSlices(issues), "", "  ")
 	if err != nil {
@@ -75,7 +75,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 	domainStr := r.URL.Path[len("/submit/"):]
 	domain := chromiumpreload.Domain(domainStr)
 
-	issues := hstspreload.CheckDomain(domainStr)
+	issues := hstspreload.PreloadableDomain(domainStr)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
 		return
