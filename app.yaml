@@ -5,7 +5,7 @@ api_version: go1
 handlers:
 - url: /
   script: _go_app
-- url: /style.css
+- url: /static/.*
   script: _go_app
 - url: /checkdomain/.*
   script: _go_app

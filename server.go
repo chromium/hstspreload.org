@@ -11,10 +11,9 @@ import (
 )
 
 func main() {
-	staticHandler := http.FileServer(http.Dir("static"))
+	staticHandler := http.FileServer(http.Dir("files"))
 	http.Handle("/", staticHandler)
-	http.Handle("/style.css", staticHandler)
-	http.Handle("/index.js", staticHandler)
+	http.Handle("/static/", staticHandler)
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 	http.HandleFunc("/favicon.ico", http.NotFound)
