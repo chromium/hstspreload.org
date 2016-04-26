@@ -33,7 +33,7 @@ func checkdomain(w http.ResponseWriter, r *http.Request) {
 
 	_, issues := hstspreload.PreloadableDomain(domain)
 
-	b, err := json.MarshalIndent(hstspreload.MakeSlices(issues), "", "  ")
+	b, err := json.MarshalIndent(issues, "", "  ")
 	if err != nil {
 		http.Error(w, "Internal error: could not encode JSON.\n", http.StatusInternalServerError)
 	} else {
@@ -121,7 +121,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSONOrBust(w, hstspreload.MakeSlices(issues))
+	writeJSONOrBust(w, issues)
 }
 
 func pending(w http.ResponseWriter, r *http.Request) {
