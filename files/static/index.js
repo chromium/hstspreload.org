@@ -1,186 +1,340 @@
-var requestedDomain = "";
+"use strict";
 
-function keypress(e) {
-  var code = (e.keyCode ? e.keyCode : e.which);
-  if (code != 13) {
-    return;
-  }
+var $ = document.querySelector.bind(document);
 
-  var textInput = document.getElementById("textinput");
-  textInput.disabled = true;
-  var domain = textInput.value;
+function PreloadSubmission() {
+  this.setDomainFromURLParam();
 
-  clearOutput();
+  $("#domain-form").addEventListener("submit", function(ev) {
+    this.onDomainChanged();
+    ev.preventDefault();
+  }.bind(this));
 
-  if (domain.indexOf(":") != -1) {
-    var parser = document.createElement('a');
-    parser.href = domain;
-    domain = parser.hostname;
-  }
-
-  if (domain === undefined || domain.length < 1) {
-    showError("That doesn't look like a domain name.");
-    return;
-  }
-
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", "/submit/" + domain, true);
-  xhr.onreadystatechange = handleReply;
-  xhr.onerror = handleError;
-  xhr.onTimeout = handleTimeout;
-  xhr.timeout = 10000;
-  requestedDomain = domain;
-  xhr.send(null);
+  $("#checkbox-owner").addEventListener("change", this.onCheckBoxChanged.bind(this));
+  $("#checkbox-subdomains").addEventListener("change", this.onCheckBoxChanged.bind(this));
+  $("#submit-form").addEventListener("submit", function(ev) {
+    this.onSubmitForm();
+    ev.preventDefault();
+  }.bind(this));
 }
 
-function handleReply(progress) {
-  var xhr = progress.target;
+PreloadSubmission.prototype = {
+  // TODO: look at response codes.
+  status: function(domain) {
+    return new Promise(function(resolve, reject) {
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", (function(ev) {
+        resolve(JSON.parse(oReq.response));
+      }).bind(this));
+      oReq.open("GET", "/status/" + domain);
+      oReq.send();
+    });
+  },
 
-  if (xhr.readyState != 4) {
-    return;
-  }
+  checkdomain: function(domain) {
+    console.log("checkdomain:" + domain);
+    return new Promise(function(resolve, reject) {
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", (function(ev) {
+        resolve(JSON.parse(oReq.response));
+      }).bind(this));
+      oReq.open("GET", "/checkdomain/" + domain);
+      oReq.send();
+    });
+  },
 
-  if (xhr.status != 200) {
-    showError("Request to server returned status " + xhr.status + ".");
-    return;
-  }
+  submit: function(domain) {
+    console.log("checkdomain:" + domain);
+    return new Promise(function(resolve, reject) {
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", (function(ev) {
+        resolve(JSON.parse(oReq.response));
+      }).bind(this));
+      oReq.open("GET", "/submit/" + domain);
+      oReq.send();
+    });
+  },
 
-  var j = JSON.parse(xhr.responseText);
-  if (j['Error'] != undefined) {
-    showError(j['Error']);
-    return;
-  }
+  isValidDomainFormat: function(domain) {
+    return domain.includes(".") &&
+          !domain.endsWith(".") &&
+          !domain.startsWith(".") &&
+          !domain.includes("..");
+  },
 
-  var wholeDomainsMsg = "Only whole domains can be submitted because the interaction of cookies, HSTS and user behaviour is complex and we believe that only accepting whole domains is simple enough to have clear security semantics and usually the correct choice for sites.";
+  // hasLikelyETLD1: function(domain) {
+  //   // Submitting .com domains is common; don't use the fast path for .co
+  //   // Same for .net => .ne
+  //   if (domain.endsWith(".co") || domain.endsWith(".ne")) {
+  //     return true;
+  //   }
 
-  if (j['Canon'] != undefined) {
-    var textInput = document.getElementById("textinput");
+  //   var publicsuffix = tldjs.getPublicSuffix(domain)
+  //   return publicsuffix !== null && publicsuffix !== domain;
+  // },
 
-    textInput.value = j['Canon'];
-    textInput.focus();
+  clearTheme: function(theme) {
+    document.body.classList.remove("theme-green", "theme-yellow", "theme-red");
+  },
 
-    showMessage(wholeDomainsMsg + " (Based on public-suffix lists, " + requestedDomain + " is a subdomain of " + j['Canon'] + ".)");
-    return;
-  }
+  setTheme: function(theme) {
+    this.clearTheme();
+    document.body.classList.add(theme)
+  },
 
-  if (j['Exception'] != undefined) {
-    showMessage("This host failed manual review. The following message was set for it.");
-    showMessage(j['Exception']);
-    showMessage("You can remove this entry by clicking the button below. (This will allow you to resubmit if you so choose.)");
+  currentDomain: function() {
+    var domain = $("#domain").value;
+    // Check for pasted URLs beginning with http:// or https://
+    if (domain.startsWith("http://")) {
+      domain = domain.slice("http://".length)
+    }
+    if (domain.startsWith("https://")) {
+      domain = domain.slice("https://".length)
+    }
+    return domain;
+  },
 
-    var button = document.createElement('input');
-    button.type = "submit";
-    button.value = "Clear";
-    document.getElementById("msg").appendChild(button);
-    button.onclick = function(e) {
-      document.getElementById("textinput").disabled = true;
-      clearOutput();
+  clearResults: function() {
+    $("#result").classList.add("hidden");
+  },
 
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", "/clear/" + requestedDomain, true);
-      xhr.onreadystatechange = handleClearReply;
-      xhr.onerror = handleError;
-      xhr.onTimeout = handleTimeout;
-      xhr.timeout = 10000;
-      xhr.send(null);
+  showResults: function(domain, checkDomainIssues, domainStatus) {
+    if (checkDomainIssues.errors.length === 0) {
+      if (checkDomainIssues.warnings.length === 0) {
+        $("#summary").textContent = "" + domain + " satisfies all requirements for preloading!";
+        this.setTheme("theme-green");
+      } else {
+        $("#summary").textContent = "" + domain + " has " + (checkDomainIssues.warnings.length == 1 ? "a warning" : "warnings") + ", but satisfies all requirements for preloading.";
+        this.setTheme("theme-yellow");
+      }
+    } else {
+        $("#summary").textContent = "" + domain + " has errors and cannot be preloaded.";
+        this.setTheme("theme-red");
     }
 
-    return;
-  }
-
-  if (j['IsPending']) {
-    showMessage("That domain name has already been accepted and is pending review. Note that review can take several weeks.");
-    return;
-  }
-
-  if (j['IsPreloaded']) {
-    showMessage("That domain name is already preloaded! If you don't see it, note that changes follow the usual canary, dev, beta, stable progression and so can take several months to reach a stable release.");
-    return;
-  }
-
-  if (j['NoHeader']) {
-    showMessage("No HSTS header was found on that domain. See below about the requirements for preloading.");
-    if (j['WasRedirect']) {
-      showMessage("Note that the request resulted in a redirect. Ensure that the redirect itself has the HSTS header and not just the target page.");
+    switch (domainStatus.status) {
+    case "unknown":
+      if (checkDomainIssues.errors.length === 0) {
+        $("#status").textContent = "" + domain + " is not yet preloaded, and may be submitted to the preload list."
+      } else {
+        $("#status").textContent = "" + domain + " is not preloaded."
+      }
+      break;
+    case "pending":
+      $("#status").textContent = "" + domain + " is pending submission to the preload list."
+      break;
+    case "preloaded":
+      $("#status").textContent = "" + domain + " is currently preloaded."
+      break;
+    case "rejected":
+      // TODO: do something useful if domainStatus.message is not present.
+      if (domainStatus.message) {
+        $("#status").textContent = "" + domain + " was rejected from the preload list for the following reason: " + domainStatus.message;
+      } else {
+        $("#status").textContent = "" + domain + " was rejected from the preload list.";
+      }
+      if (checkDomainIssues.errors.length === 0) {
+        $("#status").textContent += " It may be submitted again."
+      }
+      break;
+    case "removed":
+      if (checkDomainIssues.warnings.length === 0) {
+        $("#status").textContent = "" + domain + " was previously on the preload list, but has been removed. It may be submitted again.";
+      } else {
+        $("#status").textContent = "" + domain + " was previously on the preload list, but has been removed.";
+      }
+      break;
+    default:
+      $("#status").textContent = "Cannot determine preload status.";
     }
-    return;
+
+    function createIssueElement(issue, bullet, className) {
+      var el = document.createElement("div");
+      el.classList.add(className);
+      // summary.title = issue.code;
+
+      var bulletSpan = document.createElement("span");
+      bulletSpan.textContent = bullet + " ";
+      el.appendChild(bulletSpan);
+
+      var summary = document.createElement("span")
+      summary.classList.add("summary");
+      summary.textContent = issue.summary;
+      el.appendChild(summary);
+
+      var br = document.createElement("br")
+      el.appendChild(br);
+
+      var message = document.createElement("span")
+      message.textContent = issue.message;
+      el.appendChild(message);
+
+      return el;
+    }
+
+    $("#errors").textContent = "";
+    $("#warnings").textContent = "";
+    for (var i in checkDomainIssues.errors) {
+      var error = checkDomainIssues.errors[i];
+      var el = createIssueElement(error, "❌", "error");
+      $("#errors").appendChild(el);
+    }
+    for (var j in checkDomainIssues.warnings) {
+      var warning = checkDomainIssues.warnings[j];
+      var el = createIssueElement(warning, "⚠️", "warning");
+      $("#warnings").appendChild(el);
+    }
+
+    $("#result").classList.remove("hidden");
+  },
+
+  hideSubmission: function() {
+    $("#submit-form").classList.add("hidden");
+  },
+
+  showSubmission: function() {
+    $("#checkbox-owner").checked = false;
+    $("#checkbox-subdomains").checked = false;
+    $("#submit").disabled = true;
+
+    $("#submit-form").classList.remove("hidden");
+  },
+
+  onSubmitForm: function() {
+    this.submit(this.domainToSubmit).then(function(issues) {
+      console.log("submit:", issues);
+      $("#submit-result").classList.remove("hidden");
+      if (issues.errors.length == 0) {
+        $("#submit-result").textContent = "Submitted successfully!";
+        // TODO: Now try SSL Labs!
+      } else {
+        $("#submit-result").textContent = "There are errors. Please submit your site again.";
+      }
+    });
+  },
+
+  showWaiting: function(domain) {
+    $("#checking").textContent = "Checking  " + domain;
+
+    $("#result-waiting").classList.remove("hidden");
+  },
+
+  hideWaiting: function() {
+    $("#result-waiting").classList.add("hidden");
+  },
+
+  updateURLHash: function(domain) {
+    console.log(domain);
+    if (domain) {
+      history.replaceState({}, document.title, ".?domain=" + domain);
+    } else {
+      history.replaceState({}, document.title, ".");
+    }
+  },
+
+  onDomainChanged: function() {
+    var domain = this.currentDomain();
+    this.showWaiting(domain);
+    this.clearResults();
+    this.hideSubmission();
+    this.updateURLHash(domain);
+    this.clearTheme()
+
+    if (!domain) {
+      $("#result-waiting").classList.add("hidden");
+      return;
+    }
+
+    this.currentResultsDomain = "";
+
+    Promise.all([
+      this.checkdomain(domain),
+      this.status(domain)
+    ]).then(function(values) {
+      this.handleResults(domain, values[0], values[1]);
+    }.bind(this), function() {
+        // TODO: handle failure better.
+        $("#result").classList.remove("hidden");
+        $("#result-waiting").classList.add("hidden");
+    });
+  },
+
+  onCheckBoxChanged: function() {
+    $("#submit").disabled = !($("#checkbox-owner").checked && $("#checkbox-subdomains").checked);
+  },
+
+  handleResults: function(domain, checkDomainIssues, domainStatus) {
+    console.log("handleResults:", checkDomainIssues, domainStatus);
+
+    if (domain !== this.currentDomain()) {
+      return;
+    }
+    if (this.currentResultsDomain === domain) {
+      return;
+    } else {
+      this.currentResultsDomain = domain;
+    }
+
+    if (domain !== this.currentDomain()) {
+      console.log("Outdated result.");
+      return;
+    }
+
+    this.showResults(domain, checkDomainIssues, domainStatus);
+    this.hideWaiting();
+
+    if (checkDomainIssues.errors.length === 0 && ["unknown", "rejected", "removed"].indexOf(domainStatus.status) != -1) {
+      this.domainToSubmit = domain;
+      this.showSubmission();
+    }
+  },
+
+  domainFromURLParam: function() {
+    var match = window.location.search.match(/^\?domain=([^?&]+)$/);
+    return match ? decodeURIComponent(match[1]) : null;
+  },
+
+  setDomainFromURLParam: function() {
+    var domain = this.domainFromURLParam();
+    if (domain) {
+      console.log("From URL parameter:", domain);
+      $("#domain").value = domain;
+      this.onDomainChanged();
+    }
   }
 
-  var bad = false;
+  // showResult: function(domain, status) {
+  //   console.log(status);   
 
-  if (j['NoPreload']) {
-    showMessage("The HSTS header on that site doesn't include a preload token. This is a non-standard token but it's used to authenticate the preload request.");
-    bad = true;
-  }
+  //   this.showElement("resultError");
+  //   $("#resultSummary").textContent = domain + "hi there"
 
-  if (j['MaxAge'] != undefined && j['MaxAge'] < 10886400) {
-    showMessage("The max-age in the HSTS header is too short. It's currently " + j['MaxAge'] + " seconds, but it needs to be at least eighteen weeks (10886400 seconds).");
-    bad = true;
-  }
+  //   // ✅
 
-  if (j['NoSubdomains']) {
-    showMessage("The includeSubdomains token is missing from the HSTS header. " + wholeDomainsMsg);
-    bad = true;
-  }
+  //   var errorsElem = $("#resultError").querySelector(".errors")
+  //   for (var i in status.errors) {
+  //     console.log("aaa")
+  //     var li = document.createElement("li");
+  //     li.textContent = "❌ " + status.errors[i]
+  //     errorsElem.appendChild(li);
+  //   }
 
-  if (bad) {
-    showMessage("Fix the HSTS header and try again.");
-    return;
-  }
+  //   var warningsElem = $("#resultError").querySelector(".warnings")
+  //   for (var i in status.warnings) {
+  //     var li = document.createElement("li");
+  //     li.textContent = "⚠️ " + status.warnings[i]
+  //     warningsElem.appendChild(li);
+  //   }
+  // },
 
-  if (j['Accepted']) {
-    showMessage("Thank you! That domain has been queued for review. Review can take several weeks. You can check the status by entering the same domain again in the future.");
-
-    var p = document.createElement('p');
-    p.innerHTML = "Next, <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=" + requestedDomain + "\">check your HTTPS configuration</a> and fix any issues!";
-    document.getElementById("msg").appendChild(p);
-
-    document.getElementById("textinput").value = "";
-    return;
-  }
-
-  showError("Bad reply from server");
+  // showElement: function(id) {
+  //   var ids = ["loading", "domainForm", "resultError"]
+  //   for (var i in ids) {
+  //     document.getElementById(ids[i]).style.display = (ids[i] == id) ? "block" : "block";
+  //   }
+  // }
 }
 
-function handleTimeout(xhr) {
-  showError("Request timed out.");
-}
-
-function handleError(xhr) {
-  showError("Request to server failed.");
-}
-
-function handleClearReply(progress) {
-  var xhr = progress.target;
-
-  if (xhr.readyState != 4) {
-    return;
-  }
-
-  if (xhr.status != 200) {
-    showError("Request to server returned status " + xhr.status + ".");
-    return;
-  }
-
-  showMessage("Entry deleted");
-}
-
-function clearOutput() {
-  var msgDiv = document.getElementById("msg");
-  while (msgDiv.hasChildNodes()) {
-    msgDiv.removeChild(msgDiv.lastChild);
-  }
-  document.getElementById("error").textContent = "";
-}
-
-function showError(msg) {
-  document.getElementById("error").textContent = "Sorry! " + msg;
-  document.getElementById("textinput").disabled = false;
-}
-
-function showMessage(msg) {
-  var p = document.createElement('p');
-  p.textContent = msg;
-  document.getElementById("msg").appendChild(p);
-  document.getElementById("textinput").disabled = false;
-}
+window.addEventListener("load", function() {
+  new PreloadSubmission();
+});

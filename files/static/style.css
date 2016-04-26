@@ -1,3 +1,7 @@
+html, body {
+  width: 100%;
+}
+
 body {
   margin: 0;
   background-color: #f5f5f5;
@@ -15,25 +19,22 @@ body {
 
   font-family: "Roboto", Helvetica, Tahoma, sans-serif;
 }
-
-.ribbon {
-  width: 100%;
-  height: 40vh;
-  background-color: #3F51B5;
-}
-
 .content {
   padding: 80px 56px;
   font-size: 14px;
   background-color: #ffffff;
   color: #424242;
-  margin: calc(-35vh + 16px) auto 80px;
+  margin: 2em auto;
   max-width: 939px;
   width: calc(80% - 138px);
   box-shadow:0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12),0 2px 4px -1px rgba(0,0,0,.2);
   border-radius: 2px;
 
   line-height: 24px;
+}
+
+.first-content {
+  margin-top: 4em;
 }
 
 @media (max-width: 839px) {
@@ -45,11 +46,6 @@ body {
   .header {
     height: 56px;
   }
-}
-
-.crumbs{
-  color:#9e9e9e;
-  line-height: 20px;
 }
 
 h3 {
@@ -78,41 +74,161 @@ p {
   padding: 2em 4em;
 }
 
-.ribbon {
-  background: #39845E;
-}
-
-#entry {
+.form {
   padding: 2em;
-  background: #dfe;
-  border-top: 2px solid gray;
-  border-bottom: 2px solid gray;
 }
 
-#entry h2 {
+.form h2 {
   font-family: sans-serif;
   text-align: center;
 }
 
-#entry input {
+.form {
+  text-align: center
+}
+
+.form input[type=submit],
+.form input[type=text] {
   font-family: sans-serif;
   margin: auto;
   font-size: 1.5em;
-  display: block;
+  /*display: block;*/
   margin-bottom: 1em;
   width: 100%;
   max-width: 20em;
   text-align: center;
 }
 
-#entry p {
+form input#domain {
+  margin-bottom: 0.5em;
+}
+
+.form button {
+  font-size: 1.5em;
+}
+
+.form p {
   font-family: sans-serif;
   font-size: 1.2em;
   display: block;
   text-align: center;
 }
 
-#error {
-  color: red;
+
+.issues {
+  margin: 2em -2em;
+}
+.issues-list {
+  text-align: left;
 }
 
+.issues-list div {
+  border-top: 1px solid rgb(127, 127, 127);
+  /*background: rgba(255, 0, 0, 0.25);*/
+  display: block;
+  padding: 1em 2em;
+  margin-bottom: -1px;
+}
+
+.issues .summary {
+  font-weight: bold;
+}
+
+.issues-list div:last-child {
+  border-bottom: 1px solid rgb(127, 127, 127);
+}
+
+#result {
+  padding: 1em 0em;
+}
+
+#no-errors {
+  text-align: center;
+}
+
+#result-waiting {
+  text-align: center;
+  padding: 2em;
+}
+
+#checkboxes {
+  text-align: left;
+  max-width: 30em;
+  margin: 0em auto;
+}
+
+#checkboxes input[type=checkbox] {
+  width: 2em;
+  margin-left: -2em;
+  margin-right: 0;
+}
+
+#checkboxes label {
+  display: inline-block;
+  /*margin-bottom: 1em;*/
+}
+
+
+/* Spinner */
+
+.spinner {
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  border-radius: 1.25em;
+
+  border: 0.25em solid rgba(0, 0, 0, 0);
+  border-top: 0.25em solid rgba(0, 0, 0, 0.7);
+  border-right: 0.25em solid rgba(0, 0, 0, 0.7);
+
+  animation: spinnerRotate 1s linear infinite;
+  margin-bottom: 1em;
+}
+
+@keyframes spinnerRotate
+{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+}
+
+.hidden, .form input.hidden {
+  display: none;
+}
+
+#oops {
+  /*display: inline-block;*/
+  /*padding: 0.5em;*/
+  color: rgb(160, 170, 160);
+  /*border: 1px solid rgba(0, 0,0, 0.2);*/
+  /*background: rgba(255, 255, 255, 1);*/
+  margin: -1em 0em 1em;
+}
+
+#oops a {
+  color: rgb(130, 130, 140);
+}
+
+hr {
+  border: 1px solid #AAA;
+  margin: 1em 2em 3em;
+}
+
+/* Theming */
+
+body { background: rgba(0, 0, 0, 0.50);}
+.form   { background: rgba(0, 0, 0, 0.05);}
+
+body.theme-green { background: #0d904f; }
+body.theme-green .form   { background: #ddffee; }
+
+body.theme-red { background:#c62828; }
+body.theme-red .form   { background: #ffebee; }
+
+body.theme-yellow { background: #fdd835; }
+body.theme-yellow .form   { background: #fffde7; }
+
+#errors div { background: #ffcdd2; }
+#errors .summary { color: #c62828; }
+
+#warnings div { background: #fff9c4; }
+#warnings .summary { color: #ff8f00; }

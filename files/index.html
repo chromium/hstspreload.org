@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=0.5">
@@ -5,24 +6,66 @@
   <link rel="stylesheet" href="static/style.css">
   <script src="static/index.js"></script>
 </head>
-<body>
+<body class="theme-green">
 
-<div class="ribbon"></div>
-<div class="content submission">
+<div class="content first-content">
 
-  <div class="inner-content">
-    <div class="crumbs">
-      HSTS &gt; Preload List &gt; Submit
+
+  <div class="form">
+
+    <form id="domain-form">
+
+      <h2><label for="domain">
+        Enter a domain for the HSTS preload list:
+      </label></h2>
+
+      <input id="domain" type="text" placeholder="example.com" autofocus autocorrect="off" autocapitalize="off" spellcheck="false"></input>
+      <br>
+      <input id="check" type="submit" value="Check eligibility and status">
+    </form>
+
+    <div id="result-waiting" class="hidden">
+      <div id="spinner" class="spinner"></div>
+      <br>
+      <div id="checking"></div>
     </div>
+
+    <div id="result" class="hidden">
+      <div id="summary"></div>
+      <div id="status"></div>
+      <div class="issues">
+        <div id="errors" class="issues-list"></div>
+        <div id="warnings" class="issues-list"></div>
+      </div>
+    </div>
+    
+    <form id="submit-form" class="hidden">
+    <hr>
+      <h2 id="submit-title">Submit</h2>
+      <div id="checkboxes">
+        <label>
+          <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
+        </label>
+        <span id="oops">
+        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending a HSTS <tt>preload</tt> directive by accident. Please contact <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a> to let us know.)
+        </span>
+        <br><br>
+        <label>
+          <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <span id="domain-3">example.com</span> will prevent all subdomains (<tt>*.<span class="domain-text">example.com</span></tt>) from being accessed without a valid HTTPS certificate.</span></label>
+      </div>
+      <br>
+      <input id="submit" type="submit" disabled
+         value="Submit to the HSTS Preload List">
+    </form>
+
+    <div id="submit-result" class="hidden">
+    </div>
+
   </div>
 
-  <div id="entry">
-    <h2><label for="textinput">Enter a domain to include in the HSTS preload list:</label></h2>
-    <input id="textinput" onkeypress="keypress(event)" type="text" placeholder="example.com" autofocus></input>
+</div>
 
-    <p id="error"></p>
-    <div id="msg"></div>
-  </div>
+<div class="content submission">
 
   <div class="inner-content">
 
