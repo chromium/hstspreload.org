@@ -98,25 +98,45 @@ func submit(w http.ResponseWriter, r *http.Request) {
 			SubmissionDate: time.Now(),
 		})
 		if putErr != nil {
+			issue := hstspreload.Issue{
+				Code:    "internal.server.preload.save_failed",
+				Summary: "Internal error",
+				Message: "Unable to save to the pending list.",
+			}
 			issues = hstspreload.Issues{
-				Errors:   append(issues.Errors, "Internal error: Unable to save to the pending list.\n"),
+				Errors:   append(issues.Errors, issue),
 				Warnings: issues.Warnings,
 			}
 		}
 	case StatusPending:
 		formattedDate := state.SubmissionDate.Format("Monday, _2 January 2006")
+		issue := hstspreload.Issue{
+			Code:    "server.preload.already_pending",
+			Summary: "Domain has already been submitted",
+			Message: fmt.Sprintf("Domain is already pending. It was submitted on %s.", formattedDate),
+		}
 		issues = hstspreload.Issues{
 			Errors:   issues.Errors,
-			Warnings: append(issues.Warnings, fmt.Sprintf("Domain is already pending. It was submitted on %s.\n", formattedDate)),
+			Warnings: append(issues.Warnings, issue),
 		}
 	case StatusPreloaded:
+		issue := hstspreload.Issue{
+			Code:    "server.preload.already_preloaded",
+			Summary: "Domain is already preloaded",
+			Message: "The domain is already preloaded.",
+		}
 		issues = hstspreload.Issues{
-			Errors:   append(issues.Errors, "Domain is already preloaded.\n"),
+			Errors:   append(issues.Errors, issue),
 			Warnings: issues.Warnings,
 		}
 	default:
+		issue := hstspreload.Issue{
+			Code:    "internal.server.preload.unknown_status",
+			Summary: "Internal error",
+			Message: "Cannot preload; could not find domain status.",
+		}
 		issues = hstspreload.Issues{
-			Errors:   append(issues.Warnings, "Cannot preload.\n"),
+			Errors:   append(issues.Warnings, issue),
 			Warnings: issues.Warnings,
 		}
 	}
