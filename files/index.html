@@ -11,7 +11,7 @@
 <body class="theme-green">
 
 <div class="content form">
-  <form id="domain-form">
+  <form id="domain-form" class="hidden">
     <h2><label for="domain">
       Enter a domain for the HSTS preload list:
     </label></h2>
@@ -21,7 +21,13 @@
     </input>
     <br>
     <input id="check" type="submit" value="Check eligibility and status">
+
   </form>
+
+  <!-- We un-hide the form using inline JS so that (when JS is enabled)
+       it shows in the normal rendering order as if it was never hidden. -->
+  <script>document.getElementById("domain-form").classList.remove("hidden");</script>
+  <noscript>Submitting entries to the HSTS preload list via this site requires Javascript.</noscript>
 
   <div id="result-waiting" class="hidden">
     <div id="spinner" class="spinner"></div>

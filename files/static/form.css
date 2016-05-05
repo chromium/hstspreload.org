@@ -20,6 +20,13 @@
   margin: 0 auto 0.5em;
 }
 
+noscript {
+  display: block;
+  margin: 2em 4em;
+  font-size: 1.5em;
+  color: gray;
+}
+
 /******** result-waiting ********/
 
 #result-waiting {
