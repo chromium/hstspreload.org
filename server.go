@@ -13,10 +13,10 @@ import (
 func main() {
 	staticHandler := http.FileServer(http.Dir("files"))
 	http.Handle("/", staticHandler)
+	http.Handle("/favicon.ico", staticHandler)
 	http.Handle("/static/", staticHandler)
 
 	http.HandleFunc("/robots.txt", http.NotFound)
-	http.HandleFunc("/favicon.ico", http.NotFound)
 
 	http.HandleFunc("/checkdomain/", checkdomain)
 	http.HandleFunc("/status/", status)
