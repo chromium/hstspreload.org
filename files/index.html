@@ -5,119 +5,94 @@
   <title>HSTS Preload Submission</title>
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/form.css">
   <script src="static/index.js"></script>
 </head>
 <body class="theme-green">
 
-<div class="content first-content">
+<div class="content form">
+  <form id="domain-form">
+    <h2><label for="domain">
+      Enter a domain for the HSTS preload list:
+    </label></h2>
 
+    <input id="domain" type="text" placeholder="example.com"
+      autofocus autocorrect="off" autocapitalize="off" spellcheck="false">
+    </input>
+    <br>
+    <input id="check" type="submit" value="Check eligibility and status">
+  </form>
 
-  <div class="form">
-
-    <form id="domain-form">
-
-      <h2><label for="domain">
-        Enter a domain for the HSTS preload list:
-      </label></h2>
-
-      <input id="domain" type="text" placeholder="example.com" autofocus autocorrect="off" autocapitalize="off" spellcheck="false"></input>
-      <br>
-      <input id="check" type="submit" value="Check eligibility and status">
-    </form>
-
-    <div id="result-waiting" class="hidden">
-      <div id="spinner" class="spinner"></div>
-      <br>
-      <div id="checking"></div>
-    </div>
-
-    <div id="result" class="hidden">
-      <div id="summary"></div>
-      <div id="status"></div>
-      <div class="issues">
-        <div id="errors" class="issues-list"></div>
-        <div id="warnings" class="issues-list"></div>
-      </div>
-    </div>
-    
-    <form id="submit-form" class="hidden">
-    <hr>
-      <h2 id="submit-title">Submit</h2>
-      <div id="checkboxes">
-        <label>
-          <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
-        </label>
-        <span id="oops">
-        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending a HSTS <tt>preload</tt> directive by accident. Please contact <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a> to let us know.)
-        </span>
-        <br><br>
-        <label>
-          <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <span id="domain-3">example.com</span> will prevent all subdomains (<tt>*.<span class="domain-text">example.com</span></tt>) from being accessed without a valid HTTPS certificate.</span></label>
-      </div>
-      <br>
-      <input id="submit" type="submit" disabled
-         value="Submit to the HSTS Preload List">
-    </form>
-
-    <div id="submit-result" class="hidden">
-    </div>
-
+  <div id="result-waiting" class="hidden">
+    <div id="spinner" class="spinner"></div>
+    <br>
+    <p id="checking"></p>
   </div>
 
+  <div id="result" class="hidden">
+    <p id="summary"></p>
+    <p id="status"></p>
+    <div class="issues">
+      <div id="errors" class="issues-list"></div>
+      <div id="warnings" class="issues-list"></div>
+    </div>
+  </div>
+
+  <form id="submit-form" class="hidden">
+  <hr>
+    <h2 id="submit-title">Submit</h2>
+    <div id="checkboxes">
+      <label>
+        <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
+      </label>
+      <span id="oops">
+        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending the HSTS <tt>preload</tt> directive by accident. Please contact <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a> to let us know.)
+      </span>
+      <br><br>
+      <label>
+        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <span id="domain-3">example.com</span> will prevent all subdomains (<tt>*.<span class="domain-text">example.com</span></tt>) from being accessed without a valid HTTPS certificate.</span></label>
+    </div>
+    <br>
+    <input id="submit" type="submit" disabled
+       value="Submit to the HSTS Preload List">
+  </form>
+
+  <div id="submit-result" class="hidden">
+  </div>
 </div>
 
-<div class="content submission">
+<div class="content">
+  <h2>Information</h2>
+  <p>This form is used to submit domains for inclusion in Chrome's <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> preload list. This is a list of sites that are hardcoded into Chrome as being HTTPS only. <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a> also have HSTS preload lists which include the Chrome list. (See the <a href="http://caniuse.com/#feat=stricttransportsecurity">HSTS compatibility matrix</a>.)</p>
 
-  <div class="inner-content">
+  <h2>Requirements</h2>
+  <p>In order to be included on the HSTS preload list through this form, your site must:</p>
+  <ol>
+    <li>Have a valid certificate.</li>
+    <li>Redirect all HTTP traffic to HTTPS&mdash;i.e. be HTTPS only.</li>
+    <li>Serve all subdomains over HTTPS, specifically including the <tt>www</tt> subdomain if a DNS record for that subdomain exists.</li>
+    <li>Serve an HSTS header on the base domain for HTTPS requests:
+      <ul>
+        <li>Expiry must be at least eighteen weeks (10886400 seconds).</li>
+        <li>The <tt>includeSubDomains</tt> token must be specified.</li>
+        <li>The <tt>preload</tt> token must be specified.</li>
+        <li>If you are serving an additional redirect from your HTTPS site, that redirect must still have the HSTS header (not the page it redirects to).</li>
+      </ul>
+    </li>
+  </ol>
+  <p>For more details on HSTS, please see <a href="https://tools.ietf.org/html/rfc6797">RFC 6797</a>. Note that the <tt>preload</tt> flag in the HSTS header is required to confirm and authenticate your submission to the preload list. An example valid HSTS header:</p>
+  <p><tt>Strict-Transport-Security: max-age=10886400; includeSubDomains; preload</tt></p>
 
-    <h2>
-      Information
-    </h2>
-
-    <div id="text">
-      <p>This form is used to submit domains for inclusion in Chrome's <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> preload list. This is a list of sites that are hardcoded into Chrome as being HTTPS only. <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a> also have HSTS preload lists which include the Chrome list. (See the <a href="http://caniuse.com/#feat=stricttransportsecurity">HSTS compatibility matrix</a>.)</p>
-
-    <h2>
-      Requirements
-    </h2>
-
-      <p>In order to be included on the HSTS preload list through this form, your site must:</p>
-      <ol>
-        <li>Have a valid certificate.</li>
-        <li>Redirect all HTTP traffic to HTTPS&mdash;i.e. be HTTPS only.</li>
-        <li>Serve all subdomains over HTTPS, specifically including the <tt>www</tt> subdomain if a DNS record for that subdomain exists.</li>
-        <li>Serve an HSTS header on the base domain for HTTPS requests:
-          <ul>
-            <li>Expiry must be at least eighteen weeks (10886400 seconds).</li>
-            <li>The <tt>includeSubDomains</tt> token must be specified.</li>
-            <li>The <tt>preload</tt> token must be specified.</li>
-            <li>If you are serving an additional redirect from your HTTPS site, that redirect must still have the HSTS header (not the page it redirects to).</li>
-          </ul>
-        </li>
-      </ol>
-
-      <p>For more details on HSTS, please see <a href="https://tools.ietf.org/html/rfc6797">RFC 6797</a>. Note that the <tt>preload</tt> flag in the HSTS header is required to confirm and authenticate your submission to the preload list. An example valid HSTS header:</p>
-      <p><tt>Strict-Transport-Security: max-age=10886400; includeSubDomains; preload</tt></p>
-
-    <h2>
-      Conditions
-    </h2>
-
-      <p>Be aware that inclusion in the preload list cannot really be undone. You can request to be removed, but it will take months for the deleted entry to reach users with a Chrome update and we cannot make guarantees about other browser vendors. Don't request inclusion unless you're sure that you can support HTTPS for the long term.</p>
-
-      <p>Submissions to the preload list are not automatic nor assured. All submissions undergo a manual review that may take one to several weeks. You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <tt>chrome://net-internals/#hsts</tt> in your browser. Note that new entries are submitted to the Chrome source code and can take several months before they reach the stable version.</p>
-
-      <p>If you have questions or requests that are not covered by this page, email Lucas Garron at <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a>.</p>
-
-    </div>
-  </div>
-
+  <h2>Conditions</h2>
+  <p>Be aware that inclusion in the preload list cannot really be undone. You can request to be removed, but it will take months for the deleted entry to reach users with a Chrome update and we cannot make guarantees about other browser vendors. Don't request inclusion unless you're sure that you can support HTTPS for the long term.</p>
+  <p>Submissions to the preload list are not automatic nor assured. All submissions undergo a manual review that may take one to several weeks. You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <tt>chrome://net-internals/#hsts</tt> in your browser. Note that new entries are submitted to the Chrome source code and can take several months before they reach the stable version.</p>
+  <p>If you have questions or requests that are not covered by this page, email Lucas Garron at <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a>.</p>
 </div>
 
 <div class="github-fork-ribbon-wrapper right">
-    <div class="github-fork-ribbon">
-        <a href="https://github.com/chromium/hstspreload.appspot.com">On GitHub</a>
-    </div>
+  <div class="github-fork-ribbon">
+    <a href="https://github.com/chromium/hstspreload.appspot.com">On GitHub</a>
+  </div>
 </div>
 <link rel="stylesheet" href="static/github.css">
 
