@@ -6,7 +6,7 @@ html, body {
 
 body {
   background-color: #f5f5f5;
-  font-family: Helvetica, "Roboto", Tahoma, sans-serif;
+  font-family: "Roboto", Helvetica, Tahoma, sans-serif;
 }
 
 .header{
@@ -36,7 +36,7 @@ body {
 }
 
 @media (max-width: 839px) {
-  .content{
+  .content {
     width:calc(100% - 88px);
     padding: 40px 28px;
   }

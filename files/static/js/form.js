@@ -150,9 +150,8 @@ PreloadForm.prototype = {
     }
     if (this._currentResultsDomain === domain) {
       return;
-    } else {
-      this._currentResultsDomain = domain;
     }
+    this._currentResultsDomain = domain;
 
     if (domain !== this._view.currentDomain()) {
       console.log('Outdated result.');

@@ -41,7 +41,6 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 	}
 
 	fmt.Fprintf(w, "%s\n", b)
-	return
 }
 
 func preloadable(w http.ResponseWriter, r *http.Request) {
