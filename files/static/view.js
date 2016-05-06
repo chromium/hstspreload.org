@@ -49,10 +49,10 @@ PreloadView.prototype = {
     var domain = $("#domain").value;
     // Check for pasted URLs beginning with http:// or https://
     if (domain.startsWith("http://")) {
-      domain = domain.slice("http://".length)
+      return domain.slice("http://".length)
     }
     if (domain.startsWith("https://")) {
-      domain = domain.slice("https://".length)
+      return domain.slice("https://".length)
     }
     return domain;
   },
