@@ -18,27 +18,15 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	http.HandleFunc("/checkdomain/", checkdomain)
+	http.HandleFunc("/preloadable/", preloadable)
+	http.HandleFunc("/removable/", removable)
 	http.HandleFunc("/status/", status)
-
 	http.HandleFunc("/submit/", submit)
+
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
 
 	http.ListenAndServe(":8080", nil)
-}
-
-func checkdomain(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Path[len("/checkdomain/"):]
-
-	_, issues := hstspreload.PreloadableDomain(domain)
-
-	b, err := json.MarshalIndent(issues, "", "  ")
-	if err != nil {
-		http.Error(w, "Internal error: could not encode JSON.\n", http.StatusInternalServerError)
-	} else {
-		fmt.Fprintf(w, "%s\n", b)
-	}
 }
 
 // writeJSONOrBust should only be called if nothing has been written yet.
@@ -54,6 +42,20 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 
 	fmt.Fprintf(w, "%s\n", b)
 	return
+}
+
+func preloadable(w http.ResponseWriter, r *http.Request) {
+	domain := r.URL.Path[len("/preloadable/"):]
+
+	_, issues := hstspreload.PreloadableDomain(domain)
+	writeJSONOrBust(w, issues)
+}
+
+func removable(w http.ResponseWriter, r *http.Request) {
+	domain := r.URL.Path[len("/removable/"):]
+
+	_, issues := hstspreload.RemovableDomain(domain)
+	writeJSONOrBust(w, issues)
 }
 
 func status(w http.ResponseWriter, r *http.Request) {

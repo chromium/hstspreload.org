@@ -6,7 +6,9 @@
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="stylesheet" href="static/style.css">
   <link rel="stylesheet" href="static/form.css">
-  <script src="static/index.js"></script>
+  <script src="static/base.js"></script>
+  <script src="static/view.js"></script>
+  <script src="static/form.js"></script>
 </head>
 <body class="theme-green">
 
@@ -16,11 +18,11 @@
       Enter a domain for the HSTS preload list:
     </label></h2>
 
-    <input id="domain" type="text" placeholder="example.com"
+    <input id="domain" name="domain" type="text" placeholder="example.com"
       autofocus autocorrect="off" autocapitalize="off" spellcheck="false">
     </input>
     <br>
-    <input id="check" type="submit" value="Check eligibility and status">
+    <input id="check" type="submit" value="Check status and eligibility">
 
   </form>
 
@@ -36,8 +38,8 @@
   </div>
 
   <div id="result" class="hidden">
-    <p id="summary"></p>
     <p id="status"></p>
+    <p id="summary"></p>
     <div class="issues">
       <div id="errors" class="issues-list"></div>
       <div id="warnings" class="issues-list"></div>
@@ -52,15 +54,19 @@
         <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
       </label>
       <span id="oops">
-        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending the HSTS <tt>preload</tt> directive by accident. Please contact <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a> to let us know.)
+        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending the HSTS <tt>preload</tt> directive by accident. Please <a id="oops-mailto" href="mailto:hstspreload@chromium.org">contact hstspreload@chromium.org</a> to let us know.)
       </span>
       <br><br>
       <label>
-        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <span id="domain-3">example.com</span> will prevent all subdomains (<tt>*.<span class="domain-text">example.com</span></tt>) from being accessed without a valid HTTPS certificate.</span></label>
+        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <tt><span class="domain-text">example.com</span></tt> through this form will prevent <strong>all subdomains and nested subdomains</strong> from being accessed without a valid HTTPS certificate:
+        <span class="subdomain-example"><tt>*.<span class="domain-text">example.com</span></tt></span>
+        <span class="subdomain-example"><tt>*.*.<span class="domain-text">example.com</span></tt></span>
+        <span class="subdomain-example"><tt>...</tt></span>
+        </span></label>
     </div>
     <br>
     <input id="submit" type="submit" disabled
-       value="Submit to the HSTS Preload List">
+       value="Submit to the HSTS preload list">
   </form>
 
   <div id="submit-result" class="hidden">

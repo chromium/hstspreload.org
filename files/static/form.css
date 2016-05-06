@@ -80,6 +80,16 @@ noscript {
   font-weight: bold;
 }
 
+#result .issues .message {
+  display: block;
+}
+
+.issues .bullet {
+  width: 2em;
+  height: 2em;
+  vertical-align: -40%;
+}
+
 #result .issues-list div:last-child {
   border-bottom: 1px solid rgb(127, 127, 127);
 }
@@ -94,6 +104,7 @@ hr {
 
 #checkboxes {
   text-align: left;
+  width: 80%;
   max-width: 30em;
   margin: 0em auto;
 }
@@ -114,4 +125,10 @@ hr {
 
 #oops a {
   color: rgb(130, 130, 140);
+}
+
+.subdomain-example {
+  display: block;
+  margin-left: 2em;
+  /*text-align: center;*/
 }
