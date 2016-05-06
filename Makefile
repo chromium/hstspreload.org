@@ -8,6 +8,12 @@ PROJECT = github.com/chromium/hstspreload.appspot.com/...
 build:
 	go build ${PROJECT}
 
+.PHONY: format
+format:
+	go fm
+	# Need to specify non-default clang-format: https://crbug.com/558447
+	/usr/local/bin/clang-format -i -style=Google files/static/js/*.js
+
 .PHONY: lint
 lint:
 	go vet ${PROJECT}
