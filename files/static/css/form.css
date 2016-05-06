@@ -1,0 +1,134 @@
+.form {
+  padding: 2em 0;
+  text-align: center;
+}
+
+.form p {
+  margin: auto 4em;
+}
+
+/******** inputs ********/
+
+.form input[type=text],
+.form input[type=submit] {
+  text-align: center;
+  font-size: 1.5em;
+
+  width: 80%;
+  max-width: 20em;
+
+  margin: 0 auto 0.5em;
+}
+
+noscript {
+  display: block;
+  margin: 2em 4em;
+  font-size: 1.5em;
+  color: gray;
+}
+
+/******** result-waiting ********/
+
+#result-waiting {
+  text-align: center;
+  padding: 2em;
+}
+
+.spinner {
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  border-radius: 1.25em;
+
+  border: 0.25em solid rgba(0, 0, 0, 0);
+  border-top: 0.25em solid rgba(0, 0, 0, 0.7);
+  border-right: 0.25em solid rgba(0, 0, 0, 0.7);
+
+  animation: spinnerRotate 1s linear infinite;
+  margin-bottom: 1em;
+}
+
+@keyframes spinnerRotate
+{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
+
+/******** result ********/
+
+#result {
+  padding: 1em 0em;
+}
+
+#result .issues {
+  margin: 2em 0;
+}
+
+#result .issues-list {
+  text-align: left;
+}
+
+#result .issues-list div {
+  border-top: 1px solid rgb(127, 127, 127);
+  /*background: rgba(255, 0, 0, 0.25);*/
+  display: block;
+  padding: 1em 2em;
+  margin-bottom: -1px;
+}
+
+#result .issues .summary {
+  font-weight: bold;
+}
+
+#result .issues .message {
+  display: block;
+}
+
+.issues .bullet {
+  width: 2em;
+  height: 2em;
+  vertical-align: -40%;
+}
+
+#result .issues-list div:last-child {
+  border-bottom: 1px solid rgb(127, 127, 127);
+}
+
+/******** submit-form ********/
+
+hr {
+  border: 1px solid #AAA;
+  border-bottom: none;
+  margin: 1em 0 3em;
+}
+
+#checkboxes {
+  text-align: left;
+  width: 80%;
+  max-width: 30em;
+  margin: 0em auto;
+}
+
+#checkboxes input[type=checkbox] {
+  width: 2em;
+  margin-left: -2em;
+  margin-right: 0;
+}
+
+#checkboxes label {
+  display: inline-block;
+}
+
+#oops {
+  color: rgb(160, 170, 160);
+}
+
+#oops a {
+  color: rgb(130, 130, 140);
+}
+
+.subdomain-example {
+  display: block;
+  margin-left: 2em;
+  /*text-align: center;*/
+}
