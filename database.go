@@ -12,15 +12,18 @@ import (
 
 const (
 	// TODO: Change default to hstspreload and allow a dynamic value.
-	projectId = "hstspreload-mvm"
+	projectID = "hstspreload-mvm"
 	batchSize = 450
 	timeout   = 10 * time.Second
 
 	domainStateKind = "DomainState"
 )
 
+// PreloadStatus represents the current status of a domain, e.g. whether it
+// is preloaded, pending, etc.
 type PreloadStatus string
 
+// Values for PreloadStatus
 const (
 	StatusUnknown   = "unknown"
 	StatusPending   = "pending"
@@ -56,7 +59,7 @@ func putStates(updates []DomainState, statusReport func(format string, args ...i
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectId)
+	client, datastoreErr := datastore.NewClient(c, projectID)
 	if datastoreErr != nil {
 		return datastoreErr
 	}
@@ -105,7 +108,7 @@ func statesForQuery(query *datastore.Query) (states []DomainState, err error) {
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectId)
+	client, datastoreErr := datastore.NewClient(c, projectID)
 	if datastoreErr != nil {
 		return states, datastoreErr
 	}
@@ -129,7 +132,7 @@ func domainsForQuery(query *datastore.Query) (domains []chromiumpreload.Domain, 
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectId)
+	client, datastoreErr := datastore.NewClient(c, projectID)
 	if datastoreErr != nil {
 		return domains, datastoreErr
 	}
@@ -154,7 +157,7 @@ func stateForDomain(domain chromiumpreload.Domain) (state DomainState, err error
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectId)
+	client, datastoreErr := datastore.NewClient(c, projectID)
 	if datastoreErr != nil {
 		return state, datastoreErr
 	}
@@ -164,9 +167,8 @@ func stateForDomain(domain chromiumpreload.Domain) (state DomainState, err error
 	if getErr != nil {
 		if getErr == datastore.ErrNoSuchEntity {
 			return DomainState{Status: StatusUnknown}, nil
-		} else {
-			return state, getErr
 		}
+		return state, getErr
 	}
 
 	return state, nil
