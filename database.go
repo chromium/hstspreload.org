@@ -6,8 +6,6 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/cloud/datastore"
-
-	"github.com/chromium/hstspreload/chromiumpreload"
 )
 
 const (
@@ -37,7 +35,7 @@ const (
 type DomainState struct {
 	// Name is the key in the datastore, so we don't include it as a field
 	// in the stored value.
-	Name chromiumpreload.Domain `datastore:"-" json:"name"`
+	Name string `datastore:"-" json:"name"`
 	// e.g. StatusPending or StatusPreloaded
 	Status PreloadStatus `json:"status"`
 	// A custom message from the preload list maintainer explaining the
@@ -120,14 +118,14 @@ func statesForQuery(query *datastore.Query) (states []DomainState, err error) {
 
 	for i, key := range keys {
 		state := states[i]
-		state.Name = chromiumpreload.Domain(key.Name())
+		state.Name = key.Name()
 		states[i] = state
 	}
 
 	return states, nil
 }
 
-func domainsForQuery(query *datastore.Query) (domains []chromiumpreload.Domain, err error) {
+func domainsForQuery(query *datastore.Query) (domains []string, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -143,7 +141,7 @@ func domainsForQuery(query *datastore.Query) (domains []chromiumpreload.Domain, 
 	}
 
 	for _, key := range keys {
-		domain := chromiumpreload.Domain(key.Name())
+		domain := key.Name()
 		domains = append(domains, domain)
 	}
 
@@ -152,7 +150,7 @@ func domainsForQuery(query *datastore.Query) (domains []chromiumpreload.Domain, 
 
 // Get the state for the given domain.
 // The Name field of `state` will not be set.
-func stateForDomain(domain chromiumpreload.Domain) (state DomainState, err error) {
+func stateForDomain(domain string) (state DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -178,6 +176,6 @@ func allDomainStates() (states []DomainState, err error) {
 	return statesForQuery(datastore.NewQuery("DomainState"))
 }
 
-func domainsWithStatus(status PreloadStatus) (domains []chromiumpreload.Domain, err error) {
+func domainsWithStatus(status PreloadStatus) (domains []string, err error) {
 	return domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }

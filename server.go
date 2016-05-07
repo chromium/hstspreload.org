@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/chromium/hstspreload"
@@ -44,21 +45,21 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 }
 
 func preloadable(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Path[len("/preloadable/"):]
+	domain := strings.ToLower(r.URL.Path[len("/preloadable/"):])
 
 	_, issues := hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
 func removable(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Path[len("/removable/"):]
+	domain := strings.ToLower(r.URL.Path[len("/removable/"):])
 
 	_, issues := hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	domain := chromiumpreload.Domain(r.URL.Path[len("/status/"):])
+	domain := strings.ToLower(r.URL.Path[len("/status/"):])
 
 	state, err := stateForDomain(domain)
 	if err != nil {
@@ -72,10 +73,9 @@ func status(w http.ResponseWriter, r *http.Request) {
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {
-	domainStr := r.URL.Path[len("/submit/"):]
-	domain := chromiumpreload.Domain(domainStr)
+	domain := strings.ToLower(r.URL.Path[len("/submit/"):])
 
-	_, issues := hstspreload.PreloadableDomain(domainStr)
+	_, issues := hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
 		return
@@ -166,8 +166,8 @@ func pending(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "]\n")
 }
 
-func difference(from []chromiumpreload.Domain, take []chromiumpreload.Domain) (diff []chromiumpreload.Domain) {
-	takeSet := make(map[chromiumpreload.Domain]bool)
+func difference(from []string, take []string) (diff []string) {
+	takeSet := make(map[string]bool)
 	for _, elem := range take {
 		takeSet[elem] = true
 	}
@@ -192,7 +192,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	var actualPreload []chromiumpreload.Domain
+	var actualPreload []string
 	for _, entry := range preloadList.Entries {
 		if entry.Mode == chromiumpreload.ForceHTTPS {
 			actualPreload = append(actualPreload, entry.Name)
