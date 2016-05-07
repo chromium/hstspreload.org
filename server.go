@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/idna"
+
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
@@ -18,10 +20,10 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	http.HandleFunc("/preloadable", preloadable)
-	http.HandleFunc("/removable", removable)
-	http.HandleFunc("/status", status)
-	http.HandleFunc("/submit", submit)
+	http.HandleFunc("/preloadable", domainHandler(preloadable))
+	http.HandleFunc("/removable", domainHandler(removable))
+	http.HandleFunc("/status", domainHandler(status))
+	http.HandleFunc("/submit", domainHandler(submit))
 
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
@@ -43,23 +45,36 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 	fmt.Fprintf(w, "%s\n", b)
 }
 
-func preloadable(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Query().Get("domain")
+func domainHandler(handler func(http.ResponseWriter, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		unicode := r.URL.Query().Get("domain")
+		if unicode == "" {
+			http.Error(w, "Domain not specified.", http.StatusBadRequest)
+			return
+		}
 
+		ascii, err := idna.ToASCII(unicode)
+		if err != nil {
+			msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+		}
+
+		handler(w, ascii)
+	}
+}
+
+func preloadable(w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func removable(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Query().Get("domain")
-
+func removable(w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func status(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Query().Get("domain")
-
+func status(w http.ResponseWriter, domain string) {
 	state, err := stateForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
@@ -71,9 +86,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 	writeJSONOrBust(w, state)
 }
 
-func submit(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Query().Get("domain")
-
+func submit(w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
@@ -147,7 +160,7 @@ func submit(w http.ResponseWriter, r *http.Request) {
 func pending(w http.ResponseWriter, r *http.Request) {
 	names, err := domainsWithStatus(StatusPending)
 	if err != nil {
-		msg := fmt.Sprintf("Internal error: could not retrieve pending list. (%s)\n", err)
+		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
