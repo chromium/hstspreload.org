@@ -133,10 +133,18 @@
 
     <p>
       We will generally honor requests to be removed from Chrome's preload list if you find that you have a subdomain that you cannot serve over HTTPS for strong technical or cost reasons.
-      To request removal, please continue to serve an HSTS header over HTTPS from the domain in question, but remove the <tt>preload</tt> directive.
-      (It is up to you whether you would like remove the <tt>includeSubDomains</tt> directive or change the <tt>max-age</tt> value, as long as you remove the <tt>preload</tt> directive. In particular, you may want to set <tt>max-age=0</tt> as a <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">knockout entry</a> for Firefox.)
-      Once you have done this, contact the email at the bottom of this page with the subject <tt>Removal Request: [your domain]</tt> and give specific reasons why you cannot stay preloaded (e.g. which subdomains cannot be moved to HTTPS and why).
-      If possible, please send the request from the WHOIS contact email for the domain.
+      To request removal, please:
+      <ul>
+        <li>Continue to serve an HSTS header over HTTPS from the domain in question, but remove the <tt>preload</tt> directive.</li>
+        <li>Contact the email at the bottom of this page with the subject <tt>Removal Request: [your domain]</tt>
+          <ul>
+            <li>Please use <a href="mailto:hstspreload@chromium.org?Subject=Removal%20Request%3A%20%5Bdomain%5D&Body=Hello%20Lucas%2C%0A%0ACould%20you%20please%20remove%20%5Bdomain%5D%20from%20the%20HSTS%20preload%20list%3F%0AWe%20cannot%20support%20HTTPS%20on%20the%20following%20subdomains%3A%0A%0A%E2%80%A2%20%5Bsubdomain%5D%20-%20reason%0A%E2%80%A2%20%5Bsubdomain%5D%20-%20reason%0A%E2%80%A2%20...%0A%0AThanks%2C%0A%5Bname%5D">this email template</a>.</li>
+            <li>Give specific reasons why you cannot stay preloaded (e.g. which subdomains cannot be moved to HTTPS and why).</li>
+            <li>If possible, please send the request from the WHOIS contact email for the domain.</li>
+          </ul>
+        </li>
+      </ul>
+      It is up to you whether you would like remove the <tt>includeSubDomains</tt> directive or change the <tt>max-age</tt> value, as long as you remove the <tt>preload</tt> directive. In particular, you may want to set <tt>max-age=0</tt> as a <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">knockout entry</a> for Firefox.
     </p>
   </section>
 
