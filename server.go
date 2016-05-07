@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/chromium/hstspreload"
@@ -19,10 +18,10 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	http.HandleFunc("/preloadable/", preloadable)
-	http.HandleFunc("/removable/", removable)
-	http.HandleFunc("/status/", status)
-	http.HandleFunc("/submit/", submit)
+	http.HandleFunc("/preloadable", preloadable)
+	http.HandleFunc("/removable", removable)
+	http.HandleFunc("/status", status)
+	http.HandleFunc("/submit", submit)
 
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
@@ -45,21 +44,21 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 }
 
 func preloadable(w http.ResponseWriter, r *http.Request) {
-	domain := strings.ToLower(r.URL.Path[len("/preloadable/"):])
+	domain := r.URL.Query().Get("domain")
 
 	_, issues := hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
 func removable(w http.ResponseWriter, r *http.Request) {
-	domain := strings.ToLower(r.URL.Path[len("/removable/"):])
+	domain := r.URL.Query().Get("domain")
 
 	_, issues := hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	domain := strings.ToLower(r.URL.Path[len("/status/"):])
+	domain := r.URL.Query().Get("domain")
 
 	state, err := stateForDomain(domain)
 	if err != nil {
@@ -73,7 +72,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 }
 
 func submit(w http.ResponseWriter, r *http.Request) {
-	domain := strings.ToLower(r.URL.Path[len("/submit/"):])
+	domain := r.URL.Query().Get("domain")
 
 	_, issues := hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
