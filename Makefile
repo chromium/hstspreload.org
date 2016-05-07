@@ -17,6 +17,7 @@ format:
 .PHONY: lint
 lint:
 	go vet ${PROJECT}
+	golint -set_exit_status ${PROJECT}
 
 .PHONY: pre-commit
 pre-commit: lint build
