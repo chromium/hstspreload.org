@@ -48,7 +48,7 @@
 
   <form id="submit-form" class="hidden">
   <hr>
-    <h2 id="submit-title">Submit</h2>
+    <h2>Submit</h2>
     <div id="checkboxes">
       <label>
         <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
@@ -75,9 +75,14 @@
 
 <div class="content">
   <h2>Information</h2>
-  <p>This form is used to submit domains for inclusion in Chrome's <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> preload list. This is a list of sites that are hardcoded into Chrome as being HTTPS only. <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a> also have HSTS preload lists which include the Chrome list. (See the <a href="http://caniuse.com/#feat=stricttransportsecurity">HSTS compatibility matrix</a>.)</p>
+  <p>
+    This form is used to submit domains for inclusion in Chrome's <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> preload list.
+    This is a list of sites that are hardcoded into Chrome as being HTTPS only.
+    <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a> also have HSTS preload lists which include the Chrome list.
+    (See the <a href="http://caniuse.com/#feat=stricttransportsecurity">HSTS compatibility matrix</a>.)
+  </p>
 
-  <h2>Requirements</h2>
+  <h2>Submission Requirements</h2>
   <p>In order to be included on the HSTS preload list through this form, your site must:</p>
   <ol>
     <li>Have a valid certificate.</li>
@@ -86,19 +91,51 @@
     <li>Serve an HSTS header on the base domain for HTTPS requests:
       <ul>
         <li>Expiry must be at least eighteen weeks (10886400 seconds).</li>
-        <li>The <tt>includeSubDomains</tt> token must be specified.</li>
-        <li>The <tt>preload</tt> token must be specified.</li>
+        <li>The <tt>includeSubDomains</tt> directive must be specified.</li>
+        <li>The <tt>preload</tt> directive must be specified.</li>
         <li>If you are serving an additional redirect from your HTTPS site, that redirect must still have the HSTS header (not the page it redirects to).</li>
       </ul>
     </li>
   </ol>
-  <p>For more details on HSTS, please see <a href="https://tools.ietf.org/html/rfc6797">RFC 6797</a>. Note that the <tt>preload</tt> flag in the HSTS header is required to confirm and authenticate your submission to the preload list. An example valid HSTS header:</p>
-  <p><tt>Strict-Transport-Security: max-age=10886400; includeSubDomains; preload</tt></p>
+  <p>
+    For more details on HSTS, please see <a href="https://tools.ietf.org/html/rfc6797">RFC 6797</a>.
+    Note that the <tt>preload</tt> flag in the HSTS header is required to confirm and authenticate your submission to the preload list.
+    Here is an example of a valid HSTS header:
+  </p>
+  <p>
+    <tt>Strict-Transport-Security: max-age=10886400; includeSubDomains; preload</tt>
+  </p>
 
-  <h2>Conditions</h2>
-  <p>Be aware that inclusion in the preload list cannot really be undone. You can request to be removed, but it will take months for the deleted entry to reach users with a Chrome update and we cannot make guarantees about other browser vendors. Don't request inclusion unless you're sure that you can support HTTPS for the long term.</p>
-  <p>Submissions to the preload list are not automatic nor assured. All submissions undergo a manual review that may take one to several weeks. You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <tt>chrome://net-internals/#hsts</tt> in your browser. Note that new entries are submitted to the Chrome source code and can take several months before they reach the stable version.</p>
-  <p>If you have questions or requests that are not covered by this page, email Lucas Garron at <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a>.</p>
+  <p>
+    You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <tt>chrome://net-internals/#hsts</tt> in your browser.
+    Note that new entries are hardcoded into to the Chrome source code and can take several months before they reach the stable version.
+  </p>
+
+  <h2>Continued Requirements</h2>
+  <p>
+    In order to stay preloaded in as many clients as possible, we recommend that you make sure your site continues to satisfy the submission requirements at all times.
+    In particular, if your domain was submitted to <a href="https://hstspreload.appspot.com/">hstspreload.appspot.com</a> on or after <b>February 29, 2016</b> (i.e. preloaded after Chrome 50), then you should <b>continue to send a valid HSTS header with the <tt>preload</tt> directive</b> in order to stay preloaded in Chrome.
+  </p>
+
+  <h2>Removal</h2>
+  <p>
+    Be aware that inclusion in the preload list cannot easily be undone.
+    You can request to be removed, but it will take months for the deleted entry to reach users with a Chrome update and we cannot make guarantees about other browsers.
+    Don't request inclusion unless you're sure that you can support HTTPS for <b>your site and all its subdomains</b> the long term.
+  </p>
+
+  <p>
+    We will generally honor requests to be removed from Chrome's preload list if you find that you have a subdomain that you cannot serve over HTTPS for strong technical or cost reasons.
+    To request removal, please continue to serve an HSTS header over HTTPS from the domain in question, but remove the <tt>preload</tt> directive.
+    (It is up to you whether you would like remove the <tt>includeSubDomains</tt> directive or change the <tt>max-age</tt> value, as long as you remove the <tt>preload</tt> directive. In particular, you may want to set <tt>max-age=0</tt> as a <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">knockout entry</a> for Firefox.)
+    Once you have done this, contact the email at the bottom of this page with the subject <tt>Removal Request: [your domain]</tt> and give specific reasons why you cannot stay preloaded (e.g. which subdomains cannot be moved to HTTPS and why).
+    If possible, please send the request from the WHOIS contact email for the domain.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    If you have questions or requests that are not covered by this page, email Lucas Garron at <a href="mailto:hstspreload@chromium.org">hstspreload@chromium.org</a>.
+  </p>
 </div>
 
 <div class="github-fork-ribbon-wrapper right">
