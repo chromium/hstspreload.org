@@ -22,7 +22,7 @@ URLParam.prototype = {
 var HSTSPreload = function() {}
 
                   HSTSPreload.prototype = {
-  callAPI: function(endpoint, domain) {
+  callAPI: function(method, endpoint, domain) {
     var path = '/' + endpoint + '?domain=' + encodeURIComponent(domain);
     console.log('XHR:', path);
     // TODO: look at response codes.
@@ -34,14 +34,16 @@ var HSTSPreload = function() {}
       req.addEventListener('load', onload);
       req.addEventListener(
           'error', (function(err) { reject(err); }).bind(this));
-      req.open('GET', path);
+      req.open(method, path);
       req.send();
     });
   },
 
-  status: function(domain) { return this.callAPI('status', domain); },
+  status: function(domain) { return this.callAPI('GET', 'status', domain); },
 
-  preloadable: function(domain) { return this.callAPI('preloadable', domain); },
+  preloadable: function(domain) {
+    return this.callAPI('GET', 'preloadable', domain);
+  },
 
-  submit: function(domain) { return this.callAPI('submit', domain); }
+  submit: function(domain) { return this.callAPI('POST', 'submit', domain); }
 };

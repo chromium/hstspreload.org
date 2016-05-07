@@ -20,10 +20,10 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	http.HandleFunc("/preloadable", domainHandler(preloadable))
-	http.HandleFunc("/removable", domainHandler(removable))
-	http.HandleFunc("/status", domainHandler(status))
-	http.HandleFunc("/submit", domainHandler(submit))
+	http.HandleFunc("/preloadable", domainHandler("GET", preloadable))
+	http.HandleFunc("/removable", domainHandler("GET", removable))
+	http.HandleFunc("/status", domainHandler("GET", status))
+	http.HandleFunc("/submit", domainHandler("POST", submit))
 
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
@@ -45,8 +45,13 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 	fmt.Fprintf(w, "%s\n", b)
 }
 
-func domainHandler(handler func(http.ResponseWriter, string)) http.HandlerFunc {
+func domainHandler(method string, handler func(http.ResponseWriter, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method {
+			http.Error(w, fmt.Sprintf("Wrong method. Requires %s.", method), http.StatusMethodNotAllowed)
+			return
+		}
+
 		unicode := r.URL.Query().Get("domain")
 		if unicode == "" {
 			http.Error(w, "Domain not specified.", http.StatusBadRequest)
@@ -158,6 +163,11 @@ func submit(w http.ResponseWriter, domain string) {
 }
 
 func pending(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, fmt.Sprintf("Wrong method. Requires GET."), http.StatusMethodNotAllowed)
+		return
+	}
+
 	names, err := domainsWithStatus(StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
@@ -194,6 +204,8 @@ func difference(from []string, take []string) (diff []string) {
 }
 
 func update(w http.ResponseWriter, r *http.Request) {
+	// In order to allow visiting the URL directly in the browser, we allow any method.
+
 	// Get preload list.
 	preloadList, listErr := chromiumpreload.GetLatest()
 	if listErr != nil {

@@ -10,7 +10,7 @@ build:
 
 .PHONY: format
 format:
-	go fm
+	go fmt
 	# Need to specify non-default clang-format: https://crbug.com/558447
 	/usr/local/bin/clang-format -i -style=Google files/static/js/*.js
 
