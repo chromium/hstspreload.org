@@ -16,9 +16,31 @@ var PreloadView = function(submitDomain, urlParam) {
       .addEventListener('change', this._checkboxChangedHandler.bind(this));
   $('#checkbox-subdomains')
       .addEventListener('change', this._checkboxChangedHandler.bind(this));
+
+  if (location.hash === "") {
+    $('#domain').focus()
+  } else {
+    this._highlightHash();
+  }
+  window.addEventListener("hashchange", this._highlightHash);
 };
 
 PreloadView.prototype = {
+  _highlightHash: function() {
+    var highlighted = document.getElementsByClassName("highlight");
+    for (var i = 0; i < highlighted.length; i++) {
+      highlighted[i].classList.remove("highlight");
+    }
+
+    var el = $(location.hash)
+    if (el) {
+      el.classList.add("highlight");
+    }
+  },
+
+  _removeHash: function() {
+    history.replaceState({}, document.title, window.location.pathname + window.location.search);
+  },
 
   _checkboxChangedHandler: function(ev) {
     $('#submit')
@@ -35,7 +57,10 @@ PreloadView.prototype = {
     document.body.classList.add(theme)
   },
 
-  _DomainInput: function() { this.clearDomainSpecificElements(); },
+  _DomainInput: function() {
+    this._removeHash();
+    this.clearDomainSpecificElements();
+  },
 
   clearDomainSpecificElements: function() {
     this._hideResults();

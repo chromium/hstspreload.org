@@ -56,7 +56,7 @@ h3 {
 }
 
 p {
-  margin: 0 0 16px;
+  margin: 1em 0 0;
 }
 
 /* hstspreload general */
@@ -66,9 +66,35 @@ body {
 }
 
 .content {
-  padding: 2em 4em;
+  padding: 2em 0;
   box-sizing: border-box;
   min-width: 30em;
+}
+
+section {
+  padding: 1em 4em;
+}
+
+section.highlight {
+  background: rgba(255, 0, 0, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  margin-top: -1px;
+  margin-bottom: -1px;
+  color: black;
+}
+
+a.hash-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+a.hash-link:hover {
+  text-decoration: underline;
+}
+
+h2 {
+  margin-top: 0;
 }
 
 .hidden {
