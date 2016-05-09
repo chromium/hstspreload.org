@@ -11,13 +11,13 @@ handlers:
   script: _go_app
 - url: /robots.txt
   script: _go_app
-- url: /preloadable/.*
+- url: /preloadable
   script: _go_app
-- url: /removable/.*
+- url: /removable
   script: _go_app
-- url: /status/.*
+- url: /status
   script: _go_app
-- url: /submit/.*
+- url: /submit
   script: _go_app
 - url: /pending
   script: _go_app
