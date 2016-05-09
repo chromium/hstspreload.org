@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/net/idna"
@@ -28,7 +30,20 @@ func main() {
 	http.HandleFunc("/pending", pending)
 	http.HandleFunc("/update", update)
 
+	mustHaveDatastore()
 	http.ListenAndServe(":8080", nil)
+}
+
+func mustHaveDatastore() {
+	// Make sure we can connect to the datastore by forcing a fetch.
+	_, err := stateForDomain("garron.net")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		if strings.Contains(err.Error(), "missing project/dataset id") {
+			fmt.Fprintf(os.Stderr, "Try running: make serve\n")
+		}
+		os.Exit(1)
+	}
 }
 
 // writeJSONOrBust should only be called if nothing has been written yet.

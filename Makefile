@@ -25,10 +25,6 @@ pre-commit: lint build
 .PHONY: travis
 travis: pre-commit
 
-.PHONY: serve
-serve: check
-	go run *.go
-
 .PHONY: deploy
 deploy: check
 	aedeploy gcloud preview app deploy app.yaml --promote
@@ -45,3 +41,28 @@ else
 	@echo "Expected: ${EXPECTED_DIR}"
 	@echo "Actual:   ${CURRENT_DIR}"
 endif
+
+# Google Cloud Datastore Emulator
+
+GCD_NAME = gcd-grpc-1.0.0
+DATASTORE_PORT = 8081
+
+.PHONY: get-datastore-emulator
+get-datastore-emulator: testing/gcd/gcd.sh
+testing/gcd/gcd.sh:
+	mkdir -p testing
+	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "testing/${GCD_NAME}.zip"
+	unzip "testing/${GCD_NAME}.zip" -d "testing"
+
+.PHONY: run-datastore-emulator
+run-datastore-emulator:
+	./testing/gcd/gcd.sh start -p "8081" --testing &
+
+# Testing
+
+.PHONY: serve
+serve: check run-datastore-emulator
+	env \
+		"DATASTORE_PROJECT_ID=hstspreload-mvm" \
+		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
+		go run *.go

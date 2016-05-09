@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	// TODO: Change default to hstspreload and allow a dynamic value.
-	projectID = "hstspreload-mvm"
+	// A blank project ID forces the project ID to be read from
+	// the DATASTORE_PROJECT_ID environment variable.
+	projectID = ""
 	batchSize = 450
 	timeout   = 10 * time.Second
 
