@@ -32,7 +32,8 @@ PreloadView.prototype = {
       highlighted[i].classList.remove('highlight');
     }
 
-    var el = $(location.hash) if (el) { el.classList.add('highlight'); }
+    var el = $(location.hash);
+    if (el) { el.classList.add('highlight'); }
   },
 
   _removeHash: function() {
