@@ -14,7 +14,7 @@ import (
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
 
-var serverDB = newProdDatastore()
+var serverDB = newLocalDatastore()
 
 func main() {
 	staticHandler := http.FileServer(http.Dir("files"))

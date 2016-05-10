@@ -45,31 +45,21 @@ endif
 # Google Cloud Datastore Emulator
 
 GCD_NAME = gcd-grpc-1.0.0
-DATASTORE_PORT = 8081
+DATABASE_TESTING_FOLDER = "database/testing"
 
 .PHONY: get-datastore-emulator
 get-datastore-emulator: testing/gcd/gcd.sh
 testing/gcd/gcd.sh:
-	mkdir -p testing
-	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "testing/${GCD_NAME}.zip"
-	unzip "testing/${GCD_NAME}.zip" -d "testing"
-
-.PHONY: run-datastore-emulator
-run-datastore-emulator:
-	./testing/gcd/gcd.sh start -p "8081" --testing &
+	mkdir -p "${DATABASE_TESTING_FOLDER}"
+	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
+	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "testing"
 
 # Testing
 
 .PHONY: serve
-serve: check run-datastore-emulator
-	env \
-		"DATASTORE_PROJECT_ID=hstspreload-local-test" \
-		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
-		go run *.go
+serve: check get-datastore-emulator
+	go run *.go
 
-.PHONY: test
-test: run-datastore-emulator
-	env \
-		"DATASTORE_PROJECT_ID=hstspreload-local-test" \
-		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
-		go test -v
+.PHONY: test get-datastore-emulator
+test:
+	go test -v
