@@ -11,7 +11,7 @@ func TestAllDomainStates(t *testing.T) {
 	}
 	defer shutdown()
 
-	putStates(
+	PutStates(
 		db,
 		[]DomainState{{Name: "garron.net", Status: "preloaded"}},
 		func(format string, args ...interface{}) {},

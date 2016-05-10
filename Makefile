@@ -45,14 +45,14 @@ endif
 # Google Cloud Datastore Emulator
 
 GCD_NAME = gcd-grpc-1.0.0
-DATABASE_TESTING_FOLDER = "database/testing"
+DATABASE_TESTING_FOLDER = database/testing
 
 .PHONY: get-datastore-emulator
 get-datastore-emulator: testing/gcd/gcd.sh
 testing/gcd/gcd.sh:
 	mkdir -p "${DATABASE_TESTING_FOLDER}"
 	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
-	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "testing"
+	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "${DATABASE_TESTING_FOLDER}"
 
 # Testing
 
@@ -62,4 +62,4 @@ serve: check get-datastore-emulator
 
 .PHONY: test get-datastore-emulator
 test:
-	go test -v
+	go test -v "${PROJECT}"

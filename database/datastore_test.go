@@ -5,7 +5,7 @@ import "fmt"
 func ExampleNewLocalDatastore() {
 	db, shutdown, err := NewLocalDatastore()
 	if err != nil {
-		fmt.Printf("%s", s)
+		fmt.Printf("%s", err)
 	}
 	defer shutdown()
 
