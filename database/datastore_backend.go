@@ -22,15 +22,23 @@ const (
 
 /******** Backends ********/
 
-type localDatastore struct {
+// LocalDatastore represents an emulated Google Cloud Datastore
+// running on localhost
+type LocalDatastore struct {
+	// unexported fields
 	addr string
 	cmd  *exec.Cmd
 }
 
-type prodDatastore struct{}
+// ProdDatastore represent the production instance of
+// Google Cloud Datastore
+type ProdDatastore struct{}
 
-type datastoreBackend interface {
-	newClient(ctx context.Context) (*datastore.Client, error)
+// DatastoreBackend is an abstraction over {Local, Prod}Datastore
+// that allows callers to construct a new client without having to
+// know about whether it's local.
+type DatastoreBackend interface {
+	NewClient(ctx context.Context) (*datastore.Client, error)
 }
 
 /******** Port assignment for local backends ********/
@@ -50,10 +58,13 @@ func portString() string {
 	return strconv.Itoa(port)
 }
 
-/******** localDatastore ********/
+/******** LocalDatastore ********/
 
-func newLocalDatastore() (db localDatastore, shutdown func(), err error) {
-	db = localDatastore{}
+// NewLocalDatastore spawns a new LocalDatastore using Java.
+// When there is no error, make sure to call shutdown() in order to
+// terminate the Java process.
+func NewLocalDatastore() (db LocalDatastore, shutdown func(), err error) {
+	db = LocalDatastore{}
 
 	ps := portString()
 
@@ -85,9 +96,13 @@ func newLocalDatastore() (db localDatastore, shutdown func(), err error) {
 	return db, shutdown, nil
 }
 
-// Based closely on datastore.NewClient().
-func (db localDatastore) newClient(ctx context.Context) (*datastore.Client, error) {
+// NewClient constructs a datastore client for the emulated LocalDatastore.
+// The constructed client will work offline and never connect to the wide internet.
+func (db LocalDatastore) NewClient(ctx context.Context) (*datastore.Client, error) {
 	projectID := "hstspreload-local-testing"
+
+	// The code below is based closely on the implementation of
+	//  datastore.NewClient().
 
 	if db.addr == "" {
 		return nil, errors.New("Empty addr. Uninitialized local backend?")
@@ -107,17 +122,17 @@ func (db localDatastore) newClient(ctx context.Context) (*datastore.Client, erro
 	return client, nil
 }
 
-/******** prodDatastore ********/
+/******** ProdDatastore ********/
 
-func newProdDatastore() (db prodDatastore) {
+// NewProdDatastore construct a new ProdDatastore.
+func NewProdDatastore() (db ProdDatastore) {
 	// No special configuration in this case.
-	return prodDatastore{}
+	return ProdDatastore{}
 }
 
-func (db prodDatastore) newClient(ctx context.Context) (*datastore.Client, error) {
-	client, err := datastore.NewClient(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+// NewClient is a wrapper around the default implementation of
+// datastore.NewClient(), calling out to the real, live
+// Google Cloud Datastore.
+func (db ProdDatastore) NewClient(ctx context.Context) (*datastore.Client, error) {
+	return datastore.NewClient(ctx, projectID)
 }

@@ -12,9 +12,11 @@ import (
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromiumpreload"
+
+	"github.com/chromium/hstspreload.appspot.com/database"
 )
 
-var serverDB = newLocalDatastore()
+var serverDB = database.NewProdDatastore()
 
 func main() {
 	staticHandler := http.FileServer(http.Dir("files"))
@@ -38,7 +40,7 @@ func main() {
 
 func mustHaveDatastore() {
 	// Make sure we can connect to the datastore by forcing a fetch.
-	_, err := stateForDomain(serverDB, "garron.net")
+	_, err := database.StateForDomain(serverDB, "garron.net")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		if strings.Contains(err.Error(), "missing project/dataset id") {
@@ -97,7 +99,7 @@ func removable(w http.ResponseWriter, domain string) {
 }
 
 func status(w http.ResponseWriter, domain string) {
-	state, err := stateForDomain(serverDB, domain)
+	state, err := database.StateForDomain(serverDB, domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -115,21 +117,21 @@ func submit(w http.ResponseWriter, domain string) {
 		return
 	}
 
-	state, stateErr := stateForDomain(serverDB, domain)
+	state, stateErr := database.StateForDomain(serverDB, domain)
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
 		http.Error(w, msg, http.StatusInternalServerError)
 	}
 
 	switch state.Status {
-	case StatusUnknown:
+	case database.StatusUnknown:
 		fallthrough
-	case StatusRejected:
+	case database.StatusRejected:
 		fallthrough
-	case StatusRemoved:
-		putErr := putState(serverDB, DomainState{
+	case database.StatusRemoved:
+		putErr := database.PutState(serverDB, database.DomainState{
 			Name:           domain,
-			Status:         StatusPending,
+			Status:         database.StatusPending,
 			SubmissionDate: time.Now(),
 		})
 		if putErr != nil {
@@ -143,7 +145,7 @@ func submit(w http.ResponseWriter, domain string) {
 				Warnings: issues.Warnings,
 			}
 		}
-	case StatusPending:
+	case database.StatusPending:
 		formattedDate := state.SubmissionDate.Format("Monday, _2 January 2006")
 		issue := hstspreload.Issue{
 			Code:    "server.preload.already_pending",
@@ -154,7 +156,7 @@ func submit(w http.ResponseWriter, domain string) {
 			Errors:   issues.Errors,
 			Warnings: append(issues.Warnings, issue),
 		}
-	case StatusPreloaded:
+	case database.StatusPreloaded:
 		issue := hstspreload.Issue{
 			Code:    "server.preload.already_preloaded",
 			Summary: "Domain is already preloaded",
@@ -185,7 +187,7 @@ func pending(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	names, err := domainsWithStatus(serverDB, StatusPending)
+	names, err := database.DomainsWithStatus(serverDB, database.StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -241,7 +243,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := domainsWithStatus(serverDB, StatusPreloaded)
+	databasePreload, dbErr := database.DomainsWithStatus(serverDB, database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -252,21 +254,21 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate values that are out of date.
-	var updates []DomainState
+	var updates []database.DomainState
 
 	added := difference(actualPreload, databasePreload)
 	for _, name := range added {
-		updates = append(updates, DomainState{
+		updates = append(updates, database.DomainState{
 			Name:   name,
-			Status: StatusPreloaded,
+			Status: database.StatusPreloaded,
 		})
 	}
 
 	removed := difference(databasePreload, actualPreload)
 	for _, name := range removed {
-		updates = append(updates, DomainState{
+		updates = append(updates, database.DomainState{
 			Name:   name,
-			Status: StatusRemoved,
+			Status: database.StatusRemoved,
 		})
 	}
 
@@ -295,7 +297,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the database
-	putErr := putStates(serverDB, updates, statusReport)
+	putErr := database.PutStates(serverDB, updates, statusReport)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",

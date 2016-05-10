@@ -45,9 +45,9 @@ type DomainState struct {
 	SubmissionDate time.Time `json:"-"`
 }
 
-// Updates the given domain updates in batches.
+// PutStates updates the given domain updates in batches.
 // Writes and flushes updates to w.
-func putStates(db datastoreBackend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
+func PutStates(db DatastoreBackend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
 	if len(updates) == 0 {
 		statusReport("No updates.\n")
 		return nil
@@ -57,7 +57,7 @@ func putStates(db datastoreBackend, updates []DomainState, statusReport func(for
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.newClient(c)
+	client, datastoreErr := db.NewClient(c)
 	if datastoreErr != nil {
 		return datastoreErr
 	}
@@ -96,17 +96,19 @@ func putStates(db datastoreBackend, updates []DomainState, statusReport func(for
 	return nil
 }
 
-func putState(db datastoreBackend, update DomainState) error {
+// PutState is a convenience version of PutStates for a single domain.
+func PutState(db DatastoreBackend, update DomainState) error {
 	ignoreStatus := func(format string, args ...interface{}) {}
-	return putStates(db, []DomainState{update}, ignoreStatus)
+	return PutStates(db, []DomainState{update}, ignoreStatus)
 }
 
-func statesForQuery(db datastoreBackend, query *datastore.Query) (states []DomainState, err error) {
+// StatesForQuery returns ahe states for the given datastore query.
+func StatesForQuery(db DatastoreBackend, query *datastore.Query) (states []DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.newClient(c)
+	client, datastoreErr := db.NewClient(c)
 	if datastoreErr != nil {
 		return states, datastoreErr
 	}
@@ -125,12 +127,13 @@ func statesForQuery(db datastoreBackend, query *datastore.Query) (states []Domai
 	return states, nil
 }
 
-func domainsForQuery(db datastoreBackend, query *datastore.Query) (domains []string, err error) {
+// DomainsForQuery returns the domains that match the given datastore query.
+func DomainsForQuery(db DatastoreBackend, query *datastore.Query) (domains []string, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.newClient(c)
+	client, datastoreErr := db.NewClient(c)
 	if datastoreErr != nil {
 		return domains, datastoreErr
 	}
@@ -148,14 +151,14 @@ func domainsForQuery(db datastoreBackend, query *datastore.Query) (domains []str
 	return domains, nil
 }
 
-// Get the state for the given domain.
-// The Name field of `state` will not be set.
-func stateForDomain(db datastoreBackend, domain string) (state DomainState, err error) {
+// StateForDomain get the state for the given domain.
+// Note that the Name field of `state` will not be set.
+func StateForDomain(db DatastoreBackend, domain string) (state DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.newClient(c)
+	client, datastoreErr := db.NewClient(c)
 	if datastoreErr != nil {
 		return state, datastoreErr
 	}
@@ -172,10 +175,12 @@ func stateForDomain(db datastoreBackend, domain string) (state DomainState, err 
 	return state, nil
 }
 
-func allDomainStates(db datastoreBackend) (states []DomainState, err error) {
-	return statesForQuery(db, datastore.NewQuery("DomainState"))
+// AllDomainStates gets the states of all domains in the database.
+func AllDomainStates(db DatastoreBackend) (states []DomainState, err error) {
+	return StatesForQuery(db, datastore.NewQuery("DomainState"))
 }
 
-func domainsWithStatus(db datastoreBackend, status PreloadStatus) (domains []string, err error) {
-	return domainsForQuery(db, datastore.NewQuery("DomainState").Filter("Status =", string(status)))
+// DomainsWithStatus returns the domains with the given status in the database.
+func DomainsWithStatus(db DatastoreBackend, status PreloadStatus) (domains []string, err error) {
+	return DomainsForQuery(db, datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }

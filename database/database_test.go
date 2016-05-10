@@ -4,7 +4,7 @@ import "testing"
 
 func TestAllDomainStates(t *testing.T) {
 
-	db, shutdown, err := newLocalDatastore()
+	db, shutdown, err := NewLocalDatastore()
 	if err != nil {
 		t.Errorf("%s", err)
 		return
