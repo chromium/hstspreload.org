@@ -63,6 +63,13 @@ run-datastore-emulator:
 .PHONY: serve
 serve: check run-datastore-emulator
 	env \
-		"DATASTORE_PROJECT_ID=hstspreload-mvm" \
+		"DATASTORE_PROJECT_ID=hstspreload-local-test" \
 		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
 		go run *.go
+
+.PHONY: test
+test: run-datastore-emulator
+	env \
+		"DATASTORE_PROJECT_ID=hstspreload-local-test" \
+		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
+		go test -v

@@ -14,6 +14,8 @@ import (
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
 
+var serverDB = newProdDatastore()
+
 func main() {
 	staticHandler := http.FileServer(http.Dir("files"))
 	http.Handle("/", staticHandler)
@@ -36,7 +38,7 @@ func main() {
 
 func mustHaveDatastore() {
 	// Make sure we can connect to the datastore by forcing a fetch.
-	_, err := stateForDomain("garron.net")
+	_, err := stateForDomain(serverDB, "garron.net")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		if strings.Contains(err.Error(), "missing project/dataset id") {
@@ -95,7 +97,7 @@ func removable(w http.ResponseWriter, domain string) {
 }
 
 func status(w http.ResponseWriter, domain string) {
-	state, err := stateForDomain(domain)
+	state, err := stateForDomain(serverDB, domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -113,7 +115,7 @@ func submit(w http.ResponseWriter, domain string) {
 		return
 	}
 
-	state, stateErr := stateForDomain(domain)
+	state, stateErr := stateForDomain(serverDB, domain)
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -125,7 +127,7 @@ func submit(w http.ResponseWriter, domain string) {
 	case StatusRejected:
 		fallthrough
 	case StatusRemoved:
-		putErr := putState(DomainState{
+		putErr := putState(serverDB, DomainState{
 			Name:           domain,
 			Status:         StatusPending,
 			SubmissionDate: time.Now(),
@@ -183,7 +185,7 @@ func pending(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	names, err := domainsWithStatus(StatusPending)
+	names, err := domainsWithStatus(serverDB, StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -239,7 +241,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := domainsWithStatus(StatusPreloaded)
+	databasePreload, dbErr := domainsWithStatus(serverDB, StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -293,7 +295,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the database
-	putErr := putStates(updates, statusReport)
+	putErr := putStates(serverDB, updates, statusReport)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",

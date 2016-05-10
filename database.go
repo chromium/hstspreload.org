@@ -11,7 +11,6 @@ import (
 const (
 	// A blank project ID forces the project ID to be read from
 	// the DATASTORE_PROJECT_ID environment variable.
-	projectID = ""
 	batchSize = 450
 	timeout   = 10 * time.Second
 
@@ -48,7 +47,7 @@ type DomainState struct {
 
 // Updates the given domain updates in batches.
 // Writes and flushes updates to w.
-func putStates(updates []DomainState, statusReport func(format string, args ...interface{})) error {
+func putStates(db datastoreBackend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
 	if len(updates) == 0 {
 		statusReport("No updates.\n")
 		return nil
@@ -58,7 +57,7 @@ func putStates(updates []DomainState, statusReport func(format string, args ...i
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectID)
+	client, datastoreErr := db.newClient(c)
 	if datastoreErr != nil {
 		return datastoreErr
 	}
@@ -97,17 +96,17 @@ func putStates(updates []DomainState, statusReport func(format string, args ...i
 	return nil
 }
 
-func putState(update DomainState) error {
+func putState(db datastoreBackend, update DomainState) error {
 	ignoreStatus := func(format string, args ...interface{}) {}
-	return putStates([]DomainState{update}, ignoreStatus)
+	return putStates(db, []DomainState{update}, ignoreStatus)
 }
 
-func statesForQuery(query *datastore.Query) (states []DomainState, err error) {
+func statesForQuery(db datastoreBackend, query *datastore.Query) (states []DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectID)
+	client, datastoreErr := db.newClient(c)
 	if datastoreErr != nil {
 		return states, datastoreErr
 	}
@@ -126,12 +125,12 @@ func statesForQuery(query *datastore.Query) (states []DomainState, err error) {
 	return states, nil
 }
 
-func domainsForQuery(query *datastore.Query) (domains []string, err error) {
+func domainsForQuery(db datastoreBackend, query *datastore.Query) (domains []string, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectID)
+	client, datastoreErr := db.newClient(c)
 	if datastoreErr != nil {
 		return domains, datastoreErr
 	}
@@ -151,12 +150,12 @@ func domainsForQuery(query *datastore.Query) (domains []string, err error) {
 
 // Get the state for the given domain.
 // The Name field of `state` will not be set.
-func stateForDomain(domain string) (state DomainState, err error) {
+func stateForDomain(db datastoreBackend, domain string) (state DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := datastore.NewClient(c, projectID)
+	client, datastoreErr := db.newClient(c)
 	if datastoreErr != nil {
 		return state, datastoreErr
 	}
@@ -173,10 +172,10 @@ func stateForDomain(domain string) (state DomainState, err error) {
 	return state, nil
 }
 
-func allDomainStates() (states []DomainState, err error) {
-	return statesForQuery(datastore.NewQuery("DomainState"))
+func allDomainStates(db datastoreBackend) (states []DomainState, err error) {
+	return statesForQuery(db, datastore.NewQuery("DomainState"))
 }
 
-func domainsWithStatus(status PreloadStatus) (domains []string, err error) {
-	return domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
+func domainsWithStatus(db datastoreBackend, status PreloadStatus) (domains []string, err error) {
+	return domainsForQuery(db, datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
