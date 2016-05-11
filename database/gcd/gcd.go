@@ -151,6 +151,18 @@ func (db LocalBackend) NewClient(ctx context.Context) (*datastore.Client, error)
 	return client, nil
 }
 
+// Reset resets the local backend to an empty database.
+func (db LocalBackend) Reset() error {
+	resp, err := http.Post("http://"+db.addr+"/reset", "text/plain", strings.NewReader(""))
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Could not clear local datastore. Unexpected status: %d", 200)
+	}
+	return nil
+}
+
 /******** ProdBackend ********/
 
 // NewProdBackend construct a new ProdBackend.

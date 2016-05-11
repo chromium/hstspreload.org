@@ -18,34 +18,6 @@ const (
 	domainStateKind = "DomainState"
 )
 
-// PreloadStatus represents the current status of a domain, e.g. whether it
-// is preloaded, pending, etc.
-type PreloadStatus string
-
-// Values for PreloadStatus
-const (
-	StatusUnknown   = "unknown"
-	StatusPending   = "pending"
-	StatusPreloaded = "preloaded"
-	StatusRejected  = "rejected"
-	StatusRemoved   = "removed"
-)
-
-// DomainState represents the state stored for a domain in the hstspreload
-// submission app database.
-type DomainState struct {
-	// Name is the key in the datastore, so we don't include it as a field
-	// in the stored value.
-	Name string `datastore:"-" json:"name"`
-	// e.g. StatusPending or StatusPreloaded
-	Status PreloadStatus `json:"status"`
-	// A custom message from the preload list maintainer explaining the
-	// current status of the site (usually to explain a StatusRejected).
-	Message string `datastore:",noindex" json:"message,omitempty"`
-	// The Unix time this domain was last submitted.
-	SubmissionDate time.Time `json:"-"`
-}
-
 // PutStates updates the given domain updates in batches.
 // Writes and flushes updates to w.
 func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
@@ -63,7 +35,7 @@ func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format s
 		return datastoreErr
 	}
 
-	putMulti := func(keys []*datastore.Key, values []*DomainState) error {
+	putMulti := func(keys []*datastore.Key, values []DomainState) error {
 		statusReport("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
@@ -76,11 +48,11 @@ func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format s
 	}
 
 	var keys []*datastore.Key
-	var values []*DomainState
+	var values []DomainState
 	for _, state := range updates {
 		key := datastore.NewKey(c, domainStateKind, string(state.Name), 0, nil)
 		keys = append(keys, key)
-		values = append(values, &state)
+		values = append(values, state)
 
 		if len(keys) >= batchSize {
 			if err := putMulti(keys, values); err != nil {
