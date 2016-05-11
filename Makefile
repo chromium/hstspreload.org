@@ -51,7 +51,7 @@ DATABASE_TESTING_FOLDER = ${HOME}/.datastore-emulator
 get-datastore-emulator: ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh
 ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 	mkdir -p "${DATABASE_TESTING_FOLDER}"
-	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
+	curl "https://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
 	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "${DATABASE_TESTING_FOLDER}"
 
 # Testing
