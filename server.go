@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,7 +10,17 @@ import (
 	"github.com/chromium/hstspreload.appspot.com/database"
 )
 
+const (
+	port = "8080"
+)
+
 func main() {
+	local := flag.Bool("local", false, "run the server using a local database")
+	flag.Parse()
+
+	a, shutdown := mustSetupAPI(*local)
+	defer shutdown()
+
 	staticHandler := http.FileServer(http.Dir("files"))
 	http.Handle("/", staticHandler)
 	http.Handle("/favicon.ico", staticHandler)
@@ -17,29 +28,47 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	db, shutdown, err := database.TempLocalDatabase()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-		os.Exit(1)
-	}
-	defer shutdown()
+	http.HandleFunc("/preloadable", a.Preloadable)
+	http.HandleFunc("/removable", a.Removable)
+	http.HandleFunc("/status", a.Status)
+	http.HandleFunc("/submit", a.Submit)
 
-	api := api.API{Database: db}
-	if err := api.CheckConnection(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-		os.Exit(1)
-	}
+	http.HandleFunc("/pending", a.Pending)
+	http.HandleFunc("/update", a.Update)
 
-	http.HandleFunc("/preloadable", api.Preloadable)
-	http.HandleFunc("/removable", api.Removable)
-	http.HandleFunc("/status", api.Status)
-	http.HandleFunc("/submit", api.Submit)
+	fmt.Println("Listening...")
 
-	http.HandleFunc("/pending", api.Pending)
-	http.HandleFunc("/update", api.Update)
-
-	err = http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 	}
+}
+
+func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
+	var db database.Database
+
+	if local {
+		fmt.Printf("Seting up local database...")
+		localDB, dbShutdown, err := database.TempLocalDatabase()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s", err)
+			os.Exit(1)
+		}
+		db, shutdown = localDB, dbShutdown
+	} else {
+		fmt.Printf("Seting up prod database...")
+		db = database.ProdDatabase()
+		shutdown = func() error { return nil }
+	}
+
+	fmt.Printf(" checking database connection...")
+
+	a = api.API{Database: db}
+	if err := a.CheckConnection(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err)
+		os.Exit(1)
+	}
+
+	fmt.Println(" done.")
+	return a, shutdown
 }

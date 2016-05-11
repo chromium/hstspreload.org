@@ -54,7 +54,7 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 
 .PHONY: serve
 serve: check get-datastore-emulator
-	go run *.go
+	go run *.go -local
 
 .PHONY: test
 test: get-datastore-emulator
