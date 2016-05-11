@@ -37,7 +37,7 @@ type LocalBackend struct {
 	cmd  *exec.Cmd
 }
 
-// ProdBackend represent the production instance of
+// ProdBackend represents the production instance of
 // Google Cloud Datastore
 type ProdBackend struct{}
 
@@ -165,7 +165,7 @@ func (db LocalBackend) Reset() error {
 
 /******** ProdBackend ********/
 
-// NewProdBackend construct a new ProdBackend.
+// NewProdBackend constructs a new ProdBackend.
 func NewProdBackend() (db ProdBackend) {
 	// No special configuration in this case.
 	return ProdBackend{}
