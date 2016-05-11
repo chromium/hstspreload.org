@@ -20,7 +20,7 @@ lint:
 	golint -set_exit_status ${PROJECT}
 
 .PHONY: pre-commit
-pre-commit: lint build
+pre-commit: lint build test
 
 .PHONY: travis
 travis: pre-commit
@@ -60,6 +60,6 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 serve: check get-datastore-emulator
 	go run *.go
 
-.PHONY: test get-datastore-emulator
+.PHONY: test
 test:
 	go test -v "${PROJECT}"
