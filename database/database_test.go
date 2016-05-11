@@ -1,10 +1,14 @@
 package database
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/chromium/hstspreload.appspot.com/database/gcd"
+)
 
 func TestAllDomainStates(t *testing.T) {
 
-	db, shutdown, err := NewLocalDatastore()
+	db, shutdown, err := gcd.NewLocalBackend()
 	if err != nil {
 		t.Errorf("%s", err)
 		return

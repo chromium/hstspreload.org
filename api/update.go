@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
 
@@ -23,7 +24,7 @@ func difference(from []string, take []string) (diff []string) {
 	return diff
 }
 
-func update(db database.DatastoreBackend, w http.ResponseWriter, r *http.Request) {
+func update(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.

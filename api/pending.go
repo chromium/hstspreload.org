@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 )
 
-func pending(db database.DatastoreBackend, w http.ResponseWriter, r *http.Request) {
+func pending(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, fmt.Sprintf("Wrong method. Requires GET."), http.StatusMethodNotAllowed)
 		return

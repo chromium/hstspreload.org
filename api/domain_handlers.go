@@ -7,19 +7,20 @@ import (
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 )
 
-func preloadable(db database.DatastoreBackend, w http.ResponseWriter, domain string) {
+func preloadable(db gcd.Backend, w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func removable(db database.DatastoreBackend, w http.ResponseWriter, domain string) {
+func removable(db gcd.Backend, w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func status(db database.DatastoreBackend, w http.ResponseWriter, domain string) {
+func status(db gcd.Backend, w http.ResponseWriter, domain string) {
 	state, err := database.StateForDomain(db, domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
@@ -31,7 +32,7 @@ func status(db database.DatastoreBackend, w http.ResponseWriter, domain string) 
 	writeJSONOrBust(w, state)
 }
 
-func submit(db database.DatastoreBackend, w http.ResponseWriter, domain string) {
+func submit(db gcd.Backend, w http.ResponseWriter, domain string) {
 	_, issues := hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)

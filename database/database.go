@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 	"google.golang.org/cloud/datastore"
 )
 
@@ -47,7 +48,7 @@ type DomainState struct {
 
 // PutStates updates the given domain updates in batches.
 // Writes and flushes updates to w.
-func PutStates(db DatastoreBackend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
+func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
 	if len(updates) == 0 {
 		statusReport("No updates.\n")
 		return nil
@@ -97,13 +98,13 @@ func PutStates(db DatastoreBackend, updates []DomainState, statusReport func(for
 }
 
 // PutState is a convenience version of PutStates for a single domain.
-func PutState(db DatastoreBackend, update DomainState) error {
+func PutState(db gcd.Backend, update DomainState) error {
 	ignoreStatus := func(format string, args ...interface{}) {}
 	return PutStates(db, []DomainState{update}, ignoreStatus)
 }
 
 // StatesForQuery returns ahe states for the given datastore query.
-func StatesForQuery(db DatastoreBackend, query *datastore.Query) (states []DomainState, err error) {
+func StatesForQuery(db gcd.Backend, query *datastore.Query) (states []DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -128,7 +129,7 @@ func StatesForQuery(db DatastoreBackend, query *datastore.Query) (states []Domai
 }
 
 // DomainsForQuery returns the domains that match the given datastore query.
-func DomainsForQuery(db DatastoreBackend, query *datastore.Query) (domains []string, err error) {
+func DomainsForQuery(db gcd.Backend, query *datastore.Query) (domains []string, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -153,7 +154,7 @@ func DomainsForQuery(db DatastoreBackend, query *datastore.Query) (domains []str
 
 // StateForDomain get the state for the given domain.
 // Note that the Name field of `state` will not be set.
-func StateForDomain(db DatastoreBackend, domain string) (state DomainState, err error) {
+func StateForDomain(db gcd.Backend, domain string) (state DomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -176,11 +177,11 @@ func StateForDomain(db DatastoreBackend, domain string) (state DomainState, err 
 }
 
 // AllDomainStates gets the states of all domains in the database.
-func AllDomainStates(db DatastoreBackend) (states []DomainState, err error) {
+func AllDomainStates(db gcd.Backend) (states []DomainState, err error) {
 	return StatesForQuery(db, datastore.NewQuery("DomainState"))
 }
 
 // DomainsWithStatus returns the domains with the given status in the database.
-func DomainsWithStatus(db DatastoreBackend, status PreloadStatus) (domains []string, err error) {
+func DomainsWithStatus(db gcd.Backend, status PreloadStatus) (domains []string, err error) {
 	return DomainsForQuery(db, datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
