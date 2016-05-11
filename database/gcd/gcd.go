@@ -153,7 +153,7 @@ func (db LocalBackend) NewClient(ctx context.Context) (*datastore.Client, error)
 
 // Reset resets the local backend to an empty database.
 func (db LocalBackend) Reset() error {
-	resp, err := http.Post("http://"+db.addr+"/reset", "text/plain", strings.NewReader(""))
+	resp, err := http.Post("http://"+db.addr+"/reset", "text/plain", nil)
 	if err != nil {
 		return err
 	}
