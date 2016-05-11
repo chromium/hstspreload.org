@@ -49,8 +49,7 @@ func TestAllDomainStatesEmptyDB(t *testing.T) {
 
 	domains, err := db.AllDomainStates()
 	if err != nil {
-		t.Errorf("%s", err)
-		t.FailNow()
+		t.Fatalf("%s", err)
 	}
 
 	if len(domains) != 0 {
@@ -140,8 +139,7 @@ func TestPutAndAll(t *testing.T) {
 
 		domainStates, err := db.AllDomainStates()
 		if err != nil {
-			t.Errorf("%s", err)
-			t.FailNow()
+			t.Fatalf("%s", err)
 		}
 
 		if err = matchWanted(domainStates, tt.wantStates); err != nil {

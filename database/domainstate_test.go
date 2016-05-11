@@ -67,8 +67,7 @@ func TestMatchWanted(t *testing.T) {
 			{Name: "a.example.com"},
 		})
 	if err == nil {
-		t.Errorf("Expected error")
-		t.FailNow()
+		t.Fatalf("Expected error")
 	}
 	if err.Error() != "repeated wanted domain: a.example.com" {
 		t.Errorf("matchWanted() did detect find a repeated wanted domain. %s", err)
