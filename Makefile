@@ -60,6 +60,6 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 serve: check get-datastore-emulator
 	go run *.go
 
-.PHONY: test get-datastore-emulator
-test:
+.PHONY: test
+test:  get-datastore-emulator
 	go test -v "${PROJECT}"
