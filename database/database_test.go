@@ -15,11 +15,15 @@ func TestAllDomainStates(t *testing.T) {
 	}
 	defer shutdown()
 
-	PutStates(
+	err = PutStates(
 		db,
 		[]DomainState{{Name: "garron.net", Status: "preloaded"}},
 		func(format string, args ...interface{}) {},
 	)
+	if err != nil {
+		t.Errorf("cannot get all domain states %s", err)
+		return
+	}
 
 	// _, err = datastoreStatesForQuery(ctx, client, datastore.NewQuery("DomainState"))
 	// if err != nil {

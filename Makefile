@@ -45,7 +45,7 @@ endif
 # Google Cloud Datastore Emulator
 
 GCD_NAME = gcd-grpc-1.0.0
-DATABASE_TESTING_FOLDER = database/gcd/testing
+DATABASE_TESTING_FOLDER = ${HOME}/.datastore-emulator
 
 .PHONY: get-datastore-emulator
 get-datastore-emulator: ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh
@@ -60,6 +60,6 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 serve: check get-datastore-emulator
 	go run *.go
 
-.PHONY: test
+.PHONY: test get-datastore-emulator
 test:
 	go test -v "${PROJECT}"

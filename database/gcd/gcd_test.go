@@ -18,5 +18,8 @@ func TestNewLocalBackend(t *testing.T) {
 	if err != nil {
 		t.Errorf("%s", err)
 	}
-	defer shutdown()
+	err = shutdown()
+	if err != nil {
+		t.Errorf("%s", err)
+	}
 }

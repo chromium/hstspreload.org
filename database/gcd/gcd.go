@@ -3,9 +3,11 @@ package gcd
 import (
 	"errors"
 	"fmt"
+	"net"
+	"os"
 	"os/exec"
-	"strconv"
-	"sync"
+	"path"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -43,19 +45,19 @@ type Backend interface {
 
 /******** Port assignment for local backends ********/
 
-var (
-	portMutex sync.Mutex
-	nextPort  = 9001
-)
+func portString() (string, error) {
+	// Ask for a port to listen on.
+	l, err := net.Listen("tcp", ":0")
+	if err != nil {
+		return "", err
+	}
 
-func portString() string {
-	// TODO: Check that the port is available?
-	portMutex.Lock()
-	port := nextPort
-	nextPort++
-	portMutex.Unlock()
+	// Give up the port and return it as a (very likely) free port.
+	l.Close()
+	parts := strings.Split(l.Addr().String(), ":")
+	ps := parts[len(parts)-1]
 
-	return strconv.Itoa(port)
+	return ps, nil
 }
 
 /******** LocalBackend ********/
@@ -63,32 +65,41 @@ func portString() string {
 // NewLocalBackend spawns a new LocalBackend using Java.
 // When there is no error, make sure to call shutdown() in order to
 // terminate the Java process.
-func NewLocalBackend() (db LocalBackend, shutdown func(), err error) {
+func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 	db = LocalBackend{}
+	shutdown = func() error { return nil }
 
-	ps := portString()
-
+	ps, err := portString()
+	if err != nil {
+		return db, shutdown, err
+	}
 	db.addr = "localhost:" + ps
+
+	jarPath := path.Join(os.Getenv("HOME"), ".datastore-emulator", "gcd", "CloudDatastore.jar")
+	if _, err := os.Stat(jarPath); os.IsNotExist(err) {
+		return db, shutdown, fmt.Errorf("Datastore emulator does not exist: %s", err)
+	}
 
 	cmd := exec.Command(
 		"java",
 		"-cp",
-		"./database/gcd/testing/gcd/CloudDatastore.jar",
+		jarPath,
 		"com.google.cloud.datastore.emulator.CloudDatastore",
-		"[datastore.go]",
+		"[gcd.go]",
 		"start",
 		"-p",
-		ps, "--testing",
+		ps,
+		"--testing",
 	)
 	db.cmd = cmd
 
 	err = cmd.Start()
 	if err != nil {
-		return db, func() {}, nil
+		return db, shutdown, nil
 	}
 
-	shutdown = func() {
-		cmd.Process.Kill()
+	shutdown = func() error {
+		return cmd.Process.Kill()
 	}
 
 	// Wait for the server to start. 1000ms seems to work.
