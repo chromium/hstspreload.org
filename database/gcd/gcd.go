@@ -103,7 +103,7 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 	}
 
 	// Wait for the server to start. 1000ms seems to work.
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(1500 * time.Millisecond)
 	return db, shutdown, nil
 }
 
