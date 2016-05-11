@@ -1,0 +1,13 @@
+language: go
+
+go:
+  - 1.6
+
+install:
+  - go get github.com/golang/lint/golint
+  - go get github.com/chromium/hstspreload
+  - go get google.golang.org/cloud/datastore
+  - make get-datastore-emulator
+
+script:
+  - make travis

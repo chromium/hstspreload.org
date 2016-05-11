@@ -1,9 +1,5 @@
 PROJECT = github.com/chromium/hstspreload.appspot.com/...
 
-# .PHONY: test
-# test: lint
-# 	go test ${PROJECT}
-
 .PHONY: build
 build:
 	go build ${PROJECT}
@@ -20,7 +16,7 @@ lint:
 	golint -set_exit_status ${PROJECT}
 
 .PHONY: pre-commit
-pre-commit: lint build
+pre-commit: lint build test
 
 .PHONY: travis
 travis: pre-commit
@@ -45,24 +41,21 @@ endif
 # Google Cloud Datastore Emulator
 
 GCD_NAME = gcd-grpc-1.0.0
-DATASTORE_PORT = 8081
+DATABASE_TESTING_FOLDER = ${HOME}/.datastore-emulator
 
 .PHONY: get-datastore-emulator
-get-datastore-emulator: testing/gcd/gcd.sh
-testing/gcd/gcd.sh:
-	mkdir -p testing
-	curl "http://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "testing/${GCD_NAME}.zip"
-	unzip "testing/${GCD_NAME}.zip" -d "testing"
-
-.PHONY: run-datastore-emulator
-run-datastore-emulator:
-	./testing/gcd/gcd.sh start -p "8081" --testing &
+get-datastore-emulator: ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh
+${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
+	mkdir -p "${DATABASE_TESTING_FOLDER}"
+	curl "https://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
+	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "${DATABASE_TESTING_FOLDER}"
 
 # Testing
 
 .PHONY: serve
-serve: check run-datastore-emulator
-	env \
-		"DATASTORE_PROJECT_ID=hstspreload-mvm" \
-		"DATASTORE_EMULATOR_HOST=localhost:${DATASTORE_PORT}" \
-		go run *.go
+serve: check get-datastore-emulator
+	go run *.go
+
+.PHONY: test
+test: get-datastore-emulator
+	go test -v "${PROJECT}"
