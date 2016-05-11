@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -20,6 +21,10 @@ const (
 	// A blank project ID forces the project ID to be read from
 	// the DATASTORE_PROJECT_ID environment variable.
 	projectID = ""
+
+	numLocalProbes    = 10
+	initialProbeSleep = 300 * time.Millisecond
+	localProbeSpacing = 100 * time.Millisecond
 )
 
 /******** Backends ********/
@@ -95,16 +100,29 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 
 	err = cmd.Start()
 	if err != nil {
-		return db, shutdown, nil
+		return db, shutdown, err
 	}
 
 	shutdown = func() error {
 		return cmd.Process.Kill()
 	}
 
-	// Wait for the server to start. 1000ms seems to work.
-	time.Sleep(1500 * time.Millisecond)
-	return db, shutdown, nil
+	time.Sleep(initialProbeSleep)
+	for i := 0; i < numLocalProbes; i++ {
+		time.Sleep(localProbeSpacing)
+		resp, err := http.Get("http://" + db.addr)
+		if err == nil {
+			if resp.StatusCode != 200 {
+				return db, shutdown, fmt.Errorf("Wrong status code: %d", resp.StatusCode)
+			}
+			return db, shutdown, nil
+		}
+		if !strings.Contains(err.Error(), "connection refused") {
+			return db, shutdown, err
+		}
+	}
+
+	return db, shutdown, fmt.Errorf("could not connect")
 }
 
 // NewClient constructs a datastore client for the emulated LocalBackend.
