@@ -18,6 +18,8 @@ const (
 	domainStateKind = "DomainState"
 )
 
+var ignoreStatus = func(format string, args ...interface{}) {}
+
 // PutStates updates the given domain updates in batches.
 // Writes and flushes updates to w.
 func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format string, args ...interface{})) error {
@@ -71,7 +73,6 @@ func PutStates(db gcd.Backend, updates []DomainState, statusReport func(format s
 
 // PutState is a convenience version of PutStates for a single domain.
 func PutState(db gcd.Backend, update DomainState) error {
-	ignoreStatus := func(format string, args ...interface{}) {}
 	return PutStates(db, []DomainState{update}, ignoreStatus)
 }
 

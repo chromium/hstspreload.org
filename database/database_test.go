@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"sync"
 	"testing"
 
@@ -169,5 +170,65 @@ func TestStateForDomain(t *testing.T) {
 	}
 	if state.Status != StatusUnknown {
 		t.Errorf("Wrong status: %s", state.Status)
+	}
+}
+
+// Test PutStates and AllDomainStates.
+func TestDomainsWithStatus(t *testing.T) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+	db.Reset()
+
+	domainStates, err := DomainsWithStatus(db, StatusPreloaded)
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+	if len(domainStates) != 0 {
+		t.Errorf("Empty database should contain no preloaded domains")
+	}
+
+	err = PutStates(
+		db,
+		[]DomainState{
+			{Name: "a.com", Status: StatusPending},
+			{Name: "b.com", Status: StatusPending},
+			{Name: "c.com", Status: StatusRejected},
+			{Name: "d.com", Status: StatusRemoved},
+			{Name: "e.com", Status: StatusPending},
+			{Name: "g.com", Status: StatusRejected},
+			{Name: "h.com", Status: StatusPreloaded},
+			{Name: "i.com", Status: StatusPreloaded},
+			{Name: "j.com", Status: StatusRejected},
+			{Name: "k.com", Status: StatusPending},
+		},
+		ignoreStatus,
+	)
+	if err != nil {
+		t.Errorf("cannot put states %s", err)
+		return
+	}
+
+	table := []struct {
+		status  PreloadStatus
+		domains sort.StringSlice // sorted order
+	}{
+		{status: StatusUnknown},
+		{StatusPending, sort.StringSlice{"a.com", "b.com", "e.com", "k.com"}},
+		{StatusPreloaded, sort.StringSlice{"h.com", "i.com"}},
+		{StatusRejected, sort.StringSlice{"c.com", "g.com", "j.com"}},
+		{StatusRemoved, sort.StringSlice{"d.com"}},
+	}
+
+	for _, tt := range table {
+
+		domainStates, err = DomainsWithStatus(db, tt.status)
+		if err != nil {
+			t.Errorf("%s", err)
+		}
+		ss := sort.StringSlice(domainStates)
+		sort.Sort(ss)
+		if !reflect.DeepEqual(ss, tt.domains) {
+			t.Errorf("not the list of expected domains for status %s: %#v", tt.status, ss)
+		}
 	}
 }
