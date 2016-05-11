@@ -23,7 +23,11 @@ func difference(from []string, take []string) (diff []string) {
 	return diff
 }
 
-func update(db database.Database, w http.ResponseWriter, r *http.Request) {
+// Update tells the server to update pending/removed entries based
+// on the HSTS preload list source.
+//
+// Example: GET /update
+func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.
@@ -44,7 +48,7 @@ func update(db database.Database, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := db.DomainsWithStatus(database.StatusPreloaded)
+	databasePreload, dbErr := api.Database.DomainsWithStatus(database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -98,7 +102,7 @@ func update(db database.Database, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the database
-	putErr := db.PutStates(updates, logf)
+	putErr := api.Database.PutStates(updates, logf)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",

@@ -5,22 +5,70 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/idna"
+
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.appspot.com/database"
 )
 
-func preloadable(db database.Database, w http.ResponseWriter, domain string) {
+func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (ascii string, ok bool) {
+	if r.Method != wantMethod {
+		http.Error(w, fmt.Sprintf("Wrong method. Requires %s.", wantMethod), http.StatusMethodNotAllowed)
+		return "", false
+	}
+
+	unicode := r.URL.Query().Get("domain")
+	if unicode == "" {
+		http.Error(w, "Domain not specified.", http.StatusBadRequest)
+		return "", false
+	}
+
+	ascii, err := idna.ToASCII(unicode)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return "", false
+	}
+
+	return ascii, true
+}
+
+// Preloadable takes a single domain and returns if it is preloadable.
+//
+// Example: GET /preloadable?domain=garron.net
+func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
+	domain, ok := getASCIIDomain(http.MethodGet, w, r)
+	if !ok {
+		return
+	}
+
 	_, issues := hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func removable(db database.Database, w http.ResponseWriter, domain string) {
+// Removable takes a single domain and returns if it is removable.
+//
+// Example: GET /removable?domain=garron.net
+func (api API) Removable(w http.ResponseWriter, r *http.Request) {
+	domain, ok := getASCIIDomain(http.MethodGet, w, r)
+	if !ok {
+		return
+	}
+
 	_, issues := hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
-func status(db database.Database, w http.ResponseWriter, domain string) {
-	state, err := db.StateForDomain(domain)
+// Status takes a single domain and returns its preload status.
+//
+// Example: GET /status?domain=garron.net
+func (api API) Status(w http.ResponseWriter, r *http.Request) {
+	domain, ok := getASCIIDomain(http.MethodGet, w, r)
+	if !ok {
+		return
+	}
+
+	state, err := api.Database.StateForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -31,14 +79,26 @@ func status(db database.Database, w http.ResponseWriter, domain string) {
 	writeJSONOrBust(w, state)
 }
 
-func submit(db database.Database, w http.ResponseWriter, domain string) {
+// Submit takes a single domain and attempts to submit it to the
+// pending queue for the HSTS preload list.
+//
+// Although the method is POST, we currently use a URL parameter so that
+// it's easy to use in the same way as the other domain endpoints.
+//
+// Example: POST /status?domain=garron.net
+func (api API) Submit(w http.ResponseWriter, r *http.Request) {
+	domain, ok := getASCIIDomain(http.MethodPost, w, r)
+	if !ok {
+		return
+	}
+
 	_, issues := hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
 		return
 	}
 
-	state, stateErr := db.StateForDomain(domain)
+	state, stateErr := api.Database.StateForDomain(domain)
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -50,7 +110,7 @@ func submit(db database.Database, w http.ResponseWriter, domain string) {
 	case database.StatusRejected:
 		fallthrough
 	case database.StatusRemoved:
-		putErr := db.PutState(database.DomainState{
+		putErr := api.Database.PutState(database.DomainState{
 			Name:           domain,
 			Status:         database.StatusPending,
 			SubmissionDate: time.Now(),
