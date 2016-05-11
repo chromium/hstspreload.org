@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	dbLock sync.Mutex
-	db     DatastoreBacked
+	testDBLock sync.Mutex
+	testDB     DatastoreBacked
 )
 
 func ExampleTempLocalDatabase() {
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	db = localDatabase
+	testDB = localDatabase
 	exitCode := m.Run()
 
 	shutdown()
@@ -39,15 +39,15 @@ func TestMain(m *testing.M) {
 }
 
 func resetDB() {
-	db.backend.(gcd.LocalBackend).Reset()
+	testDB.backend.(gcd.LocalBackend).Reset()
 }
 
 func TestAllDomainStatesEmptyDB(t *testing.T) {
-	dbLock.Lock()
-	defer dbLock.Unlock()
+	testDBLock.Lock()
+	defer testDBLock.Unlock()
 	resetDB()
 
-	domains, err := db.AllDomainStates()
+	domains, err := testDB.AllDomainStates()
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -112,8 +112,8 @@ var putAndAllTests = []struct {
 
 // Test PutStates and AllDomainStates.
 func TestPutAndAll(t *testing.T) {
-	dbLock.Lock()
-	defer dbLock.Unlock()
+	testDBLock.Lock()
+	defer testDBLock.Unlock()
 	resetDB()
 
 	for _, tt := range putAndAllTests {
@@ -124,7 +124,7 @@ func TestPutAndAll(t *testing.T) {
 			statuses = append(statuses, formatted)
 		}
 
-		err := db.PutStates(
+		err := testDB.PutStates(
 			tt.domainStates,
 			statusReport,
 		)
@@ -137,7 +137,7 @@ func TestPutAndAll(t *testing.T) {
 			t.Errorf("[%s] Incorrect status reports: %#v", tt.description, statuses)
 		}
 
-		domainStates, err := db.AllDomainStates()
+		domainStates, err := testDB.AllDomainStates()
 		if err != nil {
 			t.Fatalf("%s", err)
 		}
@@ -150,11 +150,11 @@ func TestPutAndAll(t *testing.T) {
 }
 
 func TestStateForDomain(t *testing.T) {
-	dbLock.Lock()
-	defer dbLock.Unlock()
+	testDBLock.Lock()
+	defer testDBLock.Unlock()
 	resetDB()
 
-	err := db.PutState(
+	err := testDB.PutState(
 		DomainState{Name: "gmail.com", Status: StatusPending},
 	)
 	if err != nil {
@@ -162,7 +162,7 @@ func TestStateForDomain(t *testing.T) {
 		return
 	}
 
-	state, err := db.StateForDomain("gmail.com")
+	state, err := testDB.StateForDomain("gmail.com")
 	if err != nil {
 		t.Errorf("error retrieving state: %s", err)
 		return
@@ -171,7 +171,7 @@ func TestStateForDomain(t *testing.T) {
 		t.Errorf("Wrong status: %s", state.Status)
 	}
 
-	state, err = db.StateForDomain("garron.net")
+	state, err = testDB.StateForDomain("garron.net")
 	if err != nil {
 		t.Errorf("error retrieving state: %s", err)
 		return
@@ -183,11 +183,11 @@ func TestStateForDomain(t *testing.T) {
 
 // Test PutStates and AllDomainStates.
 func TestDomainsWithStatus(t *testing.T) {
-	dbLock.Lock()
-	defer dbLock.Unlock()
+	testDBLock.Lock()
+	defer testDBLock.Unlock()
 	resetDB()
 
-	domainStates, err := db.DomainsWithStatus(StatusPreloaded)
+	domainStates, err := testDB.DomainsWithStatus(StatusPreloaded)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -195,7 +195,7 @@ func TestDomainsWithStatus(t *testing.T) {
 		t.Errorf("Empty database should contain no preloaded domains")
 	}
 
-	err = db.PutStates(
+	err = testDB.PutStates(
 		[]DomainState{
 			{Name: "a.com", Status: StatusPending},
 			{Name: "b.com", Status: StatusPending},
@@ -228,7 +228,7 @@ func TestDomainsWithStatus(t *testing.T) {
 
 	for _, tt := range table {
 
-		domainStates, err = db.DomainsWithStatus(tt.status)
+		domainStates, err = testDB.DomainsWithStatus(tt.status)
 		if err != nil {
 			t.Errorf("%s", err)
 		}
