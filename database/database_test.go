@@ -5,16 +5,14 @@ import (
 	"os"
 	"reflect"
 	"sort"
-	"sync"
 	"testing"
 
 	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 )
 
-var (
-	testDBLock sync.Mutex
-	testDB     DatastoreBacked
-)
+// We can share a database across tests because tests are not run
+// in parallel (by default).
+var testDB DatastoreBacked
 
 func ExampleTempLocalDatabase() {
 	_, shutdown, err := TempLocalDatabase()
@@ -43,8 +41,6 @@ func resetDB() {
 }
 
 func TestAllDomainStatesEmptyDB(t *testing.T) {
-	testDBLock.Lock()
-	defer testDBLock.Unlock()
 	resetDB()
 
 	domains, err := testDB.AllDomainStates()
@@ -112,8 +108,6 @@ var putAndAllTests = []struct {
 
 // Test PutStates and AllDomainStates.
 func TestPutAndAll(t *testing.T) {
-	testDBLock.Lock()
-	defer testDBLock.Unlock()
 	resetDB()
 
 	for _, tt := range putAndAllTests {
@@ -150,8 +144,6 @@ func TestPutAndAll(t *testing.T) {
 }
 
 func TestStateForDomain(t *testing.T) {
-	testDBLock.Lock()
-	defer testDBLock.Unlock()
 	resetDB()
 
 	err := testDB.PutState(
@@ -183,8 +175,6 @@ func TestStateForDomain(t *testing.T) {
 
 // Test PutStates and AllDomainStates.
 func TestDomainsWithStatus(t *testing.T) {
-	testDBLock.Lock()
-	defer testDBLock.Unlock()
 	resetDB()
 
 	domainStates, err := testDB.DomainsWithStatus(StatusPreloaded)
