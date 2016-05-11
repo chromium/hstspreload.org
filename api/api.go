@@ -105,7 +105,6 @@ func (api API) CheckConnection() error {
 	// Make sure we can connect to the datastore by forcing a fetch.
 	_, err := api.Database.StateForDomain("garron.net")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
 		if strings.Contains(err.Error(), "missing project/dataset id") {
 			fmt.Fprintf(os.Stderr, "Try running: make serve\n")
 		}
