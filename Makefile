@@ -1,9 +1,5 @@
 PROJECT = github.com/chromium/hstspreload.appspot.com/...
 
-# .PHONY: test
-# test: lint
-# 	go test ${PROJECT}
-
 .PHONY: build
 build:
 	go build ${PROJECT}
@@ -61,5 +57,5 @@ serve: check get-datastore-emulator
 	go run *.go
 
 .PHONY: test
-test:  get-datastore-emulator
+test: get-datastore-emulator
 	go test -v "${PROJECT}"
