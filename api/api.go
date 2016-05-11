@@ -100,8 +100,8 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 	fmt.Fprintf(w, "%s\n", b)
 }
 
-// TestConnection tests if we can connect the database.
-func (api API) TestConnection() error {
+// CheckConnection tests if we can connect the database.
+func (api API) CheckConnection() error {
 	// Make sure we can connect to the datastore by forcing a fetch.
 	_, err := api.Database.StateForDomain("garron.net")
 	if err != nil {

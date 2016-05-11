@@ -25,7 +25,7 @@ func main() {
 	defer shutdown()
 
 	api := api.API{Database: db}
-	if err := api.TestConnection(); err != nil {
+	if err := api.CheckConnection(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(1)
 	}
