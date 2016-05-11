@@ -11,8 +11,8 @@ import (
 )
 
 func TestCheckConnection(t *testing.T) {
-	ms := database.MockState{}
-	a := API{database.Mock{State: &ms}}
+	m, ms := database.NewMock()
+	a := API{m}
 	if err := a.CheckConnection(); err != nil {
 		t.Errorf("%s", err)
 	}
@@ -24,8 +24,8 @@ func TestCheckConnection(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	ms := database.MockState{}
-	a := API{database.Mock{State: &ms}}
+	m, _ := database.NewMock()
+	a := API{m}
 
 	w := httptest.NewRecorder()
 

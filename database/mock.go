@@ -5,9 +5,9 @@ import "errors"
 // Mock is a very simple Mock for our database.
 type Mock struct {
 	ds map[string]DomainState
-	// This is a pointer so that we can pass on Mock but continue
+	// This is a pointer so that we can pass around a Mock but continue
 	// to control its behaviour.
-	State *MockState
+	state *MockState
 }
 
 // MockState keeps track of mocking behaviour.
@@ -15,9 +15,16 @@ type MockState struct {
 	FailCalls bool
 }
 
+// NewMock constructs a new mock, along with a MockState pointer to
+// control the behaviour of the new Mock.
+func NewMock() (m Mock, ms *MockState) {
+	ms = &MockState{}
+	return Mock{state: ms}, ms
+}
+
 // PutStates mock method
 func (m Mock) PutStates(updates []DomainState, logf func(format string, args ...interface{})) error {
-	if m.State.FailCalls == true {
+	if m.state.FailCalls == true {
 		return errors.New("forced failure")
 	}
 
@@ -29,7 +36,7 @@ func (m Mock) PutStates(updates []DomainState, logf func(format string, args ...
 
 // PutState mock method
 func (m Mock) PutState(update DomainState) error {
-	if m.State.FailCalls == true {
+	if m.state.FailCalls == true {
 		return errors.New("forced failure")
 	}
 
@@ -39,7 +46,7 @@ func (m Mock) PutState(update DomainState) error {
 
 // StateForDomain mock method
 func (m Mock) StateForDomain(domain string) (state DomainState, err error) {
-	if m.State.FailCalls == true {
+	if m.state.FailCalls == true {
 		return state, errors.New("forced failure")
 	}
 
@@ -52,7 +59,7 @@ func (m Mock) StateForDomain(domain string) (state DomainState, err error) {
 
 // AllDomainStates mock method
 func (m Mock) AllDomainStates() (states []DomainState, err error) {
-	if m.State.FailCalls == true {
+	if m.state.FailCalls == true {
 		return states, errors.New("forced failure")
 	}
 
@@ -64,7 +71,7 @@ func (m Mock) AllDomainStates() (states []DomainState, err error) {
 
 // DomainsWithStatus mock method
 func (m Mock) DomainsWithStatus(status PreloadStatus) (domains []string, err error) {
-	if m.State.FailCalls == true {
+	if m.state.FailCalls == true {
 		return domains, errors.New("forced failure")
 	}
 
