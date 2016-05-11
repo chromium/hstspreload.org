@@ -13,7 +13,7 @@ import (
 
 var (
 	dbLock sync.Mutex
-	db     Database
+	db     DatastoreBacked
 )
 
 func ExampleTempLocalDatabase() {
