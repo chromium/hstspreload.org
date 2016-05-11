@@ -1,17 +1,6 @@
 package gcd
 
-import (
-	"fmt"
-	"testing"
-)
-
-func ExampleNewLocalBackend() {
-	_, shutdown, err := NewLocalBackend()
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-	defer shutdown()
-}
+import "testing"
 
 func TestNewLocalBackend(t *testing.T) {
 	_, shutdown, err := NewLocalBackend()

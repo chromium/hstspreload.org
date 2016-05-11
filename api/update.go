@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
 
@@ -24,7 +23,7 @@ func difference(from []string, take []string) (diff []string) {
 	return diff
 }
 
-func update(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
+func update(db database.Database, w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.
@@ -45,7 +44,7 @@ func update(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := database.DomainsWithStatus(db, database.StatusPreloaded)
+	databasePreload, dbErr := db.DomainsWithStatus(database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -99,7 +98,7 @@ func update(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the database
-	putErr := database.PutStates(db, updates, statusReport)
+	putErr := db.PutStates(updates, statusReport)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",

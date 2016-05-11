@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/chromium/hstspreload.appspot.com/api"
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
+	"github.com/chromium/hstspreload.appspot.com/database"
 )
 
 func main() {
@@ -17,16 +17,14 @@ func main() {
 
 	http.HandleFunc("/robots.txt", http.NotFound)
 
-	db, shutdown, err := gcd.NewLocalBackend()
+	db, shutdown, err := database.TempLocalDatabase()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(1)
 	}
 	defer shutdown()
 
-	api := api.API{
-		Backend: db,
-	}
+	api := api.API{Database: db}
 	if err := api.TestConnection(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(1)

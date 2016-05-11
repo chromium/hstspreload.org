@@ -10,33 +10,32 @@ import (
 	"golang.org/x/net/idna"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 )
 
 // API holds the server API.
 type API struct {
-	Backend gcd.Backend
+	Database database.Database
 }
 
 // Preloadable takes a single domain and returns if it is preloadable.
 //
 // Example: GET /preloadable?domain=garron.net
 func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
-	domainHandler(api.Backend, "GET", preloadable, w, r)
+	domainHandler(api.Database, "GET", preloadable, w, r)
 }
 
 // Removable takes a single domain and returns if it is removable.
 //
 // Example: GET /removable?domain=garron.net
 func (api API) Removable(w http.ResponseWriter, r *http.Request) {
-	domainHandler(api.Backend, "GET", removable, w, r)
+	domainHandler(api.Database, "GET", removable, w, r)
 }
 
 // Status takes a single domain and returns its preload status.
 //
 // Example: GET /status?domain=garron.net
 func (api API) Status(w http.ResponseWriter, r *http.Request) {
-	domainHandler(api.Backend, "GET", status, w, r)
+	domainHandler(api.Database, "GET", status, w, r)
 }
 
 // Submit takes a single domain and attempts to submit it to the
@@ -47,14 +46,14 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 //
 // Example: POST /status?domain=garron.net
 func (api API) Submit(w http.ResponseWriter, r *http.Request) {
-	domainHandler(api.Backend, "GET", submit, w, r)
+	domainHandler(api.Database, "GET", submit, w, r)
 }
 
 // Pending returns a list of domains with status "pending".
 //
 // Example: GET /pending
 func (api API) Pending(w http.ResponseWriter, r *http.Request) {
-	pending(api.Backend, w, r)
+	pending(api.Database, w, r)
 }
 
 // Update tells the server to update pending/removed entries based
@@ -62,10 +61,10 @@ func (api API) Pending(w http.ResponseWriter, r *http.Request) {
 //
 // Example: GET /pending
 func (api API) Update(w http.ResponseWriter, r *http.Request) {
-	update(api.Backend, w, r)
+	update(api.Database, w, r)
 }
 
-func domainHandler(db gcd.Backend, method string, handler func(gcd.Backend, http.ResponseWriter, string), w http.ResponseWriter, r *http.Request) {
+func domainHandler(db database.Database, method string, handler func(database.Database, http.ResponseWriter, string), w http.ResponseWriter, r *http.Request) {
 	if r.Method != method {
 		http.Error(w, fmt.Sprintf("Wrong method. Requires %s.", method), http.StatusMethodNotAllowed)
 		return
@@ -104,7 +103,7 @@ func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
 // TestConnection tests if we can connect the database.
 func (api API) TestConnection() error {
 	// Make sure we can connect to the datastore by forcing a fetch.
-	_, err := database.StateForDomain(api.Backend, "garron.net")
+	_, err := api.Database.StateForDomain("garron.net")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		if strings.Contains(err.Error(), "missing project/dataset id") {

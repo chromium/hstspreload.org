@@ -5,16 +5,15 @@ import (
 	"net/http"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
 )
 
-func pending(db gcd.Backend, w http.ResponseWriter, r *http.Request) {
+func pending(db database.Database, w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, fmt.Sprintf("Wrong method. Requires GET."), http.StatusMethodNotAllowed)
 		return
 	}
 
-	names, err := database.DomainsWithStatus(db, database.StatusPending)
+	names, err := db.DomainsWithStatus(database.StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
