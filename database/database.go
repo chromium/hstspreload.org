@@ -37,13 +37,13 @@ func ProdDatabase() (db Database) {
 	return Database{gcd.NewProdBackend()}
 }
 
-var ignoreStatus = func(format string, args ...interface{}) {}
+var blackholeLogf = func(format string, args ...interface{}) {}
 
 // PutStates updates the given domain updates in batches.
-// Writes and flushes updates to w.
-func (db Database) PutStates(updates []DomainState, statusReport func(format string, args ...interface{})) error {
+// Writes updates to logf in real-time.
+func (db Database) PutStates(updates []DomainState, logf func(format string, args ...interface{})) error {
 	if len(updates) == 0 {
-		statusReport("No updates.\n")
+		logf("No updates.\n")
 		return nil
 	}
 
@@ -57,14 +57,14 @@ func (db Database) PutStates(updates []DomainState, statusReport func(format str
 	}
 
 	putMulti := func(keys []*datastore.Key, values []DomainState) error {
-		statusReport("Updating %d entries...", len(keys))
+		logf("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
-			statusReport(" failed.\n")
+			logf(" failed.\n")
 			return err
 		}
 
-		statusReport(" done.\n")
+		logf(" done.\n")
 		return nil
 	}
 
@@ -92,7 +92,7 @@ func (db Database) PutStates(updates []DomainState, statusReport func(format str
 
 // PutState is a convenience version of PutStates for a single domain.
 func (db Database) PutState(update DomainState) error {
-	return db.PutStates([]DomainState{update}, ignoreStatus)
+	return db.PutStates([]DomainState{update}, blackholeLogf)
 }
 
 // statesForQuery returns the states for the given datastore query.

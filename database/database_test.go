@@ -210,7 +210,7 @@ func TestDomainsWithStatus(t *testing.T) {
 			{Name: "j.com", Status: StatusRejected},
 			{Name: "k.com", Status: StatusPending},
 		},
-		ignoreStatus,
+		blackholeLogf,
 	)
 	if err != nil {
 		t.Errorf("cannot put states %s", err)

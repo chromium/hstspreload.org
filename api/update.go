@@ -84,21 +84,21 @@ func update(db database.Database, w http.ResponseWriter, r *http.Request) {
 		len(removed),
 	)
 
-	// Create statusReport function to show progress.
+	// Create log function to show progress.
 	written := false
 	f, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "Internal error: Could not create `http.Flusher`.\n", http.StatusInternalServerError)
 		return
 	}
-	statusReport := func(format string, args ...interface{}) {
+	logf := func(format string, args ...interface{}) {
 		fmt.Fprintf(w, format, args...)
 		f.Flush()
 		written = true
 	}
 
 	// Update the database
-	putErr := db.PutStates(updates, statusReport)
+	putErr := db.PutStates(updates, logf)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",
