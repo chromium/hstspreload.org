@@ -67,13 +67,17 @@ type apiTestCase struct {
 	wantBody    wantBody
 }
 
-func TestStatusSubmitPendingUpdate(t *testing.T) {
+func TestAPI(t *testing.T) {
 	api, _, h, c := mockAPI()
 
 	h.preloadableResponses = make(map[string]hstspreload.Issues)
 	h.preloadableResponses["garron.net"] = emptyIssues
 	h.preloadableResponses["badssl.com"] = issuesWithWarnings
 	h.preloadableResponses["example.com"] = issuesWithErrors
+
+	h.removableResponses = make(map[string]hstspreload.Issues)
+	h.removableResponses["removable.test"] = emptyIssues
+	h.removableResponses["unremovable.test"] = issuesWithErrors
 
 	c.list.Entries = []chromiumpreload.PreloadEntry{
 		{"garron.net", chromiumpreload.ForceHTTPS, true},
@@ -92,12 +96,36 @@ func TestStatusSubmitPendingUpdate(t *testing.T) {
 
 	apiTestSequence := []apiTestCase{
 		// wrong HTTP method
+		{"submit wrong method", api.Preloadable, "POST", "?domain=garron.net",
+			405, wantBody{text: "Wrong method. Requires GET.\n"}},
+		{"submit wrong method", api.Removable, "POST", "?domain=garron.net",
+			405, wantBody{text: "Wrong method. Requires GET.\n"}},
 		{"status wrong method", api.Status, "POST", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
 		{"pending wrong method", api.Pending, "POST", "",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
 		{"submit wrong method", api.Submit, "GET", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires POST.\n"}},
+
+		// misc. issues
+		{"status wrong method", api.Status, "GET", "",
+			400, wantBody{text: ""}},
+		{"status wrong method", api.Status, "GET", "?domain=",
+			400, wantBody{text: ""}},
+
+		// preloadable and removable
+		{"preloadable good", api.Preloadable, "GET", "?domain=garron.net",
+			200, wantBody{issues: &emptyIssues}},
+		{"preloadable warning", api.Preloadable, "GET", "?domain=badssl.com",
+			200, wantBody{issues: &issuesWithWarnings}},
+		{"preloadable error", api.Preloadable, "GET", "?domain=example.com",
+			200, wantBody{issues: &issuesWithErrors}},
+
+		// removable
+		{"preloadable good", api.Removable, "GET", "?domain=removable.test",
+			200, wantBody{issues: &emptyIssues}},
+		{"preloadable error", api.Removable, "GET", "?domain=unremovable.test",
+			200, wantBody{issues: &issuesWithErrors}},
 
 		// initial
 		wantStatus("garron.net initial", "garron.net", database.StatusUnknown),
@@ -110,8 +138,14 @@ func TestStatusSubmitPendingUpdate(t *testing.T) {
 			200, wantBody{issues: &issuesWithErrors}},
 		{"good submit", api.Submit, "POST", "?domain=garron.net",
 			200, wantBody{issues: &emptyIssues}},
+
+		// pending
 		{"pending 2", api.Pending, "GET", "",
 			200, wantBody{text: "[\n    { \"name\": \"garron.net\", \"include_subdomains\": true, \"mode\": \"force-https\" }\n]\n"}},
+		{"submit while pending", api.Submit, "POST", "?domain=garron.net",
+			200, wantBody{issues: &hstspreload.Issues{
+				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
+			}}},
 
 		// update
 		wantStatus("garron.net pending", "garron.net", database.StatusPending),
@@ -121,6 +155,10 @@ func TestStatusSubmitPendingUpdate(t *testing.T) {
 			200, wantBody{text: "[\n]\n"}},
 
 		// after update
+		{"submit after preloaded", api.Submit, "POST", "?domain=garron.net",
+			200, wantBody{issues: &hstspreload.Issues{
+				Errors: []hstspreload.Issue{{Code: "server.preload.already_preloaded"}},
+			}}},
 		wantStatus("example.com after update", "example.com", database.StatusUnknown),
 		wantStatus("garron.net after update", "garron.net", database.StatusPreloaded),
 		wantStatus("chromium.org after update", "chromium.org", database.StatusPreloaded),
