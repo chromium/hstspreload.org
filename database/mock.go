@@ -7,23 +7,23 @@ type Mock struct {
 	ds map[string]DomainState
 	// This is a pointer so that we can pass around a Mock but continue
 	// to control its behaviour.
-	state *MockState
+	state *MockController
 }
 
-// MockState keeps track of mocking behaviour.
-type MockState struct {
+// MockController keeps track of mocking behaviour.
+type MockController struct {
 	FailCalls bool
 }
 
-// NewMock constructs a new mock, along with a MockState pointer to
+// NewMock constructs a new mock, along with a MockController pointer to
 // control the behaviour of the new Mock.
-func NewMock() (m Mock, ms *MockState) {
-	ms = &MockState{}
+func NewMock() (m Mock, mc *MockController) {
+	mc = &MockController{}
 	m = Mock{
 		ds:    map[string]DomainState{},
-		state: ms,
+		state: mc,
 	}
-	return m, ms
+	return m, mc
 }
 
 // PutStates mock method

@@ -26,8 +26,8 @@ var issuesWithErrors = hstspreload.Issues{
 	Warnings: []hstspreload.Issue{{"code", "warning", "message"}},
 }
 
-func mockAPI() (api API, ms *database.MockState, h *mockHstspreload, c *mockChromiumpreload) {
-	db, ms := database.NewMock()
+func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockChromiumpreload) {
+	db, mc := database.NewMock()
 	h = &mockHstspreload{}
 	c = &mockChromiumpreload{}
 	api = API{
@@ -35,17 +35,17 @@ func mockAPI() (api API, ms *database.MockState, h *mockHstspreload, c *mockChro
 		hstspreload:     h,
 		chromiumpreload: c,
 	}
-	return api, ms, h, c
+	return api, mc, h, c
 }
 
 func TestCheckConnection(t *testing.T) {
-	api, ms, _, _ := mockAPI()
+	api, mc, _, _ := mockAPI()
 
 	if err := api.CheckConnection(); err != nil {
 		t.Errorf("%s", err)
 	}
 
-	ms.FailCalls = true
+	mc.FailCalls = true
 	if err := api.CheckConnection(); err == nil {
 		t.Error("connection should fail")
 	}
@@ -75,7 +75,7 @@ type apiTestCase struct {
 }
 
 func TestAPI(t *testing.T) {
-	api, ms, h, c := mockAPI()
+	api, mc, h, c := mockAPI()
 
 	h.preloadableResponses = make(map[string]hstspreload.Issues)
 	h.preloadableResponses["garron.net"] = emptyIssues
@@ -190,7 +190,7 @@ func TestAPI(t *testing.T) {
 	}
 
 	for _, tt := range apiTestSequence {
-		ms.FailCalls = (tt.failState & failDatabase) != 0
+		mc.FailCalls = (tt.failState & failDatabase) != 0
 		c.failCalls = (tt.failState & failChromiumpreload) != 0
 
 		w := httptest.NewRecorder()
