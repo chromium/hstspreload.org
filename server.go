@@ -64,7 +64,7 @@ func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 
 	fmt.Printf(" checking database connection...")
 
-	a = api.API{Database: db}
+	a = api.New(db)
 	if err := a.CheckConnection(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(1)

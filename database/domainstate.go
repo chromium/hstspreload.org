@@ -1,6 +1,9 @@
 package database
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
 // is preloaded, pending, etc.
@@ -28,4 +31,69 @@ type DomainState struct {
 	Message string `datastore:",noindex" json:"message,omitempty"`
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
+}
+
+// MatchesWanted checks if the fields of `s` match `wanted`.
+//
+// - Name is always compared.
+// - Status is always compared.
+// - Message is compared when wanted.Message != nil
+// - SubmissionDate is ignored.
+func (s DomainState) MatchesWanted(wanted DomainState) bool {
+	if wanted.Name != s.Name {
+		return false
+	}
+	if wanted.Status != s.Status {
+		return false
+	}
+	if wanted.Message != "" && wanted.Message != s.Message {
+		return false
+	}
+	return true
+}
+
+func getDomain(states []DomainState, domain string) (DomainState, error) {
+	for _, s := range states {
+		if s.Name == domain {
+			return s, nil
+		}
+	}
+	return DomainState{}, fmt.Errorf("could not find domain state")
+}
+
+// MatchWanted checks that:
+//
+// - All `wanted` domain names are unique.
+//
+// - `actual` and `wanted` have the same length.
+//
+// - For every state ws in `wanted` there is a domain s in `actual` such that s.MatchesWanted(ws)
+func MatchWanted(actual []DomainState, wanted []DomainState) error {
+	m := make(map[string]bool)
+	for _, ws := range wanted {
+		if m[ws.Name] {
+			return fmt.Errorf("repeated wanted domain: %s", ws.Name)
+		}
+		m[ws.Name] = true
+	}
+
+	if len(actual) != len(wanted) {
+		return fmt.Errorf(
+			"number of states (%d) do not match expected (%d)",
+			len(actual),
+			len(wanted),
+		)
+	}
+
+	for _, ws := range wanted {
+		s, err := getDomain(actual, ws.Name)
+		if err != nil {
+			return fmt.Errorf("domain %s not present", ws.Name)
+		}
+		if !s.MatchesWanted(ws) {
+			return fmt.Errorf("does not match wanted for domain %s: %#v", ws.Name, s)
+		}
+	}
+
+	return nil
 }

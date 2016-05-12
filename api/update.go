@@ -31,7 +31,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.
-	preloadList, listErr := chromiumpreload.GetLatest()
+	preloadList, listErr := api.chromiumpreload.GetLatest()
 	if listErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve latest preload list. (%s)\n",
@@ -48,7 +48,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := api.Database.DomainsWithStatus(database.StatusPreloaded)
+	databasePreload, dbErr := api.database.DomainsWithStatus(database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -102,7 +102,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the database
-	putErr := api.Database.PutStates(updates, logf)
+	putErr := api.database.PutStates(updates, logf)
 	if putErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: datastore update failed. (%s)\n",

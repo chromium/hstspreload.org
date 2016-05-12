@@ -42,7 +42,7 @@ func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, issues := hstspreload.PreloadableDomain(domain)
+	_, issues := api.hstspreload.PreloadableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
@@ -55,7 +55,7 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, issues := hstspreload.RemovableDomain(domain)
+	_, issues := api.hstspreload.RemovableDomain(domain)
 	writeJSONOrBust(w, issues)
 }
 
@@ -68,7 +68,7 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, err := api.Database.StateForDomain(domain)
+	state, err := api.database.StateForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -92,13 +92,13 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, issues := hstspreload.PreloadableDomain(domain)
+	_, issues := api.hstspreload.PreloadableDomain(domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
 		return
 	}
 
-	state, stateErr := api.Database.StateForDomain(domain)
+	state, stateErr := api.database.StateForDomain(domain)
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -110,7 +110,7 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 	case database.StatusRejected:
 		fallthrough
 	case database.StatusRemoved:
-		putErr := api.Database.PutState(database.DomainState{
+		putErr := api.database.PutState(database.DomainState{
 			Name:           domain,
 			Status:         database.StatusPending,
 			SubmissionDate: time.Now(),

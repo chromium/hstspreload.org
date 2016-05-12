@@ -19,7 +19,11 @@ type MockState struct {
 // control the behaviour of the new Mock.
 func NewMock() (m Mock, ms *MockState) {
 	ms = &MockState{}
-	return Mock{state: ms}, ms
+	m = Mock{
+		ds:    map[string]DomainState{},
+		state: ms,
+	}
+	return m, ms
 }
 
 // PutStates mock method
