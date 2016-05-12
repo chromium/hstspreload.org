@@ -23,6 +23,7 @@ func main() {
 
 	staticHandler := http.FileServer(http.Dir("files"))
 	http.Handle("/", staticHandler)
+	http.Handle("/version", staticHandler)
 	http.Handle("/favicon.ico", staticHandler)
 	http.Handle("/static/", staticHandler)
 

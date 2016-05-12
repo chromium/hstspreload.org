@@ -5,6 +5,8 @@ api_version: go1
 handlers:
 - url: /
   script: _go_app
+- url: /version
+  script: _go_app
 - url: /favicon.ico
   script: _go_app
 - url: /static/.*

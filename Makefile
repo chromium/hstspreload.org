@@ -22,7 +22,7 @@ pre-commit: lint build test
 travis: pre-commit
 
 .PHONY: deploy
-deploy: check
+deploy: check version
 	aedeploy gcloud preview app deploy app.yaml --promote
 
 CURRENT_DIR = "$(shell pwd)"
@@ -37,6 +37,12 @@ else
 	@echo "Expected: ${EXPECTED_DIR}"
 	@echo "Actual:   ${CURRENT_DIR}"
 endif
+
+# Version file.
+
+.PHONY: version
+version:
+	git rev-parse HEAD > ./files/version
 
 # Google Cloud Datastore Emulator
 
@@ -53,7 +59,7 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 # Testing
 
 .PHONY: serve
-serve: check get-datastore-emulator
+serve: check get-datastore-emulator version
 	go run *.go -local
 
 .PHONY: test
