@@ -64,4 +64,4 @@ serve: check get-datastore-emulator version
 
 .PHONY: test
 test: get-datastore-emulator
-	go test -v "${PROJECT}"
+	go test -v -cover "${PROJECT}"
