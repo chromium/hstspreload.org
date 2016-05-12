@@ -102,6 +102,7 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 	if stateErr != nil {
 		msg := fmt.Sprintf("Internal error: could not get current domain status. (%s)\n", stateErr)
 		http.Error(w, msg, http.StatusInternalServerError)
+		return
 	}
 
 	switch state.Status {

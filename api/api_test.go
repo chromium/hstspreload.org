@@ -58,8 +58,15 @@ type wantBody struct {
 	issues *hstspreload.Issues
 }
 
+const (
+	failDatabase = 1 << iota
+	failChromiumpreload
+	failNone = 0
+)
+
 type apiTestCase struct {
 	description string
+	failState   int
 	handlerFunc http.HandlerFunc
 	method      string
 	url         string
@@ -68,7 +75,7 @@ type apiTestCase struct {
 }
 
 func TestAPI(t *testing.T) {
-	api, _, h, c := mockAPI()
+	api, ms, h, c := mockAPI()
 
 	h.preloadableResponses = make(map[string]hstspreload.Issues)
 	h.preloadableResponses["garron.net"] = emptyIssues
@@ -85,87 +92,107 @@ func TestAPI(t *testing.T) {
 		{"godoc.og", "", true},
 	}
 
-	wantStatus := func(description string, domain string, status database.PreloadStatus) apiTestCase {
-		return apiTestCase{description, api.Status, "GET", "?domain=" + domain,
-			200, wantBody{state: &database.DomainState{
-				Name:   domain,
-				Status: status,
-			}},
-		}
-	}
-
 	apiTestSequence := []apiTestCase{
 		// wrong HTTP method
-		{"submit wrong method", api.Preloadable, "POST", "?domain=garron.net",
+		{"submit wrong method", failNone, api.Preloadable, "POST", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
-		{"submit wrong method", api.Removable, "POST", "?domain=garron.net",
+		{"submit wrong method", failNone, api.Removable, "POST", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
-		{"status wrong method", api.Status, "POST", "?domain=garron.net",
+		{"status wrong method", failNone, api.Status, "POST", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
-		{"pending wrong method", api.Pending, "POST", "",
+		{"pending wrong method", failNone, api.Pending, "POST", "",
 			405, wantBody{text: "Wrong method. Requires GET.\n"}},
-		{"submit wrong method", api.Submit, "GET", "?domain=garron.net",
+		{"submit wrong method", failNone, api.Submit, "GET", "?domain=garron.net",
 			405, wantBody{text: "Wrong method. Requires POST.\n"}},
 
 		// misc. issues
-		{"status wrong method", api.Status, "GET", "",
+		{"status wrong method", failNone, api.Status, "GET", "",
 			400, wantBody{text: ""}},
-		{"status wrong method", api.Status, "GET", "?domain=",
+		{"status wrong method", failNone, api.Status, "GET", "?domain=",
 			400, wantBody{text: ""}},
 
 		// preloadable and removable
-		{"preloadable good", api.Preloadable, "GET", "?domain=garron.net",
+		{"preloadable good", failNone, api.Preloadable, "GET", "?domain=garron.net",
 			200, wantBody{issues: &emptyIssues}},
-		{"preloadable warning", api.Preloadable, "GET", "?domain=badssl.com",
+		{"preloadable warning", failNone, api.Preloadable, "GET", "?domain=badssl.com",
 			200, wantBody{issues: &issuesWithWarnings}},
-		{"preloadable error", api.Preloadable, "GET", "?domain=example.com",
+		{"preloadable error", failNone, api.Preloadable, "GET", "?domain=example.com",
 			200, wantBody{issues: &issuesWithErrors}},
 
 		// removable
-		{"preloadable good", api.Removable, "GET", "?domain=removable.test",
+		{"preloadable good", failNone, api.Removable, "GET", "?domain=removable.test",
 			200, wantBody{issues: &emptyIssues}},
-		{"preloadable error", api.Removable, "GET", "?domain=unremovable.test",
+		{"preloadable error", failNone, api.Removable, "GET", "?domain=unremovable.test",
 			200, wantBody{issues: &issuesWithErrors}},
 
 		// initial
-		wantStatus("garron.net initial", "garron.net", database.StatusUnknown),
-		wantStatus("example.com initial", "example.com", database.StatusUnknown),
-		{"pending 1", api.Pending, "GET", "",
+		{"garron.net initial", failNone, api.Status, "GET", "?domain=garron.net",
+			200, wantBody{state: &database.DomainState{
+				Name: "garron.net", Status: database.StatusUnknown}}},
+		{"example.com initial", failNone, api.Status, "GET", "?domain=example.com",
+			200, wantBody{state: &database.DomainState{
+				Name: "example.com", Status: database.StatusUnknown}}},
+		{"pending 1", failNone, api.Pending, "GET", "",
 			200, wantBody{text: "[\n]\n"}},
 
+		// initial with database failure
+		{"pending failure", failDatabase, api.Pending, "GET", "",
+			500, wantBody{text: "Internal error: could not retrieve pending list. (forced failure)\n\n"}},
+		{"status failure", failDatabase, api.Status, "GET", "?domain=garron.net",
+			500, wantBody{text: "Internal error: could not retrieve status. (forced failure)\n\n"}},
+
 		// submit
-		{"bad submit", api.Submit, "POST", "?domain=example.com",
+		{"bad submit", failNone, api.Submit, "POST", "?domain=example.com",
 			200, wantBody{issues: &issuesWithErrors}},
-		{"good submit", api.Submit, "POST", "?domain=garron.net",
+		{"submit database failure", failDatabase, api.Submit, "POST", "?domain=garron.net",
+			500, wantBody{text: "Internal error: could not get current domain status. (forced failure)\n\n"}},
+		{"good submit", failNone, api.Submit, "POST", "?domain=garron.net",
 			200, wantBody{issues: &emptyIssues}},
 
 		// pending
-		{"pending 2", api.Pending, "GET", "",
+		{"pending 2", failNone, api.Pending, "GET", "",
 			200, wantBody{text: "[\n    { \"name\": \"garron.net\", \"include_subdomains\": true, \"mode\": \"force-https\" }\n]\n"}},
-		{"submit while pending", api.Submit, "POST", "?domain=garron.net",
+		{"submit while pending", failNone, api.Submit, "POST", "?domain=garron.net",
 			200, wantBody{issues: &hstspreload.Issues{
 				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
 			}}},
 
 		// update
-		wantStatus("garron.net pending", "garron.net", database.StatusPending),
-		{"update", api.Update, "GET", "",
+		{"garron.net pending", failNone, api.Status, "GET", "?domain=garron.net",
+			200, wantBody{state: &database.DomainState{
+				Name: "garron.net", Status: database.StatusPending}}},
+		{"update chromiumpreload failure", failChromiumpreload, api.Update, "GET", "",
+			500, wantBody{text: "Internal error: could not retrieve latest preload list. (forced failure)\n\n"}},
+		{"update database failure", failDatabase, api.Update, "GET", "",
+			500, wantBody{text: "Internal error: could not retrieve domain names previously marked as preloaded. (forced failure)\n\n"}},
+		{"update success", failNone, api.Update, "GET", "",
 			200, wantBody{text: "The preload list has 3 entries.\n- # of preloaded HSTS entries: 2\n- # to be added in this update: 2\n- # to be removed this update: 0\nSuccess. 2 domain states updated.\n"}},
-		{"pending 3", api.Pending, "GET", "",
+		{"pending 3", failNone, api.Pending, "GET", "",
 			200, wantBody{text: "[\n]\n"}},
 
 		// after update
-		{"submit after preloaded", api.Submit, "POST", "?domain=garron.net",
+		{"submit after preloaded", failNone, api.Submit, "POST", "?domain=garron.net",
 			200, wantBody{issues: &hstspreload.Issues{
 				Errors: []hstspreload.Issue{{Code: "server.preload.already_preloaded"}},
 			}}},
-		wantStatus("example.com after update", "example.com", database.StatusUnknown),
-		wantStatus("garron.net after update", "garron.net", database.StatusPreloaded),
-		wantStatus("chromium.org after update", "chromium.org", database.StatusPreloaded),
-		wantStatus("godoc.org after update", "godoc.org", database.StatusUnknown),
+		{"example.com after update", failNone, api.Status, "GET", "?domain=example.com",
+			200, wantBody{state: &database.DomainState{
+				Name: "example.com", Status: database.StatusUnknown}}},
+		{"garron.net after update", failNone, api.Status, "GET", "?domain=garron.net",
+			200, wantBody{state: &database.DomainState{
+				Name: "garron.net", Status: database.StatusPreloaded}}},
+		{"chromium.org after update", failNone, api.Status, "GET", "?domain=chromium.org",
+			200, wantBody{state: &database.DomainState{
+				Name: "chromium.org", Status: database.StatusPreloaded}}},
+		{"godoc.org after update", failNone, api.Status, "GET", "?domain=godoc.org",
+			200, wantBody{state: &database.DomainState{
+				Name: "godoc.org", Status: database.StatusUnknown}}},
 	}
 
 	for _, tt := range apiTestSequence {
+		ms.FailCalls = (tt.failState & failDatabase) != 0
+		c.failCalls = (tt.failState & failChromiumpreload) != 0
+
 		w := httptest.NewRecorder()
 		w.Body = &bytes.Buffer{}
 

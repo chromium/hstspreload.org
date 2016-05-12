@@ -18,7 +18,7 @@ func (api API) Pending(w http.ResponseWriter, r *http.Request) {
 
 	names, err := api.database.DomainsWithStatus(database.StatusPending)
 	if err != nil {
-		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
+		msg := fmt.Sprintf("Internal error: could not retrieve pending list. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}

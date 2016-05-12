@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromiumpreload"
 )
@@ -38,7 +40,8 @@ type mockHstspreload struct {
 	removableResponses   map[string]hstspreload.Issues
 }
 type mockChromiumpreload struct {
-	list chromiumpreload.PreloadList
+	list      chromiumpreload.PreloadList
+	failCalls bool
 }
 
 func (h mockHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
@@ -48,5 +51,8 @@ func (h mockHstspreload) RemovableDomain(domain string) (*string, hstspreload.Is
 	return nil, h.removableResponses[domain]
 }
 func (c mockChromiumpreload) GetLatest() (chromiumpreload.PreloadList, error) {
+	if c.failCalls {
+		return chromiumpreload.PreloadList{}, errors.New("forced failure")
+	}
 	return c.list, nil
 }
