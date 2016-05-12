@@ -1,6 +1,8 @@
-# `hstspreload.appspot.com`
+<center>
+<img src="files/static/app-icon.png" width=144>
+</center>
 
-![favicon](favicon.svg)
+# `hstspreload.appspot.com`
 
 [![Build Status](https://travis-ci.org/chromium/hstspreload.appspot.com.svg?branch=datastore-testing)](https://travis-ci.org/chromium/hstspreload.appspot.com)
 
