@@ -21,14 +21,14 @@ type chromiumpreloadWrapper interface {
 type actualHstspreload struct{}
 type actualChromiumpreload struct{}
 
-func (h actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
-	return h.PreloadableDomain(domain)
+func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
+	return hstspreload.PreloadableDomain(domain)
 }
-func (h actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
-	return h.RemovableDomain(domain)
+func (actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
+	return hstspreload.RemovableDomain(domain)
 }
-func (c actualChromiumpreload) GetLatest() (chromiumpreload.PreloadList, error) {
-	return c.GetLatest()
+func (actualChromiumpreload) GetLatest() (chromiumpreload.PreloadList, error) {
+	return chromiumpreload.GetLatest()
 }
 
 /******** mock ********/
