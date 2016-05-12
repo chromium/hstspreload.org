@@ -68,32 +68,28 @@ func getDomain(states []DomainState, domain string) (DomainState, error) {
 // - `actual` and `wanted` have the same length.
 //
 // - For every state ws in `wanted` there is a domain s in `actual` such that s.MatchesWanted(ws)
-func MatchWanted(actual []DomainState, wanted []DomainState) error {
+func MatchWanted(actual []DomainState, wanted []DomainState) bool {
 	m := make(map[string]bool)
 	for _, ws := range wanted {
 		if m[ws.Name] {
-			return fmt.Errorf("repeated wanted domain: %s", ws.Name)
+			return false
 		}
 		m[ws.Name] = true
 	}
 
 	if len(actual) != len(wanted) {
-		return fmt.Errorf(
-			"number of states (%d) do not match expected (%d)",
-			len(actual),
-			len(wanted),
-		)
+		return false
 	}
 
 	for _, ws := range wanted {
 		s, err := getDomain(actual, ws.Name)
 		if err != nil {
-			return fmt.Errorf("domain %s not present", ws.Name)
+			return false
 		}
 		if !s.MatchesWanted(ws) {
-			return fmt.Errorf("does not match wanted for domain %s: %#v", ws.Name, s)
+			return false
 		}
 	}
 
-	return nil
+	return true
 }

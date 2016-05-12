@@ -136,7 +136,7 @@ func TestPutAndAll(t *testing.T) {
 			t.Fatalf("%s", err)
 		}
 
-		if err = MatchWanted(domainStates, tt.wantStates); err != nil {
+		if !MatchWanted(domainStates, tt.wantStates) {
 			t.Errorf("[%s] Domains do not match wanted: %s", tt.description, err)
 		}
 
