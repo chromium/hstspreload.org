@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	// A blank project ID forces the project ID to be read from
-	// the DATASTORE_PROJECT_ID environment variable.
 	batchSize = 450
 	timeout   = 10 * time.Second
 

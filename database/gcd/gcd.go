@@ -20,7 +20,7 @@ import (
 const (
 	// A blank project ID forces the project ID to be read from
 	// the DATASTORE_PROJECT_ID environment variable.
-	projectID = ""
+	projectID = "hstspreload-mvm"
 
 	numLocalProbes    = 10
 	initialProbeSleep = 300 * time.Millisecond
