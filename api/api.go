@@ -12,18 +12,18 @@ import (
 
 // API holds the server API. Use api.New() to construct.
 type API struct {
-	database        database.Database
-	hstspreload     hstspreloadWrapper
-	chromiumpreload chromiumpreloadWrapper
+	database    database.Database
+	hstspreload hstspreloadWrapper
+	preloadlist preloadlistWrapper
 }
 
 // New creates a new API struct with the given database and the proper
 // unexported fields.
 func New(db database.Database) API {
 	return API{
-		database:        db,
-		hstspreload:     actualHstspreload{},
-		chromiumpreload: actualChromiumpreload{},
+		database:    db,
+		hstspreload: actualHstspreload{},
+		preloadlist: actualPreloadlist{},
 	}
 }
 

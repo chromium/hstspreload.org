@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/chromium/hstspreload"
-	"github.com/chromium/hstspreload/chromiumpreload"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 type hstspreloadWrapper interface {
@@ -12,14 +12,14 @@ type hstspreloadWrapper interface {
 	RemovableDomain(string) (*string, hstspreload.Issues)
 }
 
-type chromiumpreloadWrapper interface {
-	GetLatest() (chromiumpreload.PreloadList, error)
+type preloadlistWrapper interface {
+	NewFromLatest() (preloadlist.PreloadList, error)
 }
 
 /******** actual ********/
 
 type actualHstspreload struct{}
-type actualChromiumpreload struct{}
+type actualPreloadlist struct{}
 
 func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
 	return hstspreload.PreloadableDomain(domain)
@@ -27,8 +27,8 @@ func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.
 func (actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return hstspreload.RemovableDomain(domain)
 }
-func (actualChromiumpreload) GetLatest() (chromiumpreload.PreloadList, error) {
-	return chromiumpreload.GetLatest()
+func (actualPreloadlist) NewFromLatest() (preloadlist.PreloadList, error) {
+	return preloadlist.NewFromLatest()
 }
 
 /******** mock ********/
@@ -39,8 +39,8 @@ type mockHstspreload struct {
 	preloadableResponses map[string]hstspreload.Issues
 	removableResponses   map[string]hstspreload.Issues
 }
-type mockChromiumpreload struct {
-	list      chromiumpreload.PreloadList
+type mockPreloadlist struct {
+	list      preloadlist.PreloadList
 	failCalls bool
 }
 
@@ -50,9 +50,9 @@ func (h mockHstspreload) PreloadableDomain(domain string) (*string, hstspreload.
 func (h mockHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return nil, h.removableResponses[domain]
 }
-func (c mockChromiumpreload) GetLatest() (chromiumpreload.PreloadList, error) {
+func (c mockPreloadlist) NewFromLatest() (preloadlist.PreloadList, error) {
 	if c.failCalls {
-		return chromiumpreload.PreloadList{}, errors.New("forced failure")
+		return preloadlist.PreloadList{}, errors.New("forced failure")
 	}
 	return c.list, nil
 }

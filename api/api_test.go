@@ -9,7 +9,7 @@ import (
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.appspot.com/database"
-	"github.com/chromium/hstspreload/chromiumpreload"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 var emptyIssues = hstspreload.Issues{}
@@ -26,14 +26,14 @@ var issuesWithErrors = hstspreload.Issues{
 	Warnings: []hstspreload.Issue{{"code", "warning", "message"}},
 }
 
-func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockChromiumpreload) {
+func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist) {
 	db, mc := database.NewMock()
 	h = &mockHstspreload{}
-	c = &mockChromiumpreload{}
+	c = &mockPreloadlist{}
 	api = API{
-		database:        db,
-		hstspreload:     h,
-		chromiumpreload: c,
+		database:    db,
+		hstspreload: h,
+		preloadlist: c,
 	}
 	return api, mc, h, c
 }
@@ -86,9 +86,9 @@ func TestAPI(t *testing.T) {
 	h.removableResponses["removable.test"] = emptyIssues
 	h.removableResponses["unremovable.test"] = issuesWithErrors
 
-	c.list.Entries = []chromiumpreload.PreloadEntry{
-		{"garron.net", chromiumpreload.ForceHTTPS, true},
-		{"chromium.org", chromiumpreload.ForceHTTPS, false},
+	c.list.Entries = []preloadlist.Entry{
+		{"garron.net", preloadlist.ForceHTTPS, true},
+		{"chromium.org", preloadlist.ForceHTTPS, false},
 		{"godoc.og", "", true},
 	}
 

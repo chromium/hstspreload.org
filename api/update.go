@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
-	"github.com/chromium/hstspreload/chromiumpreload"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 func difference(from []string, take []string) (diff []string) {
@@ -31,7 +31,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.
-	preloadList, listErr := api.chromiumpreload.GetLatest()
+	preloadList, listErr := api.preloadlist.NewFromLatest()
 	if listErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve latest preload list. (%s)\n",
@@ -42,7 +42,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	var actualPreload []string
 	for _, entry := range preloadList.Entries {
-		if entry.Mode == chromiumpreload.ForceHTTPS {
+		if entry.Mode == preloadlist.ForceHTTPS {
 			actualPreload = append(actualPreload, entry.Name)
 		}
 	}
