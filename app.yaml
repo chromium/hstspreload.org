@@ -3,25 +3,6 @@ vm: true
 api_version: go1
 
 handlers:
-- url: /
+- url: /.*
   script: _go_app
-- url: /version
-  script: _go_app
-- url: /favicon.ico
-  script: _go_app
-- url: /static/.*
-  script: _go_app
-- url: /robots.txt
-  script: _go_app
-- url: /preloadable
-  script: _go_app
-- url: /removable
-  script: _go_app
-- url: /status
-  script: _go_app
-- url: /submit
-  script: _go_app
-- url: /pending
-  script: _go_app
-- url: /update
-  script: _go_app
+  secure: always

@@ -21,21 +21,23 @@ func main() {
 	a, shutdown := mustSetupAPI(*local)
 	defer shutdown()
 
+	server := hstsServer{}
+
 	staticHandler := http.FileServer(http.Dir("files"))
-	http.Handle("/", staticHandler)
-	http.Handle("/version", staticHandler)
-	http.Handle("/favicon.ico", staticHandler)
-	http.Handle("/static/", staticHandler)
+	server.Handle("/", staticHandler)
+	server.Handle("/version", staticHandler)
+	server.Handle("/favicon.ico", staticHandler)
+	server.Handle("/static/", staticHandler)
 
-	http.HandleFunc("/robots.txt", http.NotFound)
+	server.HandleFunc("/robots.txt", http.NotFound)
 
-	http.HandleFunc("/preloadable", a.Preloadable)
-	http.HandleFunc("/removable", a.Removable)
-	http.HandleFunc("/status", a.Status)
-	http.HandleFunc("/submit", a.Submit)
+	server.HandleFunc("/preloadable", a.Preloadable)
+	server.HandleFunc("/removable", a.Removable)
+	server.HandleFunc("/status", a.Status)
+	server.HandleFunc("/submit", a.Submit)
 
-	http.HandleFunc("/pending", a.Pending)
-	http.HandleFunc("/update", a.Update)
+	server.HandleFunc("/pending", a.Pending)
+	server.HandleFunc("/update", a.Update)
 
 	fmt.Println("Listening...")
 

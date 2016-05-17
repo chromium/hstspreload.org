@@ -23,7 +23,9 @@ travis: pre-commit
 
 .PHONY: deploy
 deploy: check version
-	aedeploy gcloud preview app deploy app.yaml --promote
+	date
+	time aedeploy gcloud preview app deploy app.yaml --promote
+	date
 
 CURRENT_DIR = "$(shell pwd)"
 EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload.appspot.com"
