@@ -10,6 +10,9 @@ import (
 )
 
 const (
+	localProjectID = "hstspreload-local"
+	prodProjectID  = "hstspreload"
+
 	batchSize = 450
 	timeout   = 10 * time.Second
 
@@ -28,20 +31,21 @@ type Database interface {
 
 // DatastoreBacked is a database backed by a gcd.Backend.
 type DatastoreBacked struct {
-	backend gcd.Backend
+	backend   gcd.Backend
+	projectID string
 }
 
 // TempLocalDatabase spin up an local in-memory database based
 // on a Google Cloud Datastore emulator.
 func TempLocalDatabase() (db DatastoreBacked, shutdown func() error, err error) {
 	backend, shutdown, err := gcd.NewLocalBackend()
-	return DatastoreBacked{backend}, shutdown, err
+	return DatastoreBacked{backend, localProjectID}, shutdown, err
 }
 
 // ProdDatabase gives a Database that will call out to
 // the real production instance of Google Cloud Datastore
 func ProdDatabase() (db DatastoreBacked) {
-	return DatastoreBacked{gcd.NewProdBackend()}
+	return DatastoreBacked{gcd.NewProdBackend(), prodProjectID}
 }
 
 var blackholeLogf = func(format string, args ...interface{}) {}
@@ -58,7 +62,7 @@ func (db DatastoreBacked) PutStates(updates []DomainState, logf func(format stri
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.backend.NewClient(c)
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
 		return datastoreErr
 	}
@@ -108,7 +112,7 @@ func (db DatastoreBacked) statesForQuery(query *datastore.Query) (states []Domai
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.backend.NewClient(c)
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
 		return states, datastoreErr
 	}
@@ -133,7 +137,7 @@ func (db DatastoreBacked) domainsForQuery(query *datastore.Query) (domains []str
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.backend.NewClient(c)
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
 		return domains, datastoreErr
 	}
@@ -158,7 +162,7 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	client, datastoreErr := db.backend.NewClient(c)
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
 		return state, datastoreErr
 	}

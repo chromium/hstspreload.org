@@ -18,10 +18,6 @@ import (
 )
 
 const (
-	// A blank project ID forces the project ID to be read from
-	// the DATASTORE_PROJECT_ID environment variable.
-	projectID = "hstspreload"
-
 	numLocalProbes    = 10
 	initialProbeSleep = 300 * time.Millisecond
 	localProbeSpacing = 100 * time.Millisecond
@@ -45,7 +41,7 @@ type ProdBackend struct{}
 // that allows callers to construct a new client without having to
 // know about whether it's local.
 type Backend interface {
-	NewClient(ctx context.Context) (*datastore.Client, error)
+	NewClient(ctx context.Context, projectID string) (*datastore.Client, error)
 }
 
 /******** Port assignment for local backends ********/
@@ -127,11 +123,9 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 
 // NewClient constructs a datastore client for the emulated LocalBackend.
 // The constructed client will work offline and never connect to the wide internet.
-func (db LocalBackend) NewClient(ctx context.Context) (*datastore.Client, error) {
-	projectID := "hstspreload-local-testing"
-
+func (db LocalBackend) NewClient(ctx context.Context, projectID string) (*datastore.Client, error) {
 	// The code below is based closely on the implementation of
-	//  datastore.NewClient().
+	// datastore.NewClient().
 
 	if db.addr == "" {
 		return nil, errors.New("Empty addr. Uninitialized local backend?")
@@ -174,6 +168,6 @@ func NewProdBackend() (db ProdBackend) {
 // NewClient is a wrapper around the default implementation of
 // datastore.NewClient(), calling out to the real, live
 // Google Cloud Datastore.
-func (db ProdBackend) NewClient(ctx context.Context) (*datastore.Client, error) {
+func (db ProdBackend) NewClient(ctx context.Context, projectID string) (*datastore.Client, error) {
 	return datastore.NewClient(ctx, projectID)
 }
