@@ -90,12 +90,42 @@ PreloadForm.prototype = {
         case 'errors':
           this._view.setSummary(
               'Eligibility: In order for ' + domain +
-              ' to be elegible for preloading, the following errors must be resolved:');
+              ' to be elegible for preloading, the errors below must be resolved:');
           this._view.setTheme('theme-red');
           break;
       }
 
       this._view.showIssues(issues);
+    }.bind(this);
+
+    var pending = function() {
+      switch (worstIssues) {
+        case 'none':
+          this._view.setStatus(
+              'Status: ' + domain +
+              ' is pending submission to the preload list.');
+          this._view.setTheme('theme-green');
+          break;
+        case 'warnings':
+          this._view.setStatus(
+              'Status: ' + domain +
+              ' is pending submission to the preload list.');
+          this._view.setSummary(
+              'However, it still has the following issues, which we recommend fixing:');
+          this._view.setTheme('theme-yellow');
+          this._view.showIssues(issues);
+          break;
+        case 'errors':
+          this._view.setStatus(
+              'Status: ' + domain +
+              ' was recently submitted to the preload list.');
+          this._view.setSummary(
+              'However, ' + domain +
+              ' has changed its behaviour since it was submitted, and will not be added to the official preload list unless the errors below are resolved:');
+          this._view.setTheme('theme-red');
+          this._view.showIssues(issues);
+          break;
+      }
     }.bind(this);
 
     switch (status.status) {
@@ -105,10 +135,7 @@ PreloadForm.prototype = {
         break;
 
       case 'pending':
-        this._view.setStatus(
-            'Status: ' + domain +
-            ' is pending submission to the preload list.');
-        this._view.setTheme('theme-green');
+        pending();
         break;
 
       case 'preloaded':
