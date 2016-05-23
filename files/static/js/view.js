@@ -127,7 +127,10 @@ PreloadView.prototype = {
   },
 
   _hideSubmission: function() {
-    $('#submit-form').classList.add('hidden');
+    $('#submit-success').hide();
+    $('#submit-failure').hide();
+    $('#ssl-labs-link').href = 'https://www.ssllabs.com/ssltest/analyze.html';
+    $('#submit-form').hide();
   },
 
   clearSummary: function() { this.setSummary(''); },

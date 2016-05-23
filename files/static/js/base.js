@@ -10,6 +10,13 @@ Element.prototype.createChild = function(tagName, className) {
   return el;
 };
 
+Element.prototype.show = function() {
+  this.classList.remove('hidden');
+};
+Element.prototype.hide = function() {
+  this.classList.add('hidden');
+};
+
 var URLParam = function() {};
 
 URLParam.prototype = {

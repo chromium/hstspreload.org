@@ -68,10 +68,13 @@
     <br>
     <input id="submit" type="submit" disabled
        value="Submit to the HSTS preload list">
+    <div id="submit-success" class="hidden">
+          <tt class="domain-text">example.com</tt> is now pending inclusion in the HSTS preload list! Please make sure that <tt class="domain-text">example.com</tt> continues to satisfy all preload requirements. Also consider scanning for TLS issues <a id='ssl-labs-link' href='https://www.ssllabs.com/ssltest/analyze.html'>using SSL Labs</a>.
+    </div>
+    <div id="submit-failure" class="hidden">
+      An error occurred. Please start over.
+    </div>
   </form>
-
-  <div id="submit-result" class="hidden">
-  </div>
 </div>
 
 <div class="content">

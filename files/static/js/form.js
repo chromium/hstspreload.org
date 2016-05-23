@@ -43,15 +43,17 @@ PreloadForm.prototype = {
   },
 
   submitDomain: function() {
-    this._hstsPreload.submit(this.domainToSubmit).then(function(issues) {
+    var domain = this.domainToSubmit;
+
+    this._hstsPreload.submit(domain).then(function(issues) {
       console.log('submit:', issues);
-      $('#submit-result').classList.remove('hidden');
       if (issues.errors.length == 0) {
-        $('#submit-result').textContent = 'Submitted successfully!';
-        // TODO: Now try SSL Labs!
+        $('#submit-success').show();
+        $('#ssl-labs-link')
+            .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
       } else {
-        $('#submit-result')
-            .textContent = 'There are errors. Please submit your site again.';
+        $('#submit-failure').show();
+        console.log(issues);
       }
     });
   },

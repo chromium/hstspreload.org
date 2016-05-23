@@ -132,3 +132,9 @@ hr {
   margin-left: 2em;
   /*text-align: center;*/
 }
+
+#submit-success, #submit-failure {
+  max-width: 30em;
+  margin: auto;
+  text-align: justify;
+}
