@@ -145,7 +145,7 @@ PreloadView.prototype = {
     $('#status').textContent = statusMessage;
   },
 
-  _createIssueElement: function(issue, type) {
+  _createIssueElement: function(issue, type, typeLabel) {
     if (['error', 'warning'].indexOf(type) === -1) {
       throw new Error('Unknown type of issue.');
     }
@@ -154,7 +154,7 @@ PreloadView.prototype = {
     el.classList.add(type);
 
     el.createChild('img', 'bullet').src = '/static/img/' + type + '.svg';
-    el.createChild('span', 'summary').textContent = issue.summary;
+    el.createChild('span', 'summary').textContent = typeLabel + ': ' + issue.summary;
     el.createChild('span', 'message').textContent = issue.message;
     return el;
   },
@@ -162,10 +162,10 @@ PreloadView.prototype = {
   showIssues: function(issues) {
     this._clearIssues();
     for (var e of issues.errors) {
-      $('#errors').appendChild(this._createIssueElement(e, 'error'));
+      $('#errors').appendChild(this._createIssueElement(e, 'error', 'Error'));
     }
     for (var w of issues.warnings) {
-      $('#warnings').appendChild(this._createIssueElement(w, 'warning'));
+      $('#warnings').appendChild(this._createIssueElement(w, 'warning', 'Warning'));
     }
   }
 
