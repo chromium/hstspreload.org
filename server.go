@@ -29,6 +29,7 @@ func main() {
 	server.Handle("/favicon.ico", staticHandler)
 	server.Handle("/static/", staticHandler)
 
+	server.Handle("/search.xml", searchXML(*local))
 	server.HandleFunc("/robots.txt", http.NotFound)
 
 	server.HandleFunc("/preloadable", a.Preloadable)
@@ -38,6 +39,8 @@ func main() {
 
 	server.HandleFunc("/pending", a.Pending)
 	server.HandleFunc("/update", a.Update)
+
+	server.HandleFunc("/autocomplete", a.Autocomplete)
 
 	fmt.Println("Listening...")
 
@@ -74,4 +77,30 @@ func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 
 	fmt.Println(" done.")
 	return a, shutdown
+}
+
+func searchXML(local bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-type", "application/xml; charset=utf-8")
+
+		var origin string
+		if local {
+			origin = "http://localhost:" + port
+		} else {
+			origin = "https://hstspreload.appspot.com"
+		}
+
+		fmt.Fprintf(w, `<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>HSTS Preload</ShortName>
+  <Description>HSTS Preload List Status and Eligibility</Description>
+  <Tags>HSTS, HTTPS, security</Tags>
+  <Contact>hstspreload@chromium.org</Contact>
+  <Url type="text/html" method="GET" template="%s/?domain={searchTerms}"/>
+  <Url type="application/x-suggestions+json" method="GET" template="%s/autocomplete?domain={searchTerms}" />
+</OpenSearchDescription>`,
+			origin,
+			origin)
+
+	}
 }

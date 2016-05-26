@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -161,4 +162,39 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSONOrBust(w, issues)
+}
+
+// Autocomplete implements OpenSearchDescription autocomplete using
+// domains in the datastore.
+func (api API) Autocomplete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json; charset=utf-8")
+	// IDNA domains will get "xn--" autocompletions for now.
+	prefix, ok := getASCIIDomain("GET", w, r)
+	if !ok {
+		return
+	}
+
+	domains, err := api.database.Autocomplete(prefix)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get autocompletions. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	names := []string{}
+	statuses := []string{}
+	for _, s := range domains {
+		names = append(names, s.Name)
+		statuses = append(statuses, string(s.Status))
+	}
+
+	var s []interface{}
+	s = append(s, prefix, names, statuses)
+	j, err := json.Marshal(s)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not format autocompletions. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "%s", j)
 }

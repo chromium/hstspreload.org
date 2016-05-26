@@ -1,6 +1,7 @@
 package database
 
 import (
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -27,6 +28,7 @@ type Database interface {
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
 	DomainsWithStatus(PreloadStatus) ([]string, error)
+	Autocomplete(string) ([]DomainState, error)
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -187,4 +189,31 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 // DomainsWithStatus returns the domains with the given status in the database.
 func (db DatastoreBacked) DomainsWithStatus(status PreloadStatus) (domains []string, err error) {
 	return db.domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
+}
+
+// Autocomplete returns the entries that starting with the given prefix.
+// It returns the first few, alphabetically, truncated to 5 results.
+func (db DatastoreBacked) Autocomplete(prefix string) ([]DomainState, error) {
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	key := datastore.NewKey(c, domainStateKind, prefix, 0, nil)
+	// We explicitly need to specify the order: https://cloud.google.com/appengine/docs/go/datastore/query-restrictions#ordering_of_query_results_is_undefined_when_no_sort_order_is_specified
+
+	ds, err := db.statesForQuery(
+		datastore.
+			NewQuery("DomainState").
+			Filter("__key__ > ", key).
+			Limit(5).
+			Order("__key__"),
+	)
+	if err != nil {
+		return ds, err
+	}
+	var output []DomainState
+	for _, s := range ds {
+		if strings.HasPrefix(s.Name, prefix) {
+			output = append(output, s)
+		}
+	}
+	return output, nil
 }

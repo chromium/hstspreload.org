@@ -86,3 +86,8 @@ func (m Mock) DomainsWithStatus(status PreloadStatus) (domains []string, err err
 	}
 	return domains, nil
 }
+
+// Autocomplete mock method
+func (m Mock) Autocomplete(domain string) ([]DomainState, error) {
+	return []DomainState{}, errors.New("Unimplemented.")
+}
