@@ -4,7 +4,7 @@
 
 # `hstspreload.appspot.com`
 
-[![Build Status](https://travis-ci.org/chromium/hstspreload.appspot.com.svg?branch=datastore-testing)](https://travis-ci.org/chromium/hstspreload.appspot.com)
+[![Build Status](https://travis-ci.org/chromium/hstspreload.appspot.com.svg?branch=master)](https://travis-ci.org/chromium/hstspreload.appspot.com)
 
 This folder contains the source for `v2` of [hstspreload.appspot.com](https://hstspreload.appspot.com/).
 
