@@ -59,7 +59,7 @@ func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 		}
 		db, shutdown = localDB, dbShutdown
 	} else {
-		fmt.Printf("Seting up prod database...")
+		fmt.Printf("Setting up prod database...")
 		db = database.ProdDatabase()
 		shutdown = func() error { return nil }
 	}
