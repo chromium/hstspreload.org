@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/db"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
@@ -48,7 +48,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	databasePreload, dbErr := api.database.DomainsWithStatus(database.StatusPreloaded)
+	databasePreload, dbErr := api.database.DomainsWithStatus(db.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -59,25 +59,25 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate values that are out of date.
-	var updates []database.DomainState
+	var updates []db.DomainState
 
 	added := difference(actualPreload, databasePreload)
 	for _, name := range added {
-		updates = append(updates, database.DomainState{
+		updates = append(updates, db.DomainState{
 			Name:   name,
-			Status: database.StatusPreloaded,
+			Status: db.StatusPreloaded,
 		})
 	}
 
 	removed := difference(databasePreload, actualPreload)
 	for _, name := range removed {
-		updates = append(updates, database.DomainState{
+		updates = append(updates, db.DomainState{
 			Name:   name,
-			Status: database.StatusRemoved,
+			Status: db.StatusRemoved,
 		})
 	}
 
-	fmt.Fprintf(w, `The preload list has %d entries.
+	fmt.Fprintf(w, `YOYOYOYOOYOOOYOYOThe preload list has %d entries.
 - # of preloaded HSTS entries: %d
 - # to be added in this update: %d
 - # to be removed this update: %d

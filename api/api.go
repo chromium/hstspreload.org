@@ -7,19 +7,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/db"
 )
 
 // API holds the server API. Use api.New() to construct.
 type API struct {
-	database    database.Database
+	database    db.Database
 	hstspreload hstspreloadWrapper
 	preloadlist preloadlistWrapper
 }
 
 // New creates a new API struct with the given database and the proper
 // unexported fields.
-func New(db database.Database) API {
+func New(db db.Database) API {
 	return API{
 		database:    db,
 		hstspreload: actualHstspreload{},

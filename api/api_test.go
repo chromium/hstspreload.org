@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/chromium/hstspreload"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/db"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
@@ -26,8 +26,8 @@ var issuesWithErrors = hstspreload.Issues{
 	Warnings: []hstspreload.Issue{{"code", "warning", "message"}},
 }
 
-func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist) {
-	db, mc := database.NewMock()
+func mockAPI() (api API, mc *db.MockController, h *mockHstspreload, c *mockPreloadlist) {
+	db, mc := db.NewMock()
 	h = &mockHstspreload{}
 	c = &mockPreloadlist{}
 	api = API{
@@ -54,7 +54,7 @@ func TestCheckConnection(t *testing.T) {
 // Any non-zero values are considered wanted.
 type wantBody struct {
 	text   string
-	state  *database.DomainState
+	state  *db.DomainState
 	issues *hstspreload.Issues
 }
 
@@ -143,11 +143,11 @@ func TestAPI(t *testing.T) {
 
 		// initial
 		{"garron.net initial", data1, failNone, api.Status, "GET", "?domain=garron.net",
-			200, wantBody{state: &database.DomainState{
-				Name: "garron.net", Status: database.StatusUnknown}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "garron.net", Status: db.StatusUnknown}}},
 		{"example.com initial", data1, failNone, api.Status, "GET", "?domain=example.com",
-			200, wantBody{state: &database.DomainState{
-				Name: "example.com", Status: database.StatusUnknown}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "example.com", Status: db.StatusUnknown}}},
 		{"pending 1", data1, failNone, api.Pending, "GET", "",
 			200, wantBody{text: "[\n]\n"}},
 
@@ -175,8 +175,8 @@ func TestAPI(t *testing.T) {
 
 		// update
 		{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
-			200, wantBody{state: &database.DomainState{
-				Name: "garron.net", Status: database.StatusPending}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "garron.net", Status: db.StatusPending}}},
 		{"update chromiumpreload failure", data1, failChromiumpreload, api.Update, "GET", "",
 			500, wantBody{text: "Internal error: could not retrieve latest preload list. (forced failure)\n\n"}},
 		{"update database failure", data1, failDatabase, api.Update, "GET", "",
@@ -192,27 +192,27 @@ func TestAPI(t *testing.T) {
 				Errors: []hstspreload.Issue{{Code: "server.preload.already_preloaded"}},
 			}}},
 		{"example.com after update", data1, failNone, api.Status, "GET", "?domain=example.com",
-			200, wantBody{state: &database.DomainState{
-				Name: "example.com", Status: database.StatusUnknown}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "example.com", Status: db.StatusUnknown}}},
 		{"garron.net after update", data1, failNone, api.Status, "GET", "?domain=garron.net",
-			200, wantBody{state: &database.DomainState{
-				Name: "garron.net", Status: database.StatusPreloaded}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "garron.net", Status: db.StatusPreloaded}}},
 		{"chromium.org after update", data1, failNone, api.Status, "GET", "?domain=chromium.org",
-			200, wantBody{state: &database.DomainState{
-				Name: "chromium.org", Status: database.StatusPreloaded}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "chromium.org", Status: db.StatusPreloaded}}},
 		{"godoc.org after update", data1, failNone, api.Status, "GET", "?domain=godoc.org",
-			200, wantBody{state: &database.DomainState{
-				Name: "godoc.org", Status: database.StatusUnknown}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "godoc.org", Status: db.StatusUnknown}}},
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
 			200, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 1\nSuccess. 1 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
-			200, wantBody{state: &database.DomainState{
-				Name: "garron.net", Status: database.StatusRemoved}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "garron.net", Status: db.StatusRemoved}}},
 		{"chromium.org after update with removal", data2, failNone, api.Status, "GET", "?domain=chromium.org",
-			200, wantBody{state: &database.DomainState{
-				Name: "chromium.org", Status: database.StatusPreloaded}}},
+			200, wantBody{state: &db.DomainState{
+				Name: "chromium.org", Status: db.StatusPreloaded}}},
 	}
 
 	for _, tt := range apiTestSequence {
@@ -245,7 +245,7 @@ func TestAPI(t *testing.T) {
 		}
 
 		if tt.wantBody.state != nil {
-			var s database.DomainState
+			var s db.DomainState
 			if err := json.Unmarshal(w.Body.Bytes(), &s); err != nil {
 				t.Fatalf("[%s] %s", tt.description, err)
 			}

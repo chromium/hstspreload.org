@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/context"
 	"golang.org/x/net/idna"
 
 	"github.com/chromium/hstspreload"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/db"
+	"github.com/golang/appengine"
 )
 
 func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (ascii string, ok bool) {
@@ -42,8 +44,14 @@ func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, issues := api.hstspreload.PreloadableDomain(domain)
+	ctx := appengine.NewContext(r)
+
+	fmt.Fprintf(w, "pre1\n")
+
+	_, issues := api.hstspreload.PreloadableDomain(ctx, domain)
+	fmt.Fprintf(w, "pre2\n")
 	writeJSONOrBust(w, issues)
+	fmt.Fprintf(w, "pre3\n")
 }
 
 // Removable takes a single domain and returns if it is removable.
@@ -92,7 +100,9 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, issues := api.hstspreload.PreloadableDomain(domain)
+	ctx := context.Background()
+
+	_, issues := api.hstspreload.PreloadableDomain(ctx, domain)
 	if len(issues.Errors) > 0 {
 		writeJSONOrBust(w, issues)
 		return
@@ -106,14 +116,14 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch state.Status {
-	case database.StatusUnknown:
+	case db.StatusUnknown:
 		fallthrough
-	case database.StatusRejected:
+	case db.StatusRejected:
 		fallthrough
-	case database.StatusRemoved:
-		putErr := api.database.PutState(database.DomainState{
+	case db.StatusRemoved:
+		putErr := api.database.PutState(db.DomainState{
 			Name:           domain,
-			Status:         database.StatusPending,
+			Status:         db.StatusPending,
 			SubmissionDate: time.Now(),
 		})
 		if putErr != nil {
@@ -127,7 +137,7 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 				Warnings: issues.Warnings,
 			}
 		}
-	case database.StatusPending:
+	case db.StatusPending:
 		formattedDate := state.SubmissionDate.Format("Monday, _2 January 2006")
 		issue := hstspreload.Issue{
 			Code:    "server.preload.already_pending",
@@ -138,7 +148,7 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 			Errors:   issues.Errors,
 			Warnings: append(issues.Warnings, issue),
 		}
-	case database.StatusPreloaded:
+	case db.StatusPreloaded:
 		issue := hstspreload.Issue{
 			Code:    "server.preload.already_preloaded",
 			Summary: "Domain is already preloaded",

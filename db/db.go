@@ -1,17 +1,17 @@
-package database
+package db
 
 import (
 	"time"
 
 	"golang.org/x/net/context"
 
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
+	"github.com/chromium/hstspreload.appspot.com/db/gcd"
 	"google.golang.org/cloud/datastore"
 )
 
 const (
 	localProjectID = "hstspreload-local"
-	prodProjectID  = "hstspreload"
+	prodProjectID  = "hstspreload-mvm"
 
 	batchSize = 450
 	timeout   = 10 * time.Second

@@ -7,12 +7,27 @@ import (
 	"os"
 
 	"github.com/chromium/hstspreload.appspot.com/api"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.appspot.com/db"
 )
 
 const (
 	port = "8080"
 )
+
+func init() {
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+	// 	issues, err := hstspreload.PreloadableDomain("garron.net")
+
+	// 	fmt.Fprintf(w, "test %v %v", issues, err)
+
+	// })
+
+	a, _ := mustSetupAPI(false)
+	// defer shutdown()
+	http.HandleFunc("/preloadable", a.Preloadable)
+	// main()
+}
 
 func main() {
 	local := flag.Bool("local", false, "run the server using a local database")
@@ -41,37 +56,37 @@ func main() {
 
 	fmt.Println("Listening...")
 
-	err := http.ListenAndServe(":"+port, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-	}
+	// err := http.ListenAndServe(":"+port, nil)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "%s", err)
+	// }
 }
 
 func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
-	var db database.Database
+	var database db.Database
 
 	if local {
-		fmt.Printf("Seting up local database...")
-		localDB, dbShutdown, err := database.TempLocalDatabase()
+		// fmt.Printf("Seting up local database...")
+		localDB, dbShutdown, err := db.TempLocalDatabase()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
 			os.Exit(1)
 		}
-		db, shutdown = localDB, dbShutdown
+		database, shutdown = localDB, dbShutdown
 	} else {
-		fmt.Printf("Setting up prod database...")
-		db = database.ProdDatabase()
+		// fmt.Printf("Setting up prod database...")
+		database = db.ProdDatabase()
 		shutdown = func() error { return nil }
 	}
 
-	fmt.Printf(" checking database connection...")
+	// fmt.Printf(" checking database connection...")
 
-	a = api.New(db)
-	if err := a.CheckConnection(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-		os.Exit(1)
-	}
+	a = api.New(database)
+	// if err := a.CheckConnection(); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "%s", err)
+	// 	os.Exit(1)
+	// }
 
-	fmt.Println(" done.")
+	// fmt.Println(" done.")
 	return a, shutdown
 }

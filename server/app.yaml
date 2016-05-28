@@ -1,10 +1,9 @@
 application: hstspreload-mvm
-version: 10
+version: 9
 runtime: go
 api_version: go1
 
 handlers:
-- url: /
+- url: /.*
   script: _go_app
-- url: /update
-  script: _go_app
+  secure: always

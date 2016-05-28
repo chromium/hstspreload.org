@@ -3,12 +3,14 @@ package api
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 type hstspreloadWrapper interface {
-	PreloadableDomain(string) (*string, hstspreload.Issues)
+	PreloadableDomain(context.Context, string) (*string, hstspreload.Issues)
 	RemovableDomain(string) (*string, hstspreload.Issues)
 }
 
@@ -21,8 +23,8 @@ type preloadlistWrapper interface {
 type actualHstspreload struct{}
 type actualPreloadlist struct{}
 
-func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
-	return hstspreload.PreloadableDomain(domain)
+func (actualHstspreload) PreloadableDomain(ctx context.Context, domain string) (*string, hstspreload.Issues) {
+	return hstspreload.PreloadableDomain(ctx, domain)
 }
 func (actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return hstspreload.RemovableDomain(domain)
@@ -44,7 +46,7 @@ type mockPreloadlist struct {
 	failCalls bool
 }
 
-func (h mockHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
+func (h mockHstspreload) PreloadableDomain(ctx context.Context, domain string) (*string, hstspreload.Issues) {
 	return nil, h.preloadableResponses[domain]
 }
 func (h mockHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {

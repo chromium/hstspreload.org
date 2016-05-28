@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
+	"github.com/chromium/hstspreload.appspot.com/db/gcd"
 )
 
 // We can share a database across tests because tests are not run
