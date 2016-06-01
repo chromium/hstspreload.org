@@ -29,6 +29,7 @@ func main() {
 	server.Handle("/favicon.ico", staticHandler)
 	server.Handle("/static/", staticHandler)
 
+	server.Handle("/search.xml", searchXML(origin(*local)))
 	server.HandleFunc("/robots.txt", http.NotFound)
 
 	server.HandleFunc("/preloadable", a.Preloadable)
@@ -45,6 +46,13 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 	}
+}
+
+func origin(local bool) string {
+	if local {
+		return "http://localhost:" + port
+	}
+	return "https://hstspreload.appspot.com"
 }
 
 func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
