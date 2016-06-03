@@ -167,7 +167,7 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 		return state, datastoreErr
 	}
 
-	key := datastore.NewKey(c, domainStateKind, string(domain), 0, nil)
+	key := datastore.NewKey(c, domainStateKind, domain, 0, nil)
 	getErr := client.Get(c, key, &state)
 	if getErr != nil {
 		if getErr == datastore.ErrNoSuchEntity {
