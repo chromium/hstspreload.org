@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"strings"
 )
@@ -19,13 +20,19 @@ func (hstsServer) HandleFunc(pattern string, handlerFunc http.HandlerFunc) {
 	})
 }
 
+func isLocalhost(hostport string) bool {
+	host, _, err := net.SplitHostPort(hostport)
+	return err == nil && host == "localhost"
+}
+
 // `cont` indicates whether the callee should continue further processing.
 func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
+
 	switch {
 	case (r.TLS != nil), appspotHTTPS(r):
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		return true
-	case strings.HasPrefix(r.Host, "localhost:"): // r.Host contains the port
+	case isLocalhost(r.Host):
 		return true
 	default:
 		// The redirect below causes problems with Managed VMs/Flexible Environments.
