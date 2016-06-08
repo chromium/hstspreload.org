@@ -5,7 +5,7 @@ var PreloadForm = function() {
   this._view = new PreloadView(this.submitDomain.bind(this), this._urlParam);
   this._hstsPreload = new HSTSPreload();
 
-  var domain = this._urlParam.get();
+  var domain = stripScheme(this._urlParam.get());
   if (domain) {
     console.log('From URL parameter:', domain);
     $('#domain').value = domain;

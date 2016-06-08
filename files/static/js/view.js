@@ -75,14 +75,7 @@ PreloadView.prototype = {
 
   currentDomain: function() {
     var domain = $('#domain').value;
-    // Check for pasted URLs beginning with http:// or https://
-    if (domain.startsWith('http://')) {
-      return domain.slice('http://'.length)
-    }
-    if (domain.startsWith('https://')) {
-      return domain.slice('https://'.length)
-    }
-    return domain;
+    return stripScheme(domain);
   },
 
   showWaiting: function(domain) {
@@ -154,7 +147,8 @@ PreloadView.prototype = {
     el.classList.add(type);
 
     el.createChild('img', 'bullet').src = '/static/img/' + type + '.svg';
-    el.createChild('span', 'summary').textContent = typeLabel + ': ' + issue.summary;
+    el.createChild('span', 'summary').textContent =
+        typeLabel + ': ' + issue.summary;
     el.createChild('span', 'message').textContent = issue.message;
     return el;
   },
@@ -165,7 +159,8 @@ PreloadView.prototype = {
       $('#errors').appendChild(this._createIssueElement(e, 'error', 'Error'));
     }
     for (var w of issues.warnings) {
-      $('#warnings').appendChild(this._createIssueElement(w, 'warning', 'Warning'));
+      $('#warnings')
+          .appendChild(this._createIssueElement(w, 'warning', 'Warning'));
     }
   }
 

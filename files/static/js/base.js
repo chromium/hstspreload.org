@@ -26,9 +26,15 @@ URLParam.prototype = {
   }
 };
 
-var HSTSPreload = function() {}
+// Strips away everything up to the first `://`.
+// Returns the input if `://` doesn't appear.
+var stripScheme = function(url) {
+  return url.split('://', 2).slice(-1)[0];
+};
 
-                  HSTSPreload.prototype = {
+var HSTSPreload = function() {};
+
+HSTSPreload.prototype = {
   callAPI: function(method, endpoint, domain) {
     var path = '/' + endpoint + '?domain=' + encodeURIComponent(domain);
     console.log('XHR:', path);
