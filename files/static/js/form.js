@@ -5,11 +5,18 @@ var PreloadForm = function() {
   this._view = new PreloadView(this.submitDomain.bind(this), this._urlParam);
   this._hstsPreload = new HSTSPreload();
 
-  var domain = stripScheme(this._urlParam.get());
-  if (domain) {
-    console.log('From URL parameter:', domain);
-    $('#domain').value = domain;
-    this.checkDomain(domain);
+  var domainParam = this._urlParam.get();
+  if (domainParam) {
+    var domain = extractDomain(domainParam);
+
+    if (domain != domainParam) {
+      this._view.setDomain(domain);
+      this._view.clickCheck();
+    } else {
+      console.log('From URL parameter:', domain);
+      $('#domain').value = domain;
+      this.checkDomain(domain);
+    }
   }
 };
 

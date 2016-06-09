@@ -73,9 +73,17 @@ PreloadView.prototype = {
     this.hideWaiting();
   },
 
+  clickCheck() {
+    $('#check').click();
+  },
+
+  setDomain(domain) {
+    $('#domain').value = domain;
+  },
+
   currentDomain: function() {
     var domain = $('#domain').value;
-    return stripScheme(domain);
+    return extractDomain(domain);
   },
 
   showWaiting: function(domain) {

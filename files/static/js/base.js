@@ -28,8 +28,13 @@ URLParam.prototype = {
 
 // Strips away everything up to the first `://`.
 // Returns the input if `://` doesn't appear.
-var stripScheme = function(url) {
-  return url.split('://', 2).slice(-1)[0];
+var extractDomain = function(url) {
+  if (url.indexOf('://') === -1) {
+    url = 'https://' + url;
+  }
+  var a = document.createElement('a');
+  a.href = url;
+  return a.hostname;
 };
 
 var HSTSPreload = function() {};
