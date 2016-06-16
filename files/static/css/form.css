@@ -133,8 +133,12 @@ hr {
   /*text-align: center;*/
 }
 
-#submit-success, #submit-failure {
+.submit-feedback h2 {
+  text-align: center;
+}
+
+.submit-feedback p {
   max-width: 30em;
-  margin: auto;
+  margin: 1em auto;
   text-align: justify;
 }

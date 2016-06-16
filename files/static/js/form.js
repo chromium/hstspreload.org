@@ -59,10 +59,11 @@ PreloadForm.prototype = {
         $('#ssl-labs-link')
             .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
       } else {
+        this._view.setTheme('theme-red');
         $('#submit-failure').show();
         console.log(issues);
       }
-    });
+    }.bind(this));
   },
 
   showResults: function(domain, issues, status) {
