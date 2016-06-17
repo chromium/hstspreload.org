@@ -23,7 +23,7 @@ func main() {
 
 	server := hstsServer{}
 
-	staticHandler := http.FileServer(http.Dir("files"))
+	staticHandler := http.FileServer(http.Dir("frontend"))
 	server.Handle("/", staticHandler)
 	server.Handle("/version", staticHandler)
 	server.Handle("/favicon.ico", staticHandler)

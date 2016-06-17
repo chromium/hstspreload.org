@@ -8,7 +8,7 @@ build:
 format:
 	go fmt ${PROJECT}
 	# Need to specify non-default clang-format: https://crbug.com/558447
-	/usr/local/bin/clang-format -i -style=Google files/static/js/*.js
+	/usr/local/bin/clang-format -i -style=Google frontend/static/js/*.js
 
 .PHONY: lint
 lint:
@@ -44,7 +44,7 @@ endif
 
 .PHONY: version
 version:
-	git rev-parse HEAD > ./files/version
+	git rev-parse HEAD > ./frontend/version
 
 # Google Cloud Datastore Emulator
 

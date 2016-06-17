@@ -1,5 +1,5 @@
 <center>
-<img src="files/static/app-icon.png" width=144>
+<img src="frontend/static/app-icon.png" width=144>
 </center>
 
 # `hstspreload.appspot.com`
