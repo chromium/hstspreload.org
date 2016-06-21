@@ -37,6 +37,10 @@ func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (
 //
 // Example: GET /preloadable?domain=garron.net
 func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
+	if cont := api.allowCORS(w, r); !cont {
+		return
+	}
+
 	domain, ok := getASCIIDomain(http.MethodGet, w, r)
 	if !ok {
 		return
@@ -63,6 +67,10 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 //
 // Example: GET /status?domain=garron.net
 func (api API) Status(w http.ResponseWriter, r *http.Request) {
+	if cont := api.allowCORS(w, r); !cont {
+		return
+	}
+
 	domain, ok := getASCIIDomain(http.MethodGet, w, r)
 	if !ok {
 		return

@@ -265,3 +265,87 @@ func TestAPI(t *testing.T) {
 		}
 	}
 }
+
+func TestCORS(t *testing.T) {
+	api, _, _, _ := mockAPI()
+
+	cases := []struct {
+		handlerName  string
+		handlerFunc  http.HandlerFunc
+		method       string
+		clientOrigin string
+		wantCORS     string
+	}{
+		// Handlers that should allow CORS.
+		{"Preloadable", api.Preloadable, http.MethodGet, "", ""},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://example.com", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://example.com:80", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://example.com:443", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://example.com", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://example.com:80", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://example.com:443", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://localhost", "*"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://localhost:8080", "*"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://mozilla.github.io", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://mozilla.github.io:80", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "http://mozilla.github.io:443", "null"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://mozilla.github.io", "*"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://mozilla.github.io:80", "*"},
+		{"Preloadable", api.Preloadable, http.MethodGet, "https://mozilla.github.io:443", "*"},
+		{"Preloadable", api.Preloadable, http.MethodOptions, "http://localhost", "*"},
+		{"Preloadable", api.Preloadable, http.MethodOptions, "http://example.com", "null"},
+		{"Preloadable", api.Preloadable, http.MethodOptions, "https://example.com", "null"},
+		{"Preloadable", api.Preloadable, http.MethodOptions, "http://mozilla.github.io", "null"},
+		{"Preloadable", api.Preloadable, http.MethodOptions, "https://mozilla.github.io", "*"},
+		{"Preloadable", api.Preloadable, http.MethodPost, "https://mozilla.github.io", "*"},
+		{"Status", api.Status, http.MethodGet, "http://localhost:8080", "*"},
+		{"Status", api.Status, http.MethodGet, "http://example.com", "null"},
+		{"Status", api.Status, http.MethodGet, "https://example.com", "null"},
+		{"Status", api.Status, http.MethodGet, "http://mozilla.github.io", "null"},
+		{"Status", api.Status, http.MethodGet, "https://mozilla.github.io", "*"},
+		{"Status", api.Status, http.MethodOptions, "http://localhost:8080", "*"},
+		{"Status", api.Status, http.MethodOptions, "http://example.com", "null"},
+		{"Status", api.Status, http.MethodOptions, "https://example.com", "null"},
+		{"Status", api.Status, http.MethodOptions, "http://mozilla.github.io", "null"},
+		{"Status", api.Status, http.MethodOptions, "https://mozilla.github.io", "*"},
+		// Handlers that should not allow CORS.
+		{"Removable", api.Removable, http.MethodGet, "http://localhost:8080", ""},
+		{"Removable", api.Removable, http.MethodGet, "http://example.com", ""},
+		{"Removable", api.Removable, http.MethodGet, "https://example.com", ""},
+		{"Removable", api.Removable, http.MethodGet, "http://mozilla.github.io", ""},
+		{"Removable", api.Removable, http.MethodGet, "https://mozilla.github.io", ""},
+		{"Removable", api.Removable, http.MethodOptions, "https://mozilla.github.io", ""},
+		{"Submit", api.Submit, http.MethodGet, "https://mozilla.github.io", ""},
+		{"Submit", api.Submit, http.MethodOptions, "https://mozilla.github.io", ""},
+		{"Pending", api.Pending, http.MethodGet, "https://mozilla.github.io", ""},
+		{"Pending", api.Pending, http.MethodOptions, "https://mozilla.github.io", ""},
+		{"Update", api.Update, http.MethodGet, "https://mozilla.github.io", ""},
+		{"Update", api.Update, http.MethodOptions, "https://mozilla.github.io", ""},
+	}
+
+	for _, tt := range cases {
+		r, err := http.NewRequest(tt.method, "", nil)
+		if err != nil {
+			t.Fatalf("%s", err)
+		}
+		r.Header.Set("Origin", tt.clientOrigin)
+
+		w := httptest.NewRecorder()
+		w.Body = &bytes.Buffer{}
+
+		tt.handlerFunc(w, r)
+
+		key := http.CanonicalHeaderKey(corsOriginHeader)
+		actual := w.Header().Get(key)
+		if tt.wantCORS != actual {
+			t.Errorf(
+				"[%s][%s][%s] CORS header `%s` does not match expected value `%s`.",
+				tt.handlerName,
+				tt.method,
+				tt.clientOrigin,
+				actual,
+				tt.wantCORS,
+			)
+		}
+	}
+}
