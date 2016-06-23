@@ -19,7 +19,8 @@ type Origin struct {
 	// TODO: Add a port int?
 }
 
-// New creates an origin based on the origin of the given URL string
+// New constructs an Origin based on the given URL. Parts of the URL that are not
+// relevant to the origin are ignored.
 func New(u *url.URL) (Origin, error) {
 	hostName, portString, err := net.SplitHostPort(canonicalAddr(u))
 	if err != nil {
@@ -33,8 +34,8 @@ func New(u *url.URL) (Origin, error) {
 	}, nil
 }
 
-// Parse is a convenience function that parses a URL and then calls
-// New().
+// Parse is a convenience function that parses a URL string and constructs an
+// Origin from it.
 func Parse(urlString string) (Origin, error) {
 	u, err := url.Parse(urlString)
 	if err != nil {
