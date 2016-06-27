@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-// Origin holds the explicit definition of an origin, based on the defintion
+// Origin holds the explicit semantics of an origin, based on the definition
 // in https://tools.ietf.org/html/rfc6454
 type Origin struct {
 	// HostName is called HostName instead of Host to distinguish it from
