@@ -7,7 +7,7 @@ import (
 
 func searchXML(origin string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-type", "application/xml; charset=utf-8")
+		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 
 		fmt.Fprintf(w, `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">

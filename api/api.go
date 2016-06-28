@@ -29,7 +29,7 @@ func New(db database.Database) API {
 
 // writeJSONOrBust should only be called if nothing has been written yet.
 func writeJSONOrBust(w http.ResponseWriter, v interface{}) {
-	w.Header().Set("Content-type", "text/css; charset=utf-8")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
