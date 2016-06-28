@@ -41,7 +41,7 @@ var HSTSPreload = function() {};
 
 HSTSPreload.prototype = {
   callAPI: function(method, endpoint, domain) {
-    var path = '/' + endpoint + '?domain=' + encodeURIComponent(domain);
+    var path = '/api/v2/' + endpoint + '?domain=' + encodeURIComponent(domain);
     console.log('XHR:', path);
     // TODO: look at response codes.
     return new Promise(function(resolve, reject) {
