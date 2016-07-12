@@ -16,6 +16,7 @@ const (
 // https://github.com/chromium/hstspreload.appspot.com/edit/master/api/cors.go
 var whitelistedHosts = map[string]bool{
 	"mozilla.github.io": true,
+	"observatory.mozilla.org": true,
 	"infinitude.me.uk":  true,
 	"cloud.infinitude.me.uk": true,
 }
