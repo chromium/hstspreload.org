@@ -101,6 +101,23 @@ h2 {
   display: none;
 }
 
+.header-example {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.25em 0.5em;
+  box-sizing: border-box;
+  line-height: 2em;
+  border-radius: 4px;
+}
+
+.main-header-example {
+  text-align: center;
+  padding: 0.5em;
+}
+
+.main-header-example span {
+  display: inline-block;
+}
+
 /* Theming */
 
 body { background: rgb(127, 127, 127);}
