@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/chromium/hstspreload.org/database"
 )
@@ -16,7 +18,7 @@ func (api API) Pending(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	names, err := api.database.DomainsWithStatus(database.StatusPending)
+	states, err := api.database.DomainStatesWithStatus(database.StatusPending)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve pending list. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -26,14 +28,28 @@ func (api API) Pending(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	fmt.Fprintf(w, "[\n")
-	for i, name := range names {
+	for i, s := range states {
+		data := struct {
+			Name           string    `datastore:"-" json:"name"`
+			SubmissionDate time.Time `json:"submission_date,omit_empty"`
+		}{
+			s.Name,
+			s.SubmissionDate,
+		}
+
+		b, err := json.Marshal(data)
+		if err != nil {
+			msg := fmt.Sprintf("Internal error: could not format JSON. (%s)\n", err)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+		}
+
 		comma := ","
-		if i+1 == len(names) {
+		if i+1 == len(states) {
 			comma = ""
 		}
 
-		fmt.Fprintf(w, `    { "name": "%s", "include_subdomains": true, "mode": "force-https" }%s
-`, name, comma)
+		fmt.Fprintf(w, "    %s%s\n", b, comma)
 	}
 	fmt.Fprintf(w, "]\n")
 }

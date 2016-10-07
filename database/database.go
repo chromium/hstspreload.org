@@ -26,6 +26,7 @@ type Database interface {
 	PutState(DomainState) error
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
+	DomainStatesWithStatus(status PreloadStatus) ([]DomainState, error)
 	DomainsWithStatus(PreloadStatus) ([]string, error)
 }
 
@@ -182,6 +183,12 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 // AllDomainStates gets the states of all domains in the database.
 func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 	return db.statesForQuery(datastore.NewQuery("DomainState"))
+}
+
+// DomainStatesWithStatus returns the states of the domains with the given
+// status in the database.
+func (db DatastoreBacked) DomainStatesWithStatus(status PreloadStatus) (states []DomainState, err error) {
+	return db.statesForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
 
 // DomainsWithStatus returns the domains with the given status in the database.
