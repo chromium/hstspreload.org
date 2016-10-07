@@ -5,8 +5,8 @@ import (
 
 	"golang.org/x/net/context"
 
+	"cloud.google.com/go/datastore"
 	"github.com/chromium/hstspreload.appspot.com/database/gcd"
-	"google.golang.org/cloud/datastore"
 )
 
 const (

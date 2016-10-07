@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/datastore"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 )
 
@@ -136,8 +136,8 @@ func (db LocalBackend) NewClient(ctx context.Context, projectID string) (*datast
 		return nil, fmt.Errorf("grpc.Dial: %v", err)
 	}
 
-	var o []cloud.ClientOption
-	o = []cloud.ClientOption{cloud.WithBaseGRPC(conn)}
+	var o []option.ClientOption
+	o = []option.ClientOption{option.WithGRPCConn(conn)}
 	client, err := datastore.NewClient(ctx, projectID, o...)
 	if err != nil {
 		return nil, err
