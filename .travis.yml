@@ -6,7 +6,9 @@ go:
 install:
   - go get github.com/golang/lint/golint
   - go get github.com/chromium/hstspreload
-  - go get google.golang.org/cloud/datastore
+  - go get cloud.google.com/go/datastore
+  - go get google.golang.org/api/option
+  - go get google.golang.org/grpc
   - make get-datastore-emulator
 
 script:
