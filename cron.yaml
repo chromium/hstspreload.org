@@ -1,0 +1,4 @@
+cron:
+- description: Cron Test #1
+  url: /api/v2/test-cron
+  schedule: every 1 minutes

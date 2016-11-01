@@ -42,6 +42,8 @@ func main() {
 	server.HandleFunc("/api/v2/pending", a.Pending)
 	server.HandleFunc("/api/v2/update", a.Update)
 
+	server.HandleFunc("/api/v2/test-cron", a.TestCron)
+
 	fmt.Println("Listening...")
 	appengine.Main()
 }
