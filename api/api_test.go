@@ -15,15 +15,15 @@ import (
 var emptyIssues = hstspreload.Issues{}
 
 var issuesWithWarnings = hstspreload.Issues{
-	Warnings: []hstspreload.Issue{{"code", "warning", "message"}},
+	Warnings: []hstspreload.Issue{{Code: "code", Summary: "warning", Message: "message"}},
 }
 
 var issuesWithErrors = hstspreload.Issues{
 	Errors: []hstspreload.Issue{
-		{"code1", "warning1", "message1"},
-		{"code2", "warning2", "message2"},
+		{Code: "code1", Summary: "warning1", Message: "message1"},
+		{Code: "code2", Summary: "warning2", Message: "message2"},
 	},
-	Warnings: []hstspreload.Issue{{"code", "warning", "message"}},
+	Warnings: []hstspreload.Issue{{Code: "code", Summary: "warning", Message: "message"}},
 }
 
 func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist) {
@@ -96,14 +96,14 @@ func TestAPI(t *testing.T) {
 	}
 
 	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{"garron.net", preloadlist.ForceHTTPS, true},
-		{"chromium.org", preloadlist.ForceHTTPS, false},
-		{"godoc.og", "", true},
+		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
+		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false},
+		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
 	}}
 
 	pl2 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{"chromium.org", preloadlist.ForceHTTPS, false},
-		{"godoc.og", "", true},
+		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false},
+		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
 	}}
 
 	data1 := MockData{pr1, rr1, pl1}

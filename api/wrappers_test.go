@@ -13,7 +13,7 @@ func TestMockHstspreloadable(t *testing.T) {
 		t.Errorf("Issues should be empty")
 	}
 
-	wanted := hstspreload.Issues{Errors: []hstspreload.Issue{{"code", "summary", "message"}}}
+	wanted := hstspreload.Issues{Errors: []hstspreload.Issue{{Code: "code", Summary: "summary", Message: "message"}}}
 	h.preloadableResponses = make(map[string]hstspreload.Issues)
 	h.preloadableResponses["garron.net"] = wanted
 
@@ -29,7 +29,7 @@ func TestMockHstspreloadable(t *testing.T) {
 		t.Errorf("Issues should be empty")
 	}
 
-	wanted = hstspreload.Issues{Warnings: []hstspreload.Issue{{"code", "summary", "message"}}}
+	wanted = hstspreload.Issues{Warnings: []hstspreload.Issue{{Code: "code", Summary: "summary", Message: "message"}}}
 	h.removableResponses = make(map[string]hstspreload.Issues)
 	h.removableResponses["garron.net"] = wanted
 
