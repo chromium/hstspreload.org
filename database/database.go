@@ -82,7 +82,7 @@ func (db DatastoreBacked) PutStates(updates []DomainState, logf func(format stri
 	var keys []*datastore.Key
 	var values []DomainState
 	for _, state := range updates {
-		key := datastore.NewKey(c, domainStateKind, string(state.Name), 0, nil)
+		key := datastore.NameKey(domainStateKind, string(state.Name), nil)
 		keys = append(keys, key)
 		values = append(values, state)
 
@@ -124,7 +124,7 @@ func (db DatastoreBacked) statesForQuery(query *datastore.Query) (states []Domai
 
 	for i, key := range keys {
 		state := states[i]
-		state.Name = key.Name()
+		state.Name = key.Name
 		states[i] = state
 	}
 
@@ -148,7 +148,7 @@ func (db DatastoreBacked) domainsForQuery(query *datastore.Query) (domains []str
 	}
 
 	for _, key := range keys {
-		domain := key.Name()
+		domain := key.Name
 		domains = append(domains, domain)
 	}
 
@@ -167,7 +167,7 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 		return state, datastoreErr
 	}
 
-	key := datastore.NewKey(c, domainStateKind, domain, 0, nil)
+	key := datastore.NameKey(domainStateKind, domain, nil)
 	getErr := client.Get(c, key, &state)
 	if getErr != nil {
 		if getErr == datastore.ErrNoSuchEntity {
