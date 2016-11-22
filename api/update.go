@@ -90,14 +90,10 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 
 	// Create log function to show progress.
 	written := false
-	f, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "Internal error: Could not create `http.Flusher`.\n", http.StatusInternalServerError)
-		return
-	}
 	logf := func(format string, args ...interface{}) {
 		fmt.Fprintf(w, format, args...)
-		f.Flush()
+		// TODO: Reintroduce flushing
+		// https://github.com/chromium/hstspreload.appspot.com/issues/66
 		written = true
 	}
 
