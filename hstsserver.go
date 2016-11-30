@@ -3,7 +3,6 @@ package main
 import (
 	"net"
 	"net/http"
-	"strings"
 )
 
 type hstsServer struct{}
@@ -29,7 +28,7 @@ func isLocalhost(hostport string) bool {
 func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 
 	switch {
-	case (r.TLS != nil), appspotHTTPS(r):
+	case (r.TLS != nil), maybeAppspotHTTPS(r):
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		return true
 	case isLocalhost(r.Host):
@@ -45,6 +44,7 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 	}
 }
 
-func appspotHTTPS(r *http.Request) bool {
-	return strings.HasSuffix(r.Host, "appspot.com") && r.Header.Get("X-Appengine-Https") == "on"
+// Note: This can be spoofed when not run on App Engine/Flexible Environment.
+func maybeAppspotHTTPS(r *http.Request) bool {
+	return r.Header.Get("X-Appengine-Https") == "on"
 }
