@@ -28,10 +28,10 @@ func isLocalhost(hostport string) bool {
 func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 
 	switch {
-	case (r.TLS != nil), maybeAppspotHTTPS(r):
+	case (r.TLS != nil), maybeAppEngineHTTPS(r):
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		return true
-	case isLocalhost(r.Host):
+	case isLocalhost(r.Host), maybeAppEngineCron(r):
 		return true
 	default:
 		// The redirect below causes problems with Managed VMs/Flexible Environments.
@@ -45,6 +45,11 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 }
 
 // Note: This can be spoofed when not run on App Engine/Flexible Environment.
-func maybeAppspotHTTPS(r *http.Request) bool {
+func maybeAppEngineCron(r *http.Request) bool {
+	return r.Header.Get("X-Appengine-Cron") == "true"
+}
+
+// Note: This can be spoofed when not run on App Engine/Flexible Environment.
+func maybeAppEngineHTTPS(r *http.Request) bool {
 	return r.Header.Get("X-Appengine-Https") == "on"
 }
