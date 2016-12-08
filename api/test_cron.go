@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/chromium/hstspreload.appspot.com/database"
@@ -17,7 +18,7 @@ func (api API) TestCron(w http.ResponseWriter, r *http.Request) {
 		Name:           "cron.test",
 		Status:         database.StatusRejected,
 		SubmissionDate: time.Now(),
-		Message:        fmt.Sprintf("Last updated: %s", t),
+		Message:        fmt.Sprintf("Last updated: %s (Go version: %s)", t, runtime.Version()),
 	})
-	http.Error(w, fmt.Sprintf("Cron ran: %s", t), http.StatusAccepted)
+	http.Error(w, fmt.Sprintf("Cron ran: %s (Go version: %s)", t, runtime.Version()), http.StatusAccepted)
 }
