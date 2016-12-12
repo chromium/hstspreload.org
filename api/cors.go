@@ -20,6 +20,7 @@ var whitelistedHosts = map[string]bool{
 	"apis.infinitudecloud.com": true, // RELEASE
 	"latenight.apis.infinitudecloud.com": true, // BETA
 	"midnight.apis.infinitudecloud.com": true,  // DEVELOPMENT
+	"look-at-my.site": true,
 }
 
 func allowOrigin(clientOrigin string) bool {
