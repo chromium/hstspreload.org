@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 )
@@ -26,12 +27,16 @@ func isLocalhost(hostport string) bool {
 
 // `cont` indicates whether the callee should continue further processing.
 func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
+	if r.TLS != nil || maybeAppEngineHTTPS(r) {
+		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+	}
 
 	switch {
-	case (r.TLS != nil), maybeAppEngineHTTPS(r):
-		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
-		return true
-	case isLocalhost(r.Host), maybeAppEngineCron(r):
+	case (r.Host == "hstspreload.appspot.com"):
+		u := fmt.Sprintf("https://hstspreload.org%s", r.URL.Path)
+		http.Redirect(w, r, u, http.StatusFound)
+		return false
+	case (r.TLS != nil), isLocalhost(r.Host), maybeAppEngineHTTPS(r), maybeAppEngineCron(r):
 		return true
 	default:
 		// The redirect below causes problems with Managed VMs/Flexible Environments.
