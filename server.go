@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"google.golang.org/appengine"
+
 	"github.com/chromium/hstspreload.appspot.com/api"
 	"github.com/chromium/hstspreload.appspot.com/database"
 )
@@ -41,11 +43,7 @@ func main() {
 	server.HandleFunc("/api/v2/update", a.Update)
 
 	fmt.Println("Listening...")
-
-	err := http.ListenAndServe(":"+port, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-	}
+	appengine.Main()
 }
 
 func origin(local bool) string {

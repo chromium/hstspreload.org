@@ -8,6 +8,7 @@ install:
   - go get github.com/chromium/hstspreload
   - go get cloud.google.com/go/datastore
   - go get google.golang.org/api/option
+  - go get google.golang.org/appengine
   - go get google.golang.org/grpc
   - make get-datastore-emulator
 
