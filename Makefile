@@ -24,7 +24,7 @@ travis: pre-commit
 .PHONY: deploy
 deploy: check version
 	date
-	time aedeploy gcloud preview app deploy app.yaml --promote
+	time aedeploy gcloud app deploy app.yaml --promote
 	date
 
 CURRENT_DIR = "$(shell pwd)"
