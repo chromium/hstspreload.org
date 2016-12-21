@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/database"
 )
 
 // API holds the server API. Use api.New() to construct.

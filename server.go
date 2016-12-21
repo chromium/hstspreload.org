@@ -8,8 +8,8 @@ import (
 
 	"google.golang.org/appengine"
 
-	"github.com/chromium/hstspreload.appspot.com/api"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/api"
+	"github.com/chromium/hstspreload.org/database"
 )
 
 const (

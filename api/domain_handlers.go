@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/idna"
 
 	"github.com/chromium/hstspreload"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/database"
 )
 
 func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (ascii string, ok bool) {

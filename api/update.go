@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/database"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
@@ -93,7 +93,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	logf := func(format string, args ...interface{}) {
 		fmt.Fprintf(w, format, args...)
 		// TODO: Reintroduce flushing
-		// https://github.com/chromium/hstspreload.appspot.com/issues/66
+		// https://github.com/chromium/hstspreload.org/issues/66
 		written = true
 	}
 

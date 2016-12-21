@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/chromium/hstspreload.appspot.com/origin"
+	"github.com/chromium/hstspreload.org/origin"
 )
 
 const (
@@ -11,9 +11,9 @@ const (
 )
 
 // If you have a project that could use client-side API access
-// to hstspreload.appspot.com, feel free to send a pull request
+// to hstspreload.org, feel free to send a pull request
 // to add your domain on GitHub:
-// https://github.com/chromium/hstspreload.appspot.com/edit/master/api/cors.go
+// https://github.com/chromium/hstspreload.org/edit/master/api/cors.go
 var whitelistedHosts = map[string]bool{
 	"mozilla.github.io":                  true,
 	"observatory.mozilla.org":            true,

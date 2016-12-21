@@ -1,4 +1,4 @@
-PROJECT = github.com/chromium/hstspreload.appspot.com/...
+PROJECT = github.com/chromium/hstspreload.org/...
 
 .PHONY: build
 build:
@@ -28,7 +28,7 @@ deploy: check version
 	date
 
 CURRENT_DIR = "$(shell pwd)"
-EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload.appspot.com"
+EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload.org"
 
 .PHONY: check
 check:

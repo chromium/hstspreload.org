@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/database"
 )
 
 // Pending returns a list of domains with status "pending".

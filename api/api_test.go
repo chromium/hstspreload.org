@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/chromium/hstspreload"
-	"github.com/chromium/hstspreload.appspot.com/database"
+	"github.com/chromium/hstspreload.org/database"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 

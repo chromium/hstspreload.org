@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/chromium/hstspreload.appspot.com/database/gcd"
+	"github.com/chromium/hstspreload.org/database/gcd"
 )
 
 // We can share a database across tests because tests are not run
