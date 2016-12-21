@@ -15,11 +15,11 @@ const (
 // to add your domain on GitHub:
 // https://github.com/chromium/hstspreload.appspot.com/edit/master/api/cors.go
 var whitelistedHosts = map[string]bool{
-	"mozilla.github.io": true,
-	"observatory.mozilla.org": true,
-	"apis.infinitudecloud.com": true, // RELEASE
+	"mozilla.github.io":                  true,
+	"observatory.mozilla.org":            true,
+	"apis.infinitudecloud.com":           true, // RELEASE
 	"latenight.apis.infinitudecloud.com": true, // BETA
-	"midnight.apis.infinitudecloud.com": true,  // DEVELOPMENT
+	"midnight.apis.infinitudecloud.com":  true, // DEVELOPMENT
 }
 
 func allowOrigin(clientOrigin string) bool {
