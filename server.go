@@ -50,7 +50,7 @@ func origin(local bool) string {
 	if local {
 		return "http://localhost:" + port
 	}
-	return "https://hstspreload.appspot.com"
+	return "https://hstspreload.org"
 }
 
 func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
