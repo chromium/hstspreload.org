@@ -34,7 +34,7 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 	switch {
 	case (r.Host == "hstspreload.appspot.com"):
 		u := fmt.Sprintf("https://hstspreload.org%s", r.URL.Path)
-		http.Redirect(w, r, u, http.StatusFound)
+		http.Redirect(w, r, u, http.StatusMovedPermanently)
 		return false
 	case (r.TLS != nil), isLocalhost(r.Host), maybeAppEngineHTTPS(r), maybeAppEngineCron(r):
 		return true
