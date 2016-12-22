@@ -1,8 +1,6 @@
 package database
 
 import (
-	"time"
-
 	"golang.org/x/net/context"
 
 	"cloud.google.com/go/datastore"
@@ -10,11 +8,7 @@ import (
 )
 
 const (
-	localProjectID = "hstspreload-local"
-	prodProjectID  = "hstspreload"
-
 	batchSize = 450
-	timeout   = 10 * time.Second
 
 	domainStateKind = "DomainState"
 )
@@ -177,6 +171,11 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 	}
 
 	return state, nil
+}
+
+// AllDomainStates gets a list of all domains in the database.
+func (db DatastoreBacked) AllDomains() (domains []string, err error) {
+	return db.domainsForQuery(datastore.NewQuery("DomainState"))
 }
 
 // AllDomainStates gets the states of all domains in the database.
