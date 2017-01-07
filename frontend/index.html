@@ -175,6 +175,7 @@
     <p>
       Consult the <a href="https://wiki.mozilla.org/Security/Guidelines/Web_Security">Mozilla Web Security guidelines</a> and the <a href="https://developers.google.com/web/fundamentals/security/?hl=en">Google Web Fundamentals pages on security</a> for more concrete advice about HTTPS deployment.
     </p>
+
   </section>
 
   <section id="continued-requirements">
@@ -184,6 +185,16 @@
     </p>
     <p>
       Chrome has not yet removed any domains from the preload list for failing to keep up the requirements after submission, but there are plans to do so in the future. In particular, note that the <a href="#submission-requirements">requirements above</a> apply to all domains submitted through <tt>hstspreload.org</tt> (or <tt>hstspreload.appspot.com</tt>) on or after <b>February 29, 2016</b> (i.e. preloaded after Chrome 50).
+    </p>
+  </section>
+
+  <section id="opt-in">
+    <h2><a class="hash-link" href="#opt-in">Preloading Should Be Opt-In</a></h2>
+    <p>
+      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <b>do not include the <tt>preload</tt> directive by default</b>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those site.
+    </p>
+    <p>
+      It's great to support HSTS preloading as a best practice, and for projects to provide a simple option to enable it. However, site operators who enable HSTS should know about the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
     </p>
   </section>
 
