@@ -191,7 +191,7 @@
   <section id="opt-in">
     <h2><a class="hash-link" href="#opt-in">Preloading Should Be Opt-In</a></h2>
     <p>
-      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <b>do not include the <tt>preload</tt> directive by default</b>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those site.
+      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <b>do not include the <tt>preload</tt> directive by default</b>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
     </p>
     <p>
       It's great to support HSTS preloading as a best practice, and for projects to provide a simple option to enable it. However, site operators who enable HSTS should know about the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
