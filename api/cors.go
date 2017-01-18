@@ -17,9 +17,8 @@ const (
 var whitelistedHosts = map[string]bool{
 	"mozilla.github.io":                  true,
 	"observatory.mozilla.org":            true,
-	"apis.infinitudecloud.com":           true, // RELEASE
-	"latenight.apis.infinitudecloud.com": true, // BETA
-	"midnight.apis.infinitudecloud.com":  true, // DEVELOPMENT
+	"apis.0.me.uk":                       true,
+	"apis.midnight.0.me.uk":              true,
 }
 
 func allowOrigin(clientOrigin string) bool {
