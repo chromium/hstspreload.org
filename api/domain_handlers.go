@@ -93,7 +93,7 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 // Although the method is POST, we currently use a URL parameter so that
 // it's easy to use in the same way as the other domain endpoints.
 //
-// Example: POST /status?domain=garron.net
+// Example: POST /submit?domain=garron.net
 func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 	domain, ok := getASCIIDomain(http.MethodPost, w, r)
 	if !ok {
