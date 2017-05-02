@@ -26,20 +26,34 @@ var issuesWithErrors = hstspreload.Issues{
 	Warnings: []hstspreload.Issue{{Code: "code", Summary: "warning", Message: "message"}},
 }
 
-func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist) {
+var issuesRemovableProtected = hstspreload.Issues{
+	Errors: []hstspreload.Issue{
+		{Code: "server.removable.protected"},
+	},
+}
+
+var issuesRemoveProtected = hstspreload.Issues{
+	Errors: []hstspreload.Issue{
+		{Code: "server.remove.protected"},
+	},
+}
+
+func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist, e map[string]bool) {
 	db, mc := database.NewMock()
 	h = &mockHstspreload{}
 	c = &mockPreloadlist{}
+	e = make(map[string]bool)
 	api = API{
-		database:    db,
-		hstspreload: h,
-		preloadlist: c,
+		database:      db,
+		hstspreload:   h,
+		preloadlist:   c,
+		bulkPreloaded: e,
 	}
-	return api, mc, h, c
+	return api, mc, h, c, e
 }
 
 func TestCheckConnection(t *testing.T) {
-	api, mc, _, _ := mockAPI()
+	api, mc, _, _, _ := mockAPI()
 
 	if err := api.CheckConnection(); err != nil {
 		t.Errorf("%s", err)
@@ -83,21 +97,33 @@ type apiTestCase struct {
 }
 
 func TestAPI(t *testing.T) {
-	api, mc, h, c := mockAPI()
+	api, mc, h, c, e := mockAPI()
+
+	e["removal-preloaded-bulk-eligible.test"] = true
+	e["removal-not-preloaded-bulk-eligible.test"] = true
+	e["removal-preloaded-bulk-ineligible.test"] = true
 
 	pr1 := map[string]hstspreload.Issues{
-		"garron.net":  emptyIssues,
-		"badssl.com":  issuesWithWarnings,
-		"example.com": issuesWithErrors,
+		"garron.net":                      emptyIssues,
+		"badssl.com":                      issuesWithWarnings,
+		"example.com":                     issuesWithErrors,
+		"removal-pending-eligible.test":   emptyIssues,
+		"removal-pending-ineligible.test": emptyIssues,
 	}
 	rr1 := map[string]hstspreload.Issues{
-		"removable.test":   emptyIssues,
-		"unremovable.test": issuesWithErrors,
+		"removal-preloaded-bulk-eligible.test":     emptyIssues,
+		"removal-preloaded-not-bulk-eligible.test": emptyIssues,
+		"removal-preloaded-bulk-ineligible.test":   issuesWithErrors,
+		"removal-pending-eligible.test":            emptyIssues,
+		"removal-pending-ineligible.test":          issuesWithErrors,
 	}
 
 	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false},
+		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
+		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
+		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
 	}}
 
@@ -138,13 +164,6 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{issues: &issuesWithWarnings}},
 		{"preloadable error", data1, failNone, api.Preloadable, "GET", "?domain=example.com",
 			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
-
-		// removable
-		{"preloadable good", data1, failNone, api.Removable, "GET", "?domain=removable.test",
-			200, jsonContentType, wantBody{issues: &emptyIssues}},
-		{"preloadable error", data1, failNone, api.Removable, "GET", "?domain=unremovable.test",
-			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
-
 		// initial
 		{"garron.net initial", data1, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
@@ -157,7 +176,7 @@ func TestAPI(t *testing.T) {
 
 		// initial with database failure
 		{"pending failure", data1, failDatabase, api.Pending, "GET", "",
-			500, textContentType, wantBody{text: "Internal error: could not retrieve pending list. (forced failure)\n\n"}},
+			500, textContentType, wantBody{text: "Internal error: could not retrieve list for status \"pending\". (forced failure)\n\n"}},
 		{"status failure", data1, failDatabase, api.Status, "GET", "?domain=garron.net",
 			500, textContentType, wantBody{text: "Internal error: could not retrieve status. (forced failure)\n\n"}},
 
@@ -186,9 +205,56 @@ func TestAPI(t *testing.T) {
 		{"update database failure", data1, failDatabase, api.Update, "GET", "",
 			500, textContentType, wantBody{text: "Internal error: could not retrieve domain names previously marked as preloaded. (forced failure)\n\n"}},
 		{"update success", data1, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 3 entries.\n- # of preloaded HSTS entries: 2\n- # to be added in this update: 2\n- # to be removed this update: 0\nSuccess. 2 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 6 entries.\n- # of preloaded HSTS entries: 5\n- # to be added in this update: 5\n- # to be removed this update: 0\nSuccess. 5 domain states updated.\n"}},
 		{"pending 3", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
+
+		// create removable pending
+		{"create removable pending eligible", data1, failNone, api.Submit, "POST", "?domain=removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"create removable pending ineligible", data1, failNone, api.Submit, "POST", "?domain=removal-pending-ineligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+
+		// removable
+		{"removable preloaded-bulk-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-bulk-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"removable preloaded-not-bulk-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-not-bulk-eligible.test",
+			200, jsonContentType, wantBody{issues: &issuesRemovableProtected}},
+		{"removable preloaded-bulk-ineligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-bulk-ineligible.test",
+			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+		{"removable pending-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"removable pending-ineligible", data1, failNone, api.Removable, "GET", "?domain=removal-pending-ineligible.test",
+			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+
+		// remove
+		{"remove preloaded-bulk-eligible", data1, failNone, api.Remove, "POST", "?domain=removal-preloaded-bulk-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"remove preloaded-not-bulk-eligible", data1, failNone, api.Remove, "POST", "?domain=removal-preloaded-not-bulk-eligible.test",
+			200, jsonContentType, wantBody{issues: &issuesRemoveProtected}},
+		{"remove preloaded-bulk-ineligible", data1, failNone, api.Remove, "POST", "?domain=removal-preloaded-bulk-ineligible.test",
+			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+		{"remove pending-eligible", data1, failNone, api.Remove, "POST", "?domain=removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"remove pending-ineligible", data1, failNone, api.Remove, "POST", "?domain=removal-pending-ineligible.test",
+			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+
+		// Check removals
+		{"remove preloaded-bulk-eligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-bulk-eligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "removal-preloaded-bulk-eligible.test", Status: database.StatusPendingRemoval}}},
+		{"remove preloaded-not-bulk-eligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-not-bulk-eligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "removal-preloaded-not-bulk-eligible.test", Status: database.StatusPreloaded}}},
+		{"remove preloaded-bulk-ineligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-bulk-ineligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "removal-preloaded-bulk-ineligible.test", Status: database.StatusPreloaded}}},
+		{"remove pending-eligible", data1, failNone, api.Status, "GET", "?domain=removal-pending-eligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "removal-pending-eligible.test", Status: database.StatusPendingRemoval}}},
+		{"remove pending-ineligible", data1, failNone, api.Status, "GET", "?domain=removal-pending-ineligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "removal-pending-ineligible.test", Status: database.StatusPending}}},
 
 		// after update
 		{"submit after preloaded", data1, failNone, api.Submit, "POST", "?domain=garron.net",
@@ -210,7 +276,7 @@ func TestAPI(t *testing.T) {
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 1\nSuccess. 1 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 3\nSuccess. 3 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "garron.net", Status: database.StatusRemoved}}},
@@ -276,7 +342,7 @@ func TestAPI(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	api, _, _, _ := mockAPI()
+	api, _, _, _, _ := mockAPI()
 
 	cases := []struct {
 		handlerName  string

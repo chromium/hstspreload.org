@@ -123,17 +123,17 @@ h2 {
 body { background: rgb(127, 127, 127);}
 .form   { background: rgb(242, 242, 242);}
 
-body.theme-green { background: #0d904f; }
+body.theme-green:not(.theme-remove) { background: #0d904f; }
 body.theme-green .form   { background: #ddffee; }
 
-body.theme-red { background:#c62828; }
+body.theme-red:not(.theme-remove) { background:#c62828; }
 body.theme-red .form   { background: #ffebee; }
 
-body.theme-yellow { background: #fdd835; }
+body.theme-yellow:not(.theme-remove) { background: #fdd835; }
 body.theme-yellow .form   { background: #fffde7; }
 
-#errors div { background: #ffcdd2; }
-#errors .summary { color: #c62828; }
+.errors div { background: #ffcdd2; }
+.errors .summary { color: #c62828; }
 
-#warnings div { background: #fff9c4; }
-#warnings .summary { color: #ff8f00; }
+.warnings div { background: #fff9c4; }
+.warnings .summary { color: #ff8f00; }

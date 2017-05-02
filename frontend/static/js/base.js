@@ -63,5 +63,15 @@ HSTSPreload.prototype = {
     return this.callAPI('GET', 'preloadable', domain);
   },
 
-  submit: function(domain) { return this.callAPI('POST', 'submit', domain); }
+  removable: function(domain) {
+    return this.callAPI('GET', 'removable', domain);
+  },
+
+  submit: function(domain) {
+    return this.callAPI('POST', 'submit', domain);
+  },
+
+  remove: function(domain) {
+    return this.callAPI('POST', 'remove', domain);
+  }
 };

@@ -12,6 +12,11 @@
   <script src="static/js/base.js"></script>
   <script src="static/js/view.js"></script>
   <script src="static/js/form.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      new Form(PreloadController);
+    });
+  </script>
 </head>
 <body class="theme-green">
 
@@ -43,10 +48,7 @@
   <div id="result" class="hidden">
     <p id="status"></p>
     <p id="summary"></p>
-    <div class="issues">
-      <div id="errors" class="issues-list"></div>
-      <div id="warnings" class="issues-list"></div>
-    </div>
+    <div id="issues-wrapper"></div>
   </div>
 
   <form id="submit-form" class="hidden">
@@ -208,34 +210,17 @@
 
     <p>
       However, we will generally honor requests to be removed from Chrome's preload list if you find that you have a subdomain that you cannot serve over HTTPS for strong technical or cost reasons.
-      To request removal, please:
-      <ol>
-        <li>
-          Enter your domain at the top of this page and check that the result is &quot;currently preloaded&quot; or &quot;pending submission&quot; (else, any issues you may have are not due to preloading, and we cannot help).
-        </li>
-        <li>Continue to serve an HSTS header over HTTPS from the domain in question, but remove the <tt>preload</tt> directive. If you completely want to disable HSTS, you can send:<br>
-          <tt class="header-example">Strict-Transport-Security: max-age=0</tt>
-        </li>
-        <li>Contact Lucas Garron with the subject <tt>Removal Request: [your domain]</tt>
-          <ul>
-            <li>Please use <a href="mailto:hstspreload@chromium.org?Subject=Removal%20Request%3A%20%5Bdomain%5D&Body=Hello%20Lucas%2C%0A%0ACould%20you%20please%20remove%20%5Bdomain%5D%20from%20the%20HSTS%20preload%20list%3F%0AWe%20cannot%20support%20HTTPS%20on%20the%20following%20subdomains%3A%0A%0A%E2%80%A2%20%5Bsubdomain%5D%20-%20reason%0A%E2%80%A2%20%5Bsubdomain%5D%20-%20reason%0A%E2%80%A2%20...%0A%0AThanks%2C%0A%5Bname%5D">this email template</a>.</li>
-            <li>Give specific reasons why you cannot stay preloaded (e.g. which subdomains cannot be moved to HTTPS and why).</li>
-            <li>If you never intended to be preloaded, please let us know if you can tell why your domain was sending an HSTS header with the <tt>preload</tt> directive.
-            <li>If possible, please send the request from the WHOIS contact email for the domain.</li>
-          </ul>
-        </li>
-      </ol>
-      If you do not completely want to disable HSTS, it is up to you whether you would like remove the <tt>includeSubDomains</tt> directive or change the <tt>max-age</tt> value, as long as you remove the <tt>preload</tt> directive. However, you may want to set <tt>max-age=0</tt> as a <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">knockout entry</a> for Firefox.
+      To request removal, please visit the <a href="/removal/">removal form</a>.
     </p>
   </section>
 
   <section id="contact">
     <h2><a class="hash-link" href="#contact">Contact</a></h2>
     <p>
-      <b>Want to remove your domain?</b> Please send an email by following the <a href="#removal">removal request instructions</a> above.
+      <b>Want to remove your domain?</b> Please visit the <a href="/removal/">removal form</a>.
     </p>
     <p>
-      Else, if you have questions or requests that are not covered by this page, email Lucas Garron <a href="mailto:hstspreload@chromium.org">here</a> using an appropriate subject line.
+      Else, if you have questions or requests that are not covered by this site, email Lucas Garron <a href="mailto:hstspreload@chromium.org">here</a> using an appropriate subject line.
     </p>
   </section>
 </div>

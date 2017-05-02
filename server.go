@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -20,7 +22,7 @@ func main() {
 	local := flag.Bool("local", false, "run the server using a local database")
 	flag.Parse()
 
-	a, shutdown := mustSetupAPI(*local)
+	a, shutdown := mustSetupAPI(*local, mustReadBulkPreloaded())
 	defer shutdown()
 
 	server := hstsServer{}
@@ -38,9 +40,15 @@ func main() {
 	server.HandleFunc("/api/v2/removable", a.Removable)
 	server.HandleFunc("/api/v2/status", a.Status)
 	server.HandleFunc("/api/v2/submit", a.Submit)
+	server.HandleFunc("/api/v2/remove", a.Remove)
 
 	server.HandleFunc("/api/v2/pending", a.Pending)
+	server.HandleFunc("/api/v2/pending-removal", a.PendingRemoval)
 	server.HandleFunc("/api/v2/update", a.Update)
+
+	if *local {
+		server.HandleFunc("/api/v2/debug/set-preloaded", a.DebugSetPreloaded)
+	}
 
 	fmt.Println("Listening...")
 	appengine.Main()
@@ -53,7 +61,7 @@ func origin(local bool) string {
 	return "https://hstspreload.org"
 }
 
-func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
+func mustSetupAPI(local bool, bulkPreloadedEntries map[string]bool) (a api.API, shutdown func() error) {
 	var db database.Database
 
 	if local {
@@ -72,12 +80,28 @@ func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 
 	fmt.Printf(" checking database connection...")
 
-	a = api.New(db)
-	if err := a.CheckConnection(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-		os.Exit(1)
-	}
+	a = api.New(db, bulkPreloadedEntries)
+	err := a.CheckConnection()
+	exitIfNotNil(err)
 
 	fmt.Println(" done.")
 	return a, shutdown
+}
+
+func mustReadBulkPreloaded() api.DomainSet {
+	file, err := ioutil.ReadFile("static-data/bulk-preloaded.json")
+	exitIfNotNil(err)
+
+	var bulkPreloaded api.DomainSet
+	err = json.Unmarshal(file, &bulkPreloaded)
+	exitIfNotNil(err)
+
+	return bulkPreloaded
+}
+
+func exitIfNotNil(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err)
+		os.Exit(1)
+	}
 }

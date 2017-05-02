@@ -1,6 +1,10 @@
 'use strict';
 
-var PreloadView = function(submitDomain, urlParam) {
+/*
+  * verb: "add" or "remove"
+ */
+var PreloadView = function(controller, submitDomain, urlParam) {
+  this._controller = controller;
   this._urlParam = urlParam;
 
   var submitDomainHandler = function(ev) {
@@ -12,10 +16,12 @@ var PreloadView = function(submitDomain, urlParam) {
 
   $('#submit-form').addEventListener('submit', submitDomainHandler);
 
-  $('#checkbox-owner')
-      .addEventListener('change', this._checkboxChangedHandler.bind(this));
-  $('#checkbox-subdomains')
-      .addEventListener('change', this._checkboxChangedHandler.bind(this));
+  if (this._controller.formHasCheckboxes()) {
+    $('#checkbox-owner')
+        .addEventListener('change', this._checkboxChangedHandler.bind(this));
+    $('#checkbox-subdomains')
+        .addEventListener('change', this._checkboxChangedHandler.bind(this));
+  }
 
   if (location.hash === '') {
     $('#domain').focus()
@@ -88,26 +94,23 @@ PreloadView.prototype = {
     $('#result').classList.add('hidden');
   },
 
-  _clearIssues: function() {
-    $('#errors').textContent = '';
-    $('#warnings').textContent = '';
-  },
-
   showSubmission: function(domain) {
-    $('#checkbox-owner').checked = false;
-    $('#checkbox-subdomains').checked = false;
-    $('#submit').disabled = true;
+    if (this._controller.formHasCheckboxes()) {
+      $('#checkbox-owner').checked = false;
+      $('#checkbox-subdomains').checked = false;
+      document.getElementById('oops-mailto').href =
+          'mailto:hstspreload@chromium.org?subject=Domain%20with%20possible%20accidental%20preload:%20' +
+          domain;
+      $('#submit').disabled = true;
+    } else {
+      $('#submit').disabled = false;
+    }
+    document.getElementById('submit').value = this._controller.submitButtonString(domain);
 
     var domainTexts = document.getElementsByClassName('domain-text');
     for (var i = 0; i < domainTexts.length; i++) {
       domainTexts[i].textContent = domain;
     }
-
-    document.getElementById('oops-mailto').href =
-        'mailto:hstspreload@chromium.org?subject=Domain%20with%20possible%20accidental%20preload:%20' +
-        domain;
-    document.getElementById('submit').value =
-        'Submit ' + domain + ' to the HSTS preload list'
 
     $('#submit-form').classList.remove('hidden');
   },
@@ -115,7 +118,9 @@ PreloadView.prototype = {
   _hideSubmission: function() {
     $('#submit-success').hide();
     $('#submit-failure').hide();
-    $('#ssl-labs-link').href = 'https://www.ssllabs.com/ssltest/analyze.html';
+    if ($('#ssl-labs-link')) {
+      $('#ssl-labs-link').href = 'https://www.ssllabs.com/ssltest/analyze.html';
+    }
     $('#submit-form').hide();
   },
 
@@ -131,30 +136,47 @@ PreloadView.prototype = {
     $('#status').textContent = statusMessage;
   },
 
-  _createIssueElement: function(issue, type, typeLabel) {
-    if (['error', 'warning'].indexOf(type) === -1) {
-      throw new Error('Unknown type of issue.');
-    }
-
-    var el = document.createElement('div');
-    el.classList.add(type);
-
-    el.createChild('img', 'bullet').src = '/static/img/' + type + '.svg';
-    el.createChild('span', 'summary').textContent =
-        typeLabel + ': ' + issue.summary;
-    el.createChild('span', 'message').textContent = issue.message;
-    return el;
+  // TODO: remove
+  _clearIssues: function() {
+    $('#issues-wrapper').textContent = '';
   },
 
   showIssues: function(issues) {
-    this._clearIssues();
-    for (var e of issues.errors) {
-      $('#errors').appendChild(this._createIssueElement(e, 'error', 'Error'));
-    }
-    for (var w of issues.warnings) {
-      $('#warnings')
-          .appendChild(this._createIssueElement(w, 'warning', 'Warning'));
-    }
+    $('#issues-wrapper').appendChild(new IssuesBulletList(issues));
+  }
+};
+
+/* returns Element */
+var IssueBullet = function(issue, type, typeLabel) {
+  if (['error', 'warning'].indexOf(type) === -1) {
+    throw new Error('Unknown type of issue.');
   }
 
-};
+  var el = document.createElement('div');
+  el.classList.add(type);
+
+  el.createChild('img', 'bullet').src = '/static/img/' + type + '.svg';
+  el.createChild('span', 'summary').textContent =
+      typeLabel + ': ' + issue.summary;
+  el.createChild('span', 'message').textContent = issue.message;
+  return el;
+}
+
+/* returns Element */
+var IssuesBulletList = function(issues) {
+  var el = document.createElement('div');
+  el.classList.add("issues");
+
+  var errorsElem = el.createChild('div', 'errors');
+  errorsElem.classList.add('issues-list');
+  var warningsElem = el.createChild('div', 'warnings');
+  warningsElem.classList.add('issues-list');
+
+  for (var e of issues.errors) {
+    errorsElem.appendChild(new IssueBullet(e, 'error', 'Error'));
+  }
+  for (var w of issues.warnings) {
+    warningsElem.appendChild(new IssueBullet(w, 'warning', 'Warning'));
+  }
+  return el;
+}

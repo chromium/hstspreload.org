@@ -22,10 +22,20 @@ pre-commit: lint build test
 travis: pre-commit
 
 .PHONY: deploy
-deploy: check version
+deploy: bulk-preloaded-force-update check version
 	date
 	time gcloud app deploy app.yaml
 	date
+
+.PHONY: bulk-preloaded-force-update
+bulk-preloaded-force-update:
+	python update_bulk_preloaded.py static-data/bulk-preloaded.json
+
+.PHONY: bulk-preloaded
+bulk-preloaded: static-data/bulk-preloaded.json
+
+static-data/bulk-preloaded.json:
+	make bulk-preloaded-force-update
 
 CURRENT_DIR = "$(shell pwd)"
 EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload.org"
@@ -61,9 +71,9 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 # Testing
 
 .PHONY: serve
-serve: check get-datastore-emulator version
+serve: bulk-preloaded check get-datastore-emulator version
 	go run *.go -local
 
 .PHONY: test
-test: get-datastore-emulator
+test: bulk-preloaded get-datastore-emulator
 	go test -v -cover "${PROJECT}"

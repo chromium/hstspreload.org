@@ -10,20 +10,25 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
+// DomainSet uses a map data structure to encode a set of domains.
+type DomainSet map[string]bool
+
 // API holds the server API. Use api.New() to construct.
 type API struct {
-	database    database.Database
-	hstspreload hstspreloadWrapper
-	preloadlist preloadlistWrapper
+	database      database.Database
+	hstspreload   hstspreloadWrapper
+	preloadlist   preloadlistWrapper
+	bulkPreloaded DomainSet
 }
 
 // New creates a new API struct with the given database and the proper
 // unexported fields.
-func New(db database.Database) API {
+func New(db database.Database, bulkPreloaded DomainSet) API {
 	return API{
-		database:    db,
-		hstspreload: actualHstspreload{},
-		preloadlist: actualPreloadlist{},
+		database:      db,
+		hstspreload:   actualHstspreload{},
+		preloadlist:   actualPreloadlist{},
+		bulkPreloaded: bulkPreloaded,
 	}
 }
 

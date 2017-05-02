@@ -1,10 +1,12 @@
 'use strict';
 
-var PreloadForm = function() {
-  this._urlParam = new URLParam();
-  this._view = new PreloadView(this.submitDomain.bind(this), this._urlParam);
+var Form = function(controller) {
   this._hstsPreload = new HSTSPreload();
+  this._controller = new controller(this._hstsPreload);
 
+  this._urlParam = new URLParam();
+  this._view = new PreloadView(this._controller, this.submitDomain.bind(this), this._urlParam);
+  
   var domainParam = this._urlParam.get();
   if (domainParam) {
     var domain = extractDomain(domainParam);
@@ -20,7 +22,7 @@ var PreloadForm = function() {
   }
 };
 
-PreloadForm.prototype = {
+Form.prototype = {
   checkDomain: function(domain) {
     this._view.clearDomainSpecificElements();
     this._view.showWaiting(domain);
@@ -36,7 +38,7 @@ PreloadForm.prototype = {
     Promise
         .all([
           this._hstsPreload.status(domain),
-          this._hstsPreload.preloadable(domain)
+          this._controller.eligible(domain)
         ])
         .then(
             function(values) {
@@ -52,12 +54,13 @@ PreloadForm.prototype = {
   submitDomain: function() {
     var domain = this.domainToSubmit;
 
-    this._hstsPreload.submit(domain).then(function(issues) {
-      console.log('submit:', issues);
+    this._controller.submit(domain).then(function(issues) {
       if (issues.errors.length == 0) {
         $('#submit-success').show();
-        $('#ssl-labs-link')
-            .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
+          if ($('#ssl-labs-link')) {
+            $('#ssl-labs-link')
+                .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
+          }
       } else {
         this._view.setTheme('theme-red');
         $('#submit-failure').show();
@@ -66,122 +69,7 @@ PreloadForm.prototype = {
     }.bind(this));
   },
 
-  showResults: function(domain, issues, status) {
-    var worstIssues;
-    if (issues.errors.length == 0) {
-      if (issues.warnings.length == 0) {
-        worstIssues = 'none';
-      } else {
-        worstIssues = 'warnings';
-      }
-    } else {
-      worstIssues = 'errors';
-    }
-
-    this._view.clearStatus();
-    this._view.clearSummary();
-
-    var generalElibigility = function() {
-      switch (worstIssues) {
-        case 'none':
-          this._view.setSummary(
-              'Eligibility: ' + domain +
-              ' is eligible for the HSTS preload list.');
-          this._view.setTheme('theme-green');
-          break;
-        case 'warnings':
-          this._view.setSummary(
-              'Eligibility: ' + domain +
-              ' is eligible for preloading, although we recommend fixing the following warnings:');
-          this._view.setTheme('theme-yellow');
-          break;
-        case 'errors':
-          this._view.setSummary(
-              'Eligibility: In order for ' + domain +
-              ' to be elegible for preloading, the errors below must be resolved:');
-          this._view.setTheme('theme-red');
-          break;
-      }
-
-      this._view.showIssues(issues);
-    }.bind(this);
-
-    var pending = function() {
-      switch (worstIssues) {
-        case 'none':
-          this._view.setStatus(
-              'Status: ' + domain +
-              ' is pending submission to the preload list.');
-          this._view.setTheme('theme-green');
-          break;
-        case 'warnings':
-          this._view.setStatus(
-              'Status: ' + domain +
-              ' is pending submission to the preload list.');
-          this._view.setSummary(
-              'However, it still has the following issues, which we recommend fixing:');
-          this._view.setTheme('theme-yellow');
-          this._view.showIssues(issues);
-          break;
-        case 'errors':
-          this._view.setStatus(
-              'Status: ' + domain +
-              ' was recently submitted to the preload list.');
-          this._view.setSummary(
-              'However, ' + domain +
-              ' has changed its behaviour since it was submitted, and will not be added to the official preload list unless the errors below are resolved:');
-          this._view.setTheme('theme-red');
-          this._view.showIssues(issues);
-          break;
-      }
-    }.bind(this);
-
-    switch (status.status) {
-      case 'unknown':
-        this._view.setStatus('Status: ' + domain + ' is not preloaded.');
-        generalElibigility();
-        break;
-
-      case 'pending':
-        pending();
-        break;
-
-      case 'preloaded':
-        this._view.setStatus('Status: ' + domain + ' is currently preloaded.');
-        this._view.setTheme('theme-green');
-        break;
-
-      case 'rejected':
-        if (status.message) {
-          this._view.setStatus(
-              'Status: ' + domain +
-              ' was previously rejected from the preload list for the following reason: ' +
-              status.message);
-        } else {
-          this._view.setStatus(
-              'Status: ' + domain +
-              ' was previously rejected from the preload list.');
-        }
-        generalElibigility();
-        break;
-
-      case 'removed':
-        this._view.setStatus(
-            'Status: ' + domain +
-            ' was previously on the preload list, but has been removed.');
-        generalElibigility();
-        break;
-
-      default:
-        this._view.setStatus('Cannot determine preload status.');
-    }
-
-    this._view.showResults()
-  },
-
   handleResults: function(domain, status, issues) {
-    console.log('handleResults:', status, issues);
-
     if (domain !== this._view.currentDomain()) {
       return;
     }
@@ -195,15 +83,245 @@ PreloadForm.prototype = {
       return;
     }
 
-    this.showResults(domain, issues, status);
+
+    this._view.clearStatus();
+    this._view.clearSummary();
+    var showForm = this._controller.showResults(this._view, domain, issues, status);
     this._view.hideWaiting();
 
-    if (issues.errors.length === 0 &&
-        ['unknown', 'rejected', 'removed'].indexOf(status.status) != -1) {
+    if (showForm) {
       this.domainToSubmit = domain;
       this._view.showSubmission(domain);
     }
   }
 };
 
-window.addEventListener('load', function() { new PreloadForm(); });
+function statusString(status, domain) {
+  switch (status.status) {
+    case 'unknown':
+      return 'Status: ' + domain + ' is not preloaded.';
+    case 'pending':
+      return 'Status: ' + domain + ' is pending submission to the preload list.';
+    case 'preloaded':
+      return 'Status: ' + domain + ' is currently preloaded.'
+
+    case 'rejected':
+      if (status.message) {
+        return 'Status: ' + domain +
+          ' was previously rejected from the preload list for the following reason: ' +
+          status.message;
+      } else {
+        return 'Status: ' + domain +
+          ' was previously rejected from the preload list.'
+      }
+    case 'pending-removal':
+      return 'Status: ' + domain +
+          ' was previously submitted to the preload list, but is now pending removal.';
+    case 'removed':
+      return 'Status: ' + domain +
+          ' was previously submitted to the preload list, but has been removed.';
+    default:
+      return 'Cannot determine preload status.';
+  }
+};
+
+function worstIssues(issues) {
+  if (issues.errors.length == 0) {
+    if (issues.warnings.length == 0) {
+      return 'none';
+    } else {
+      return 'warnings';
+    }
+  } else {
+    return 'errors';
+  }
+}
+
+var PreloadController = function(hstsPreload) {
+  this._hstsPreload = hstsPreload;
+}
+
+PreloadController.prototype = {
+  formHasCheckboxes: function() {
+    return true;
+  },
+
+  eligible: function(domain) {
+    return this._hstsPreload.preloadable(domain);
+  },
+
+  submit: function(domain) {
+    return this._hstsPreload.submit(domain);
+  },
+
+  submitButtonString: function(domain) {
+    return 'Submit ' + domain + ' to the HSTS preload list';
+  },
+
+  showPending: function(view, domain, issues) {
+    switch (worstIssues(issues)) {
+      case 'none':
+        view.setStatus(
+            'Status: ' + domain +
+            ' is pending submission to the preload list.');
+        view.setTheme('theme-green');
+        break;
+      case 'warnings':
+        view.setStatus(
+            'Status: ' + domain +
+            ' is pending submission to the preload list.');
+        view.setSummary(
+            'However, it still has the following issues, which we recommend fixing:');
+        view.setTheme('theme-yellow');
+        view.showIssues(issues);
+        break;
+      case 'errors':
+        view.setStatus(
+            'Status: ' + domain +
+            ' was recently submitted to the preload list.');
+        view.setSummary(
+            'However, ' + domain +
+            ' has changed its behaviour since it was submitted, and will not be added to the official preload list unless the errors below are resolved:');
+        view.setTheme('theme-red');
+        view.showIssues(issues);
+        break;
+    }
+  },
+
+  showPreloadElibigility: function(view, domain, issues) {
+    switch (worstIssues(issues)) {
+      case 'none':
+        view.setSummary(
+            'Eligibility: ' + domain +
+            ' is eligible for the HSTS preload list.');
+        view.setTheme('theme-green');
+        return true;
+        break;
+      case 'warnings':
+        view.setSummary(
+            'Eligibility: ' + domain +
+            ' is eligible for preloading, although we recommend fixing the following warnings:');
+        view.setTheme('theme-yellow');
+        return true;
+        break;
+      case 'errors':
+        view.setSummary(
+            'Eligibility: In order for ' + domain +
+            ' to be eligible for preloading, the errors below must be resolved:');
+        view.setTheme('theme-red');
+        return false;
+        break;
+    }
+  },
+
+  showResults: function(view, domain, issues, status) {
+
+    view.setStatus(statusString(status, domain));
+
+    var showForm = false;
+
+    console.log("showResults", status)
+
+    switch (status.status) {
+      case 'unknown':
+      case 'rejected':
+      case 'removed':
+      case 'pending-removal':
+        showForm = this.showPreloadElibigility(view, domain, issues);
+        view.showIssues(issues);
+        break;
+      case 'pending':
+        this.showPending(view, domain, issues);
+        break;
+      case 'preloaded':
+        view.setTheme('theme-green');
+        break;
+      default:
+        throw "Unknown status";
+    }
+
+    view.showResults();
+    return showForm;
+  }
+}
+
+
+var RemovalController = function(hstsPreload) {
+  this._hstsPreload = hstsPreload;
+}
+
+RemovalController.prototype = {
+  formHasCheckboxes: function() {
+    return false;
+  },
+
+  eligible: function(domain) {
+    return this._hstsPreload.removable(domain);
+  },
+
+  submit: function(domain) {
+    return this._hstsPreload.remove(domain);
+  },
+
+  submittableStatus: function(status) {
+    return ['preloaded', 'pending'].indexOf(status) != -1;
+  },
+
+  submitButtonString: function(domain) {
+    return 'Remove ' + domain + ' from the HSTS preload list';
+  },
+
+  showRemovalElibigility: function(view, domain, issues) {
+    switch (worstIssues(issues)) {
+      case 'none':
+        view.setSummary(
+            'Eligibility: ' + domain +
+            ' is eligible for removal from the HSTS preload list.');
+        view.setTheme('theme-green');
+        return true;
+        break;
+      case 'warnings':
+        view.setSummary(
+            'Eligibility: ' + domain +
+            ' is eligible for removal, although we recommend fixing the following warnings:');
+        view.setTheme('theme-yellow');
+        return true;
+        break;
+      case 'errors':
+        view.setSummary(
+            'Eligibility: In order for ' + domain +
+            ' to be eligible for removal from the preload list, the errors below must be resolved:');
+        view.setTheme('theme-red');
+        return false;
+        break;
+    }
+  },
+
+  showResults: function(view, domain, issues, status) {
+
+    view.setStatus(statusString(status, domain));
+
+    var showForm = false;
+
+    console.log("showResults", status)
+
+    switch (status.status) {
+      case 'unknown':
+      case 'rejected':
+      case 'removed':
+      case 'pending-removal':
+        view.setTheme('theme-red');
+        break;
+      case 'pending':
+      case 'preloaded':
+        showForm = this.showRemovalElibigility(view, domain, issues);
+        view.showIssues(issues);
+        break;
+      default:
+        throw "Unknown status";
+    }
+
+    view.showResults();
+    return showForm;
+  }
+}
