@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/net/idna"
@@ -30,7 +31,7 @@ func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (
 		return "", false
 	}
 
-	return ascii, true
+	return strings.ToLower(ascii), true
 }
 
 // Preloadable takes a single domain and returns if it is preloadable.
