@@ -35,7 +35,7 @@ func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (
 
 	normalized, err := normalizeDomain(unicode)
 	if err != nil {
-		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
+		msg := fmt.Sprintf("Internal error: could not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return "", false
 	}
