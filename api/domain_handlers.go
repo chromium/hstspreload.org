@@ -12,6 +12,15 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
+func normalizeDomain(unicode string) (string, error) {
+	ascii, err := idna.ToASCII(unicode)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.ToLower(ascii), nil
+}
+
 func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (ascii string, ok bool) {
 	if r.Method != wantMethod {
 		http.Error(w, fmt.Sprintf("Wrong method. Requires %s.", wantMethod), http.StatusMethodNotAllowed)
@@ -24,14 +33,14 @@ func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (
 		return "", false
 	}
 
-	ascii, err := idna.ToASCII(unicode)
+	normalized, err := normalizeDomain(unicode)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: not convert domain to ASCII. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return "", false
 	}
 
-	return strings.ToLower(ascii), true
+	return normalized, true
 }
 
 // Preloadable takes a single domain and returns if it is preloadable.
