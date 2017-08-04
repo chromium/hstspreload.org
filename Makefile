@@ -75,5 +75,5 @@ serve: bulk-preloaded check get-datastore-emulator version
 	go run *.go -local
 
 .PHONY: test
-test: bulk-preloaded get-datastore-emulator
+test: get-datastore-emulator
 	go test -v -cover "${PROJECT}"
