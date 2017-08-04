@@ -56,5 +56,5 @@ func maybeAppEngineCron(r *http.Request) bool {
 
 // Note: This can be spoofed when not run on App Engine/Flexible Environment.
 func maybeAppEngineHTTPS(r *http.Request) bool {
-	return r.Header.Get("X-Appengine-Https") == "on"
+	return r.Header.Get("X-Forwarded-Proto") == "https"
 }
