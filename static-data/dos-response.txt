@@ -1,0 +1,3 @@
+Please stop sending multiple requests per second to https://hstspreload.org/api/v2/pending
+If you need to check the pending status of many domains, please cache the list.
+Contact hstspreload@chromium.org if you have any questions.

@@ -1,2 +1,2 @@
-*
-!.gitignore
+/bulk-preloaded.json
+/dos.yaml
