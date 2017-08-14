@@ -29,7 +29,7 @@ deploy: bulk-preloaded-force-update check version
 
 .PHONY: bulk-preloaded-force-update
 bulk-preloaded-force-update:
-	python update_bulk_preloaded.py static-data/bulk-preloaded.json
+	python scripts/update_bulk_preloaded.py static-data/bulk-preloaded.json
 
 .PHONY: bulk-preloaded
 bulk-preloaded: static-data/bulk-preloaded.json
