@@ -2,8 +2,7 @@ package api
 
 import (
 	"net/http"
-
-	"github.com/chromium/hstspreload.org/origin"
+	"net/url"
 )
 
 const (
@@ -15,22 +14,22 @@ const (
 // to add your domain on GitHub:
 // https://github.com/chromium/hstspreload.org/edit/master/api/cors.go
 var whitelistedHosts = map[string]bool{
-	"mozilla.github.io":                  true,
-	"observatory.mozilla.org":            true,
-	"apis.0.me.uk":                       true,
-	"apis.midnight.0.me.uk":              true,
+	"mozilla.github.io":       true,
+	"observatory.mozilla.org": true,
+	"apis.0.me.uk":            true,
+	"apis.midnight.0.me.uk":   true,
 }
 
 func allowOrigin(clientOrigin string) bool {
-	o, err := origin.Parse(clientOrigin)
+	o, err := url.Parse(clientOrigin)
 	if err != nil {
 		return false
 	}
 
 	switch {
-	case o.HostName == "localhost":
+	case o.Hostname() == "localhost":
 		return true
-	case o.Scheme == "https" && whitelistedHosts[o.HostName]:
+	case o.Scheme == "https" && whitelistedHosts[o.Hostname()]:
 		return true
 	default:
 		return false
