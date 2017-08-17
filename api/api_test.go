@@ -39,24 +39,22 @@ var issuesRemoveProtected = hstspreload.Issues{
 	},
 }
 
-// TODO: just reach directly into the API fields in tests.
-func mockAPI(cacheDuration time.Duration) (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist, e map[string]bool) {
+func mockAPI(cacheDuration time.Duration) (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist) {
 	db, mc := database.NewMock()
 	h = &mockHstspreload{}
 	c = &mockPreloadlist{}
-	e = make(map[string]bool)
 	api = API{
 		database:      db,
 		hstspreload:   h,
 		preloadlist:   c,
-		bulkPreloaded: e,
+		bulkPreloaded: make(DomainSet),
 		cache:         cacheWithDuration(cacheDuration),
 	}
-	return api, mc, h, c, e
+	return api, mc, h, c
 }
 
 func TestCheckConnection(t *testing.T) {
-	api, mc, _, _, _ := mockAPI(0 * time.Second)
+	api, mc, _, _ := mockAPI(0 * time.Second)
 
 	if err := api.CheckConnection(); err != nil {
 		t.Errorf("%s", err)
@@ -100,11 +98,11 @@ type apiTestCase struct {
 }
 
 func TestAPI(t *testing.T) {
-	api, mc, h, c, e := mockAPI(0 * time.Second)
+	api, mc, h, c := mockAPI(0 * time.Second)
 
-	e["removal-preloaded-bulk-eligible.test"] = true
-	e["removal-not-preloaded-bulk-eligible.test"] = true
-	e["removal-preloaded-bulk-ineligible.test"] = true
+	api.bulkPreloaded["removal-preloaded-bulk-eligible.test"] = true
+	api.bulkPreloaded["removal-not-preloaded-bulk-eligible.test"] = true
+	api.bulkPreloaded["removal-preloaded-bulk-ineligible.test"] = true
 
 	pr1 := map[string]hstspreload.Issues{
 		"garron.net":                      emptyIssues,
@@ -345,7 +343,7 @@ func TestAPI(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	api, _, _, _, _ := mockAPI(0 * time.Second)
+	api, _, _, _ := mockAPI(0 * time.Second)
 
 	cases := []struct {
 		handlerName  string

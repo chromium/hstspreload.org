@@ -8,7 +8,7 @@ import (
 )
 
 func TestCacheZeroDuration(t *testing.T) {
-	api, mc, _, _, _ := mockAPI(0 * time.Second)
+	api, mc, _, _ := mockAPI(0 * time.Second)
 
 	api.database.PutState(database.DomainState{Name: "a.test", Status: database.StatusPending})
 
@@ -54,7 +54,7 @@ func TestCacheZeroDuration(t *testing.T) {
 
 func TestCacheShortDuration(t *testing.T) {
 	duration := 1 * time.Second
-	api, mc, _, _, _ := mockAPI(duration)
+	api, mc, _, _ := mockAPI(duration)
 
 	api.database.PutState(database.DomainState{Name: "a.test", Status: database.StatusPending})
 
