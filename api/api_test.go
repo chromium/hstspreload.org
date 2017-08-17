@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.org/database"
@@ -38,7 +39,8 @@ var issuesRemoveProtected = hstspreload.Issues{
 	},
 }
 
-func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist, e map[string]bool) {
+// TODO: just reach directly into the API fields in tests.
+func mockAPI(cacheDuration time.Duration) (api API, mc *database.MockController, h *mockHstspreload, c *mockPreloadlist, e map[string]bool) {
 	db, mc := database.NewMock()
 	h = &mockHstspreload{}
 	c = &mockPreloadlist{}
@@ -48,12 +50,13 @@ func mockAPI() (api API, mc *database.MockController, h *mockHstspreload, c *moc
 		hstspreload:   h,
 		preloadlist:   c,
 		bulkPreloaded: e,
+		cache:         cacheWithDuration(cacheDuration),
 	}
 	return api, mc, h, c, e
 }
 
 func TestCheckConnection(t *testing.T) {
-	api, mc, _, _, _ := mockAPI()
+	api, mc, _, _, _ := mockAPI(0 * time.Second)
 
 	if err := api.CheckConnection(); err != nil {
 		t.Errorf("%s", err)
@@ -97,7 +100,7 @@ type apiTestCase struct {
 }
 
 func TestAPI(t *testing.T) {
-	api, mc, h, c, e := mockAPI()
+	api, mc, h, c, e := mockAPI(0 * time.Second)
 
 	e["removal-preloaded-bulk-eligible.test"] = true
 	e["removal-not-preloaded-bulk-eligible.test"] = true
@@ -342,7 +345,7 @@ func TestAPI(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	api, _, _, _, _ := mockAPI()
+	api, _, _, _, _ := mockAPI(0 * time.Second)
 
 	cases := []struct {
 		handlerName  string

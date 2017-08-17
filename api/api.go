@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/chromium/hstspreload.org/database"
 )
@@ -19,7 +20,12 @@ type API struct {
 	hstspreload   hstspreloadWrapper
 	preloadlist   preloadlistWrapper
 	bulkPreloaded DomainSet
+	cache         *cache
 }
+
+const (
+	defaultCacheDuration = 1 * time.Minute
+)
 
 // New creates a new API struct with the given database and the proper
 // unexported fields.
@@ -29,6 +35,7 @@ func New(db database.Database, bulkPreloaded DomainSet) API {
 		hstspreload:   actualHstspreload{},
 		preloadlist:   actualPreloadlist{},
 		bulkPreloaded: bulkPreloaded,
+		cache:         cacheWithDuration(defaultCacheDuration),
 	}
 }
 
