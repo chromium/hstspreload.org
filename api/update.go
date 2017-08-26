@@ -58,10 +58,21 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get domains currently recorded as preloaded.
+	databasePendingRemoval, dbErr := api.database.DomainsWithStatus(database.StatusPendingRemoval)
+	if dbErr != nil {
+		msg := fmt.Sprintf(
+			"Internal error: could not retrieve domain names previously marked as pending removal. (%s)\n",
+			dbErr,
+		)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
 	// Calculate values that are out of date.
 	var updates []database.DomainState
 
-	added := difference(actualPreload, databasePreload)
+	added := difference(difference(actualPreload, databasePreload), databasePendingRemoval)
 	for _, name := range added {
 		updates = append(updates, database.DomainState{
 			Name:   name,
@@ -77,15 +88,26 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	selfRejected := difference(databasePendingRemoval, actualPreload)
+	for _, name := range selfRejected {
+		updates = append(updates, database.DomainState{
+			Name:    name,
+			Message: "Domain was added and removed without being preloaded.",
+			Status:  database.StatusRejected,
+		})
+	}
+
 	fmt.Fprintf(w, `The preload list has %d entries.
 - # of preloaded HSTS entries: %d
 - # to be added in this update: %d
 - # to be removed this update: %d
+- # to be self-rejected this update: %d
 `,
 		len(preloadList.Entries),
 		len(actualPreload),
 		len(added),
 		len(removed),
+		len(selfRejected),
 	)
 
 	// Create log function to show progress.
