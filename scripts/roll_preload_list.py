@@ -15,14 +15,15 @@ def getPendingRemovals():
   log("Fetching pending removal...\n")
   return requests.get("https://hstspreload.org/api/v2/pending-removal").json()
 
-def getRawText(preload_list_path):
+def getRawText(preloadListPath):
   log("Fetching preload list from Chromium source...\n")
-  with open(preload_list_path, "r") as f:
+  with open(preloadListPath, "r") as f:
       s = f.read()
   return s
 
 def getPendingScan(pendingDataFilePath):
   log("Fetching pending list from provided path...\n")
+  log("  %s\n" % pendingDataFilePath)
   with open(pendingDataFilePath, "r") as f:
       return json.load(f)
 
@@ -58,7 +59,7 @@ def chunks(rawText):
       break
 
 def update(pendingRemovals, pendingAdditions, entryStrings):
-  log("Updating...\n")
+  log("Removing and adding entries...\n")
   removedCount = 0
   for l, c in entryStrings:
     if c == Chunk.OneLineEntry:
@@ -77,9 +78,9 @@ def update(pendingRemovals, pendingAdditions, entryStrings):
       yield l
   log("Removed: %s\n" % removedCount)
 
-def write(preload_list_path, output):
+def write(preloadListPath, output):
   log("Overwriting preload list source...\n")
-  with open(preload_list_path, 'w') as file:
+  with open(preloadListPath, 'w') as file:
     file.write(output)
 
 def getArgs():
