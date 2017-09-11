@@ -16,8 +16,7 @@ const (
 var whitelistedHosts = map[string]bool{
 	"mozilla.github.io":       true,
 	"observatory.mozilla.org": true,
-	"apis.0.me.uk":            true,
-	"apis.midnight.0.me.uk":   true,
+	"a.ncsccs.com":            true,
 }
 
 func allowOrigin(clientOrigin string) bool {
