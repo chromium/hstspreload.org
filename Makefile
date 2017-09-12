@@ -63,7 +63,8 @@ version:
 # Google Cloud Datastore Emulator
 
 GCD_NAME = gcd-grpc-1.0.0
-DATABASE_TESTING_FOLDER = ${HOME}/.datastore-emulator
+XDG_CACHE_HOME ?= $(HOME)/.cache
+DATABASE_TESTING_FOLDER = ${XDG_CACHE_HOME}/datastore-emulator
 
 .PHONY: get-datastore-emulator
 get-datastore-emulator: ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh

@@ -63,6 +63,14 @@ func portString() (string, error) {
 
 /******** LocalBackend ********/
 
+func xdgCacheHome() string {
+	envVar := os.Getenv("XDG_CACHE_HOME")
+	if envVar != "" {
+		return envVar
+	}
+	return path.Join(os.Getenv("HOME"), ".cache")
+}
+
 // NewLocalBackend spawns a new LocalBackend using Java.
 // When there is no error, make sure to call shutdown() in order to
 // terminate the Java process.
@@ -76,7 +84,7 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 	}
 	db.addr = "localhost:" + ps
 
-	jarPath := path.Join(os.Getenv("HOME"), ".datastore-emulator", "gcd", "CloudDatastore.jar")
+	jarPath := path.Join(xdgCacheHome(), "datastore-emulator", "gcd", "CloudDatastore.jar")
 	if _, err := os.Stat(jarPath); os.IsNotExist(err) {
 		return db, shutdown, fmt.Errorf("Datastore emulator does not exist: %s", err)
 	}
