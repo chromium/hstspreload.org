@@ -72,6 +72,7 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 	mkdir -p "${DATABASE_TESTING_FOLDER}"
 	curl "https://storage.googleapis.com/gcd/tools/${GCD_NAME}.zip" -o "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
 	unzip "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip" -d "${DATABASE_TESTING_FOLDER}"
+	rm "${DATABASE_TESTING_FOLDER}/${GCD_NAME}.zip"
 
 # Testing
 
