@@ -5,8 +5,6 @@ api_version: go1
 handlers:
 - url: /.*
   script: _go_app
-  secure: always
-  redirect_http_response_code: 301
 
 error_handlers:
 - error_code: dos_api_denial

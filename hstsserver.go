@@ -44,12 +44,8 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 	case isHTTPS, isLocalhost(r.Host), maybeAppEngineCron(r):
 		return true
 	default:
-		// The redirect below causes problems with Managed VMs/Flexible Environments.
-		// In a standalone server we'd handle the redirect here, but we let app.yaml
-		// handle it for now.
-
-		// u := fmt.Sprintf("https://%s%s", r.Host, r.URL.Path)
-		// http.Redirect(w, r, u, http.StatusMovedPermanently)
+		u := fmt.Sprintf("https://%s%s", r.Host, r.URL.Path)
+		http.Redirect(w, r, u, http.StatusMovedPermanently)
 		return false
 	}
 }
