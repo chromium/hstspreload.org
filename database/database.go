@@ -11,7 +11,7 @@ import (
 
 const (
 	localProjectID = "hstspreload-local"
-	prodProjectID  = "hstspreload"
+	prodProjectID  = "hstspreload-test"
 
 	batchSize = 450
 	timeout   = 10 * time.Second

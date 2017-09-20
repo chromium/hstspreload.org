@@ -14,10 +14,6 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
-const (
-	port = "8080"
-)
-
 func main() {
 	local := flag.Bool("local", false, "run the server using a local database")
 	flag.Parse()
@@ -50,13 +46,22 @@ func main() {
 		server.HandleFunc("/api/v2/debug/set-preloaded", a.DebugSetPreloaded)
 	}
 
-	fmt.Println("Listening...")
+	fmt.Printf("Serving from: %s\n", origin(*local))
 	appengine.Main()
+}
+
+func port() string {
+	portStr, valid := os.LookupEnv("PORT")
+	if valid {
+		return portStr
+	}
+	// Default port, per https://godoc.org/google.golang.org/appengine#Main
+	return "8080"
 }
 
 func origin(local bool) string {
 	if local {
-		return "http://localhost:" + port
+		return "http://localhost:" + port()
 	}
 	return "https://hstspreload.org"
 }
@@ -65,7 +70,7 @@ func mustSetupAPI(local bool, bulkPreloadedEntries map[string]bool) (a api.API, 
 	var db database.Database
 
 	if local {
-		fmt.Printf("Seting up local database...")
+		fmt.Printf("Setting up local database...")
 		localDB, dbShutdown, err := database.TempLocalDatabase()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
