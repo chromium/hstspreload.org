@@ -95,10 +95,7 @@ func (db DatastoreBacked) PutStates(updates []DomainState, logf func(format stri
 		}
 	}
 
-	if err := putMulti(keys, values); err != nil {
-		return err
-	}
-	return nil
+	return putMulti(keys, values)
 }
 
 // PutState is a convenience version of PutStates for a single domain.
