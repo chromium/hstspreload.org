@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	numLocalProbes    = 10
+	numLocalProbes    = 20
 	initialProbeSleep = 500 * time.Millisecond
 	localProbeSpacing = 250 * time.Millisecond
 )
