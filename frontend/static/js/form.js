@@ -104,17 +104,16 @@ function statusString(status, issues, domain) {
       return 'Status: ' + domain + ' is pending submission to the preload list.';
     case 'preloaded':
       if (status.bulk) {
-        return 'Status: ' + domain + ' is currently preloaded.';
-      } else {
         switch (worstIssues(issues)) {
-          case 'none':
-            return 'Status: ' + domain + ' is currently preloaded.';
           case 'warnings':
+            return 'Status: ' + domain + ' is currently preloaded, but has the following issues:';
           case 'errors':
-            return 'Status: ' + domain + ' is currently preloaded, but missing current requirements.';
+            return 'Status: ' + domain + ' is currently preloaded, but no longer meets the requirements. It may be at risk of removal.';
           default:
-            return 'Status: ' + domain + ' is currently preloaded, but unable to determine if it meets current requirements.';
+            return 'Status: ' + domain + ' is currently preloaded.';
         }
+      } else {
+        return 'Status: ' + domain + ' is currently preloaded.';
       }
       break;
 
@@ -248,7 +247,9 @@ PreloadController.prototype = {
         break;
       case 'preloaded':
         view.setTheme('theme-green');
-        view.showIssues(issues);
+        if (status.bulk) {
+          view.showIssues(issues);
+        }
         break;
       default:
         throw "Unknown status";
