@@ -96,14 +96,23 @@ Form.prototype = {
   }
 };
 
-function statusString(status, domain) {
+function statusString(status, issues, domain) {
   switch (status.status) {
     case 'unknown':
       return 'Status: ' + domain + ' is not preloaded.';
     case 'pending':
       return 'Status: ' + domain + ' is pending submission to the preload list.';
     case 'preloaded':
-      return 'Status: ' + domain + ' is currently preloaded.'
+      switch (worstIssues(issues)) {
+        case 'none':
+          return 'Status: ' + domain + ' is currently preloaded.';
+        case 'warnings':
+        case 'errors':
+          return 'Status: ' + domain + ' is currently preloaded, but missing current requirements.';
+        default:
+          return 'Status: ' + domain + ' is currently preloaded, but unable to determine if it meets current requirements.';
+      }
+      break;      
 
     case 'rejected':
       if (status.message) {
@@ -216,7 +225,7 @@ PreloadController.prototype = {
 
   showResults: function(view, domain, issues, status) {
 
-    view.setStatus(statusString(status, domain));
+    view.setStatus(statusString(status, issues, domain));
 
     var showForm = false;
 
@@ -235,6 +244,7 @@ PreloadController.prototype = {
         break;
       case 'preloaded':
         view.setTheme('theme-green');
+        view.showIssues(issues);
         break;
       default:
         throw "Unknown status";
@@ -299,7 +309,7 @@ RemovalController.prototype = {
 
   showResults: function(view, domain, issues, status) {
 
-    view.setStatus(statusString(status, domain));
+    view.setStatus(statusString(status, issues, domain));
 
     var showForm = false;
 
