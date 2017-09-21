@@ -103,16 +103,20 @@ function statusString(status, issues, domain) {
     case 'pending':
       return 'Status: ' + domain + ' is pending submission to the preload list.';
     case 'preloaded':
-      switch (worstIssues(issues)) {
-        case 'none':
-          return 'Status: ' + domain + ' is currently preloaded.';
-        case 'warnings':
-        case 'errors':
-          return 'Status: ' + domain + ' is currently preloaded, but missing current requirements.';
-        default:
-          return 'Status: ' + domain + ' is currently preloaded, but unable to determine if it meets current requirements.';
+      if (status.bulk) {
+        return 'Status: ' + domain + ' is currently preloaded.';
+      } else {
+        switch (worstIssues(issues)) {
+          case 'none':
+            return 'Status: ' + domain + ' is currently preloaded.';
+          case 'warnings':
+          case 'errors':
+            return 'Status: ' + domain + ' is currently preloaded, but missing current requirements.';
+          default:
+            return 'Status: ' + domain + ' is currently preloaded, but unable to determine if it meets current requirements.';
+        }
       }
-      break;      
+      break;
 
     case 'rejected':
       if (status.message) {

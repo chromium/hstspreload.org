@@ -68,9 +68,10 @@ func TestCheckConnection(t *testing.T) {
 
 // Any non-zero values are considered wanted.
 type wantBody struct {
-	text   string
-	state  *database.DomainState
-	issues *hstspreload.Issues
+	text      string
+	state     *database.DomainState
+	bulkState *DomainStateWithBulk
+	issues    *hstspreload.Issues
 }
 
 type MockData struct {
@@ -174,6 +175,11 @@ func TestAPI(t *testing.T) {
 				Name: "example.com", Status: database.StatusUnknown}}},
 		{"pending 1", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
+		{"bulk status", data1, failNone, api.Status, "GET", "?domain=removal-not-preloaded-bulk-eligible.test",
+			200, jsonContentType, wantBody{bulkState: &DomainStateWithBulk{
+				DomainState: &database.DomainState{Name: "removal-not-preloaded-bulk-eligible.test", Status: database.StatusUnknown},
+				Bulk:        true,
+			}}},
 
 		// initial with database failure
 		{"pending failure", data1, failDatabase, api.Pending, "GET", "",
@@ -327,6 +333,19 @@ func TestAPI(t *testing.T) {
 			}
 			if !s.MatchesWanted(*tt.wantBody.state) {
 				t.Errorf("[%s] Domain state does not match wanted: %#v", tt.description, s)
+			}
+		}
+
+		if tt.wantBody.bulkState != nil {
+			var s DomainStateWithBulk
+			if err := json.Unmarshal(w.Body.Bytes(), &s); err != nil {
+				t.Fatalf("[%s] %s", tt.description, err)
+			}
+			if !s.MatchesWanted(*tt.wantBody.bulkState.DomainState) {
+				t.Errorf("[%s] Domain state does not match wanted: %#v", tt.description, s.DomainState)
+			}
+			if s.Bulk != tt.wantBody.bulkState.Bulk {
+				t.Errorf("[%s] Domain state bulk does not match wanted: %#v", tt.description, s.Bulk)
 			}
 		}
 
