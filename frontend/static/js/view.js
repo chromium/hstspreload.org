@@ -40,12 +40,12 @@ PreloadView.prototype = {
         !($('#checkbox-owner').checked && $('#checkbox-subdomains').checked);
   },
 
-  _clearTheme: function(theme) {
+  clearTheme: function(theme) {
     document.body.classList.remove('theme-green', 'theme-yellow', 'theme-red');
   },
 
   setTheme: function(theme) {
-    this._clearTheme();
+    this.clearTheme();
     document.body.classList.add(theme)
   },
 
@@ -60,7 +60,7 @@ PreloadView.prototype = {
     this._hideSubmission();
     this.setSummary('');
     this.setStatus('');
-    this._clearTheme();
+    this.clearTheme();
     this.hideWaiting();
   },
 

@@ -249,6 +249,9 @@ PreloadController.prototype = {
         view.setTheme('theme-green');
         if (status.bulk) {
           view.showIssues(issues);
+          if (worstIssues(issues) !== 'none') {
+            view.clearTheme();
+          }
         }
         break;
       default:
