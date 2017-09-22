@@ -200,7 +200,7 @@ PreloadController.prototype = {
     }
   },
 
-  showPreloadElibigility: function(view, domain, issues) {
+  showPreloadEligibility: function(view, domain, issues) {
     switch (worstIssues(issues)) {
       case 'none':
         view.setSummary(
@@ -239,7 +239,7 @@ PreloadController.prototype = {
       case 'rejected':
       case 'removed':
       case 'pending-removal':
-        showForm = this.showPreloadElibigility(view, domain, issues);
+        showForm = this.showPreloadEligibility(view, domain, issues);
         view.showIssues(issues);
         break;
       case 'pending':
@@ -289,7 +289,7 @@ RemovalController.prototype = {
     return 'Remove ' + domain + ' from the HSTS preload list';
   },
 
-  showRemovalElibigility: function(view, domain, issues) {
+  showRemovalEligibility: function(view, domain, issues) {
     switch (worstIssues(issues)) {
       case 'none':
         view.setSummary(
@@ -332,7 +332,7 @@ RemovalController.prototype = {
         break;
       case 'pending':
       case 'preloaded':
-        showForm = this.showRemovalElibigility(view, domain, issues);
+        showForm = this.showRemovalEligibility(view, domain, issues);
         view.showIssues(issues);
         break;
       default:
