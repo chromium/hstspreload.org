@@ -12,6 +12,12 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
+// DomainStateWithBulk is a DomainState that also includes information about the bulk status of the domain.
+type DomainStateWithBulk struct {
+	*database.DomainState
+	Bulk bool `json:"bulk"`
+}
+
 func normalizeDomain(unicode string) (string, error) {
 	ascii, err := idna.ToASCII(unicode)
 	if err != nil {
@@ -130,7 +136,11 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	state.Name = domain
-	writeJSONOrBust(w, state)
+	bulkState := DomainStateWithBulk{
+		DomainState: &state,
+		Bulk:        api.bulkPreloaded[domain],
+	}
+	writeJSONOrBust(w, bulkState)
 }
 
 // Submit takes a single domain and attempts to submit it to the
