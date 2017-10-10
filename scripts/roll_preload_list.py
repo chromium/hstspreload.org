@@ -27,7 +27,7 @@ def getPendingScan(pendingDataFilePath):
   with open(pendingDataFilePath, "r") as f:
       return json.load(f)
 
-def domainsToPreload(pendingData):
+def domainsToPreload(pendingData, domainsToReject):
   numSkipping = 0
   numPreloading = 0
   for result in pendingData:
@@ -35,9 +35,13 @@ def domainsToPreload(pendingData):
       numPreloading += 1
       yield result["domain"]
     else:
+      errors = list(error["code"] for error in result["issues"]["errors"])
+      domainsToReject += [
+        {"domain": result["domain"], "errors": errors}
+      ]
       numSkipping += 1
   log("Pending entries preloaded: %d\n" % numPreloading)
-  log("Pending entries skipped: %d\n" % numSkipping)
+  log("Pending entries rejected: %d\n" % numSkipping)
 
 def chunks(rawText):
   log("Chunking...\n")
@@ -78,15 +82,17 @@ def update(pendingRemovals, pendingAdditions, entryStrings):
       yield l
   log("Removed: %s\n" % removedCount)
 
-def write(preloadListPath, output):
-  log("Overwriting preload list source...\n")
-  with open(preloadListPath, 'w') as file:
+def write(file, output):
+  log("Writing to %s...\n" % file)
+  with open(file, 'w') as file:
     file.write(output)
+    file.close()
 
 def getArgs():
   parser = argparse.ArgumentParser(description='Roll the HSTS preload list (experimental).')
   parser.add_argument('preload_list_path', type=str)
   parser.add_argument('pending_scan_path', type=str)
+  parser.add_argument('rejected_domains_path', type=str)
   return parser.parse_args()
 
 def main():
@@ -94,13 +100,12 @@ def main():
 
   rawText = getRawText(args.preload_list_path)
   pendingRemovals = getPendingRemovals()
-  pendingAdditions = domainsToPreload(getPendingScan(args.pending_scan_path))
+  domainsToReject = []
+  pendingAdditions = domainsToPreload(getPendingScan(args.pending_scan_path), domainsToReject)
   removalsDone = update(pendingRemovals, pendingAdditions, chunks(rawText))
 
-  output = ""
-  for l in removalsDone:
-    output += l + "\n"
-  write(args.preload_list_path, output)
+  write(args.preload_list_path,     "\n".join(removalsDone) + "\n")
+  write(args.rejected_domains_path, json.dumps(domainsToReject, indent=2) + "\n")
 
 if __name__ == "__main__":
     main()
