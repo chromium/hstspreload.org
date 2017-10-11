@@ -113,7 +113,7 @@
         </ul>
       <li>Serve an <b>HSTS header</b> on the base domain for HTTPS requests:
         <ul>
-          <li>The <tt>max-age</tt> must be at least eighteen weeks (<tt>10886400</tt> seconds).</li>
+          <li>The <tt>max-age</tt> must be at least <tt>31536000</tt> seconds (1 year).</li>
           <li>The <tt>includeSubDomains</tt> directive must be specified.</li>
           <li>The <tt>preload</tt> directive must be specified.</li>
           <li>If you are serving an additional redirect from your HTTPS site, that redirect must still have the HSTS header (rather than the page it redirects to).</li>
@@ -141,7 +141,10 @@
       You must make sure your site continues to satisfy the submission requirements at all times. Note that removing the <tt>preload</tt> directive from your header will make your site immediately eligible for the <a href="https://hstspreload.org/removal/">removal form</a>, and that sites may be removed automatically in the future for failing to keep up the requirements.
     </p>
     <p>
-      In particular, the <a href="#submission-requirements">requirements above</a> apply to all domains submitted through <tt>hstspreload.org</tt> (or <tt>hstspreload.appspot.com</tt>) on or after <b>February 29, 2016</b> (i.e. preloaded after Chrome 50).
+      In particular, the <a href="#submission-requirements">requirements above</a> apply to all domains submitted through <tt>hstspreload.org</tt> on or after <b>October 11, 2017</b> (i.e. preloaded after Chrome 63)
+    </p>
+    <p>
+      The same requirements apply to earlier domains submitted on or after <b>February 29, 2016</b> (i.e. preloaded after Chrome 50), except that the required max-age for those domains is only <tt>10886400</tt> seconds.
     </p>
   </section>
 
