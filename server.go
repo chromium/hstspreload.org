@@ -43,6 +43,7 @@ func main() {
 	server.HandleFunc("/api/v2/update", a.Update)
 
 	if *local {
+		server.HandleFunc("/api/v2/debug/all-state", a.DebugAllStates)
 		server.HandleFunc("/api/v2/debug/set-preloaded", a.DebugSetPreloaded)
 	}
 

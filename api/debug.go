@@ -1,11 +1,25 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.org/database"
 )
+
+// DebugAllStates allows preloading a domain without any checks.
+// This should only be exposed for test servers.
+func (api API) DebugAllStates(w http.ResponseWriter, r *http.Request) {
+	states, err := api.database.AllDomainStates()
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get domain states. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	writeJSONOrBust(w, states)
+}
 
 // DebugSetPreloaded allows preloading a domain without any checks.
 // This should only be exposed for test servers.
