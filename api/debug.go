@@ -40,7 +40,7 @@ func (api API) DebugSetPreloaded(w http.ResponseWriter, r *http.Request) {
 		issue := hstspreload.Issue{
 			Code:    "internal.server.remove.set_preloaded_failed",
 			Summary: "Internal error",
-			Message: "Unable to save to set as preloaded.",
+			Message: fmt.Sprintf("Unable to save to set as preloaded: %s", putErr),
 		}
 		issues = hstspreload.Issues{
 			Errors:   append(issues.Errors, issue),
