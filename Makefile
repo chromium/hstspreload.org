@@ -27,10 +27,6 @@ deploy: bulk-preloaded-force-update check version
 	time gcloud app deploy app.yaml
 	date
 
-.PHONY: deploy-dos
-deploy-dos:
-	time gcloud app deploy static-data/dos.yaml
-
 .PHONY: bulk-preloaded-force-update
 bulk-preloaded-force-update:
 	python scripts/update_bulk_preloaded.py static-data/bulk-preloaded.json
