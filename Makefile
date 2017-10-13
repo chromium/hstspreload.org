@@ -4,12 +4,6 @@ PROJECT = github.com/chromium/hstspreload.org/...
 build:
 	go build ${PROJECT}
 
-.PHONY: format
-format:
-	go fmt ${PROJECT}
-	# Need to specify non-default clang-format: https://crbug.com/558447
-	/usr/local/bin/clang-format -i -style=Google frontend/static/js/*.js
-
 .PHONY: lint
 lint:
 	go vet ${PROJECT}
