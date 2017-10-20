@@ -52,7 +52,7 @@ def chunks(rawText):
       if chunk == "":
         yield chunk, Chunk.BlankLine
         continue
-      elif re.match(r'^ +//.*', chunk):
+      elif re.match(r'^ *//.*', chunk):
         yield chunk, Chunk.CommentLine
         continue
       elif re.match(r'^    \{.*\},', chunk):
@@ -95,6 +95,27 @@ def getArgs():
   parser.add_argument('rejected_domains_path', type=str)
   return parser.parse_args()
 
+def parseJsonWithComments(rawText):
+  s = ""
+  for l, c in chunks(rawText):
+    if c == Chunk.CommentLine:
+      continue
+    else:
+      s += l + "\n"
+  return json.loads(s);
+
+def checkForDupes(parsedList):
+  log("Checking for duplicates...\n")
+  seen = set()
+  dupes = set()
+  for entry in parsedList["entries"]:
+    name = entry["name"]
+    if name in seen:
+      dupes.add(name)
+    else:
+      seen.add(name)
+  return dupes
+
 def main():
   args = getArgs()
 
@@ -102,10 +123,23 @@ def main():
   pendingRemovals = getPendingRemovals()
   domainsToReject = []
   pendingAdditions = domainsToPreload(getPendingScan(args.pending_scan_path), domainsToReject)
-  removalsDone = update(pendingRemovals, pendingAdditions, chunks(rawText))
+  updated = update(pendingRemovals, pendingAdditions, chunks(rawText))
+  updatedText = "\n".join(updated) + "\n"
 
-  write(args.preload_list_path,     "\n".join(removalsDone) + "\n")
+  dupes = checkForDupes(parseJsonWithComments(updatedText))
+
+  write(args.preload_list_path, updatedText)
   write(args.rejected_domains_path, json.dumps(domainsToReject, indent=2) + "\n")
+
+  if dupes:
+    print "\nWARNING\nDuplicate entries:"
+    for dupe in dupes:
+      print "- %s" % dupe
+    print "\nYou'll need to manually deduplicate entries before commiting them to Chromium."
+    print "\nNote: if there are a lot of duplicate entries, you may have accidentally run this script twice. Reset your checkout and try again."
+  else:
+    print "\nSUCCESS\n"
+
 
 if __name__ == "__main__":
     main()
