@@ -1,14 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.5">
   <title>HSTS Preload List Submission</title>
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="static/app-icon.png"/>
-  <link type="application/opensearchdescription+xml" rel="search" href="search.xml"/>
+  <link rel="apple-touch-icon" href="static/app-icon.png">
+  <link rel="search" href="search.xml" type="application/opensearchdescription+xml">
 
   <link rel="stylesheet" href="static/css/style.css">
   <link rel="stylesheet" href="static/css/form.css">
+  <link rel="stylesheet" href="static/css/github.css">
   <script src="static/js/base.js"></script>
   <script src="static/js/view.js"></script>
   <script src="static/js/form.js"></script>
@@ -28,7 +30,6 @@
 
     <input id="domain" name="domain" type="text" placeholder="example.com"
       autocorrect="off" autocapitalize="off" spellcheck="false">
-    </input>
     <br>
     <input id="check" type="submit" value="Check HSTS preload status and eligibility">
 
@@ -37,7 +38,7 @@
   <!-- We un-hide the form using inline JS so that (when JS is enabled)
        it shows in the normal rendering order as if it was never hidden. -->
   <script>document.getElementById("domain-form").classList.remove("hidden");</script>
-  <noscript>Submitting entries to the HSTS preload list via this site requires Javascript.</noscript>
+  <noscript>Submitting entries to the HSTS preload list via this site requires JavaScript.</noscript>
 
   <div id="result-waiting" class="hidden">
     <div id="spinner" class="spinner"></div>
@@ -56,29 +57,28 @@
     <h2>Submit</h2>
     <div id="checkboxes">
       <label>
-        <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <tt><span class="domain-text">example.com</span></tt> or have their permission to preload HSTS.</span>
+        <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <code><span class="domain-text">example.com</span></code> or have their permission to preload HSTS.</span>
       </label>
       <span id="oops">
-        (If this is not the case, <tt><span class="domain-text">example.com</span></tt> may be sending the HSTS <tt>preload</tt> directive by accident. Please <a id="oops-mailto" href="mailto:hstspreload@chromium.org">contact hstspreload@chromium.org</a> to let us know.)
+        (If this is not the case, <code><span class="domain-text">example.com</span></code> may be sending the HSTS <code>preload</code> directive by accident. Please <a id="oops-mailto" href="mailto:hstspreload@chromium.org">contact hstspreload@chromium.org</a> to let us know.)
       </span>
       <br><br>
       <label>
-        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <tt><span class="domain-text">example.com</span></tt> through this form will prevent <strong>all subdomains and nested subdomains</strong> from being accessed without a valid HTTPS certificate:
-        <span class="subdomain-example"><tt>*.<span class="domain-text">example.com</span></tt></span>
-        <span class="subdomain-example"><tt>*.*.<span class="domain-text">example.com</span></tt></span>
-        <span class="subdomain-example"><tt>...</tt></span>
+        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <code><span class="domain-text">example.com</span></code> through this form will prevent <strong>all subdomains and nested subdomains</strong> from being accessed without a valid HTTPS certificate:
+        <span class="subdomain-example"><code>*.<span class="domain-text">example.com</span></code></span>
+        <span class="subdomain-example"><code>*.*.<span class="domain-text">example.com</span></code></span>
+        <span class="subdomain-example"><code>...</code></span>
         </span></label>
     </div>
     <br>
-    <input id="submit" type="submit" disabled
-       value="Submit to the HSTS preload list">
+    <input id="submit" type="submit" disabled value="Submit to the HSTS preload list">
     <div id="submit-success" class="submit-feedback hidden">
       <hr>
       <h2>Success</h2>
-        <p><tt class="domain-text">example.com</tt> is now pending inclusion in the HSTS preload list!
+        <p><code class="domain-text">example.com</code> is now pending inclusion in the HSTS preload list!
         </p>
-        <p>Please make sure that <tt class="domain-text">example.com</tt> <b>continues</b> to satisfy all preload requirement, or it will be removed. Please revisit this site over the next few weeks to check on the status of your domain.</p>
-        <p>Also consider scanning for TLS issues <a id='ssl-labs-link' href='https://www.ssllabs.com/ssltest/analyze.html'>using SSL Labs</a>.</p>
+        <p>Please make sure that <code class="domain-text">example.com</code> <strong>continues</strong> to satisfy all preload requirement, or it will be removed. Please revisit this site over the next few weeks to check on the status of your domain.</p>
+        <p>Also consider scanning for TLS issues <a id="ssl-labs-link" href="https://www.ssllabs.com/ssltest/analyze.html">using SSL Labs</a>.</p>
     </div>
     <div id="submit-failure" class="submit-feedback hidden">
       <hr>
@@ -102,20 +102,21 @@
 
   <section id="submission-requirements">
     <h2><a class="hash-link" href="#submission-requirements">Submission Requirements</a></h2>
-    <p>If a site sends the <tt>preload</tt> directive in an HSTS header, it is considered to be requesting inclusion in the preload list and may be submitted via the form on this site.</p>
+    <p>If a site sends the <code>preload</code> directive in an HSTS header, it is considered to be requesting inclusion in the preload list and may be submitted via the form on this site.</p>
     <p>In order to be accepted to the HSTS preload list through this form, your site must satisfy the following set of requirements:</p>
     <ol>
-      <li>Serve a valid <b>certificate</b>.</li>
-      <li><b>Redirect</b> from HTTP to HTTPS on the same host, if you are listening on port 80.</li>
-      <li>Serve all <b>subdomains</b> over HTTPS.</li>
+      <li>Serve a valid <strong>certificate</strong>.</li>
+      <li><strong>Redirect</strong> from HTTP to HTTPS on the same host, if you are listening on port 80.</li>
+      <li>Serve all <strong>subdomains</strong> over HTTPS.
         <ul>
-          <li>In particular, you must support HTTPS for the <tt>www</tt> subdomain if a DNS record for that subdomain exists.</li>
+          <li>In particular, you must support HTTPS for the <code>www</code> subdomain if a DNS record for that subdomain exists.</li>
         </ul>
-      <li>Serve an <b>HSTS header</b> on the base domain for HTTPS requests:
+      </li>
+      <li>Serve an <strong>HSTS header</strong> on the base domain for HTTPS requests:
         <ul>
-          <li>The <tt>max-age</tt> must be at least <tt>31536000</tt> seconds (1 year).</li>
-          <li>The <tt>includeSubDomains</tt> directive must be specified.</li>
-          <li>The <tt>preload</tt> directive must be specified.</li>
+          <li>The <code>max-age</code> must be at least <code>31536000</code> seconds (1 year).</li>
+          <li>The <code>includeSubDomains</code> directive must be specified.</li>
+          <li>The <code>preload</code> directive must be specified.</li>
           <li>If you are serving an additional redirect from your HTTPS site, that redirect must still have the HSTS header (rather than the page it redirects to).</li>
         </ul>
       </li>
@@ -125,12 +126,12 @@
 
       Here is an example of a valid HSTS header:
     </p>
-    <p class="header-example main-header-example"">
-      <span><tt>Strict-Transport-Security:</tt></span> <span><tt>max-age=63072000; includeSubDomains; preload</tt></span>
+    <p class="header-example main-header-example">
+      <span><code>Strict-Transport-Security:</code></span> <span><code>max-age=63072000; includeSubDomains; preload</code></span>
     </p>
 
     <p>
-      You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <tt>chrome://net-internals/#hsts</tt> in your browser.
+      You can check the status of your request by entering the domain name again in the form above, or consult the current Chrome preload list by visiting <code>chrome://net-internals/#hsts</code> in your browser.
       Note that new entries are hardcoded into the Chrome source code and can take several months before they reach the stable version.
     </p>
   </section>
@@ -138,13 +139,13 @@
   <section id="continued-requirements">
     <h2><a class="hash-link" href="#continued-requirements">Continued Requirements</a></h2>
     <p>
-      You must make sure your site continues to satisfy the submission requirements at all times. Note that removing the <tt>preload</tt> directive from your header will make your site immediately eligible for the <a href="https://hstspreload.org/removal/">removal form</a>, and that sites may be removed automatically in the future for failing to keep up the requirements.
+      You must make sure your site continues to satisfy the submission requirements at all times. Note that removing the <code>preload</code> directive from your header will make your site immediately eligible for the <a href="https://hstspreload.org/removal/">removal form</a>, and that sites may be removed automatically in the future for failing to keep up the requirements.
     </p>
     <p>
-      In particular, the <a href="#submission-requirements">requirements above</a> apply to all domains submitted through <tt>hstspreload.org</tt> on or after <b>October 11, 2017</b> (i.e. preloaded after Chrome 63)
+      In particular, the <a href="#submission-requirements">requirements above</a> apply to all domains submitted through <code>hstspreload.org</code> on or after <strong>October 11, 2017</strong> (i.e. preloaded after Chrome 63)
     </p>
     <p>
-      The same requirements apply to earlier domains submitted on or after <b>February 29, 2016</b> (i.e. preloaded after Chrome 50), except that the required max-age for those domains is only <tt>10886400</tt> seconds.
+      The same requirements apply to earlier domains submitted on or after <strong>February 29, 2016</strong> (i.e. preloaded after Chrome 50), except that the required max-age for those domains is only <code>10886400</code> seconds.
     </p>
   </section>
 
@@ -157,27 +158,27 @@
 
     <ol>
       <li>Examine all subdomains (and nested subdomains) of your site and make sure that they work properly over HTTPS.</li>
-      <li>Add the <tt>Strict-Transport-Security</tt> header to all HTTPS responses and ramp up the <tt>max-age</tt> in stages, using the following header values:
+      <li>Add the <code>Strict-Transport-Security</code> header to all HTTPS responses and ramp up the <code>max-age</code> in stages, using the following header values:
         <ul>
           <li>
             5 minutes:<br>
-            <tt class="header-example">max-age=300; includeSubDomains</tt>
+            <code class="header-example">max-age=300; includeSubDomains</code>
           </li>
           <li>
             1 week:<br>
-            <tt class="header-example">max-age=604800; includeSubDomains</tt>
+            <code class="header-example">max-age=604800; includeSubDomains</code>
           </li>
           <li>
             1 month:<br>
-            <tt class="header-example">max-age=2592000; includeSubDomains</tt>
+            <code class="header-example">max-age=2592000; includeSubDomains</code>
           </li>
         </ul>
-        During each stage, check for broken pages and monitor your site's metrics (e.g. traffic, revenue). Fix any problems that come up and then wait the full <tt>max-age</tt> of the stage before you move on. For example, wait a month in the last stage.
-      <li>Once you're confident that there will be no more issues, increase the <tt>max-age</tt> to 2 years and submit your site to the preload list:
+        During each stage, check for broken pages and monitor your site's metrics (e.g. traffic, revenue). Fix any problems that come up and then wait the full <code>max-age</code> of the stage before you move on. For example, wait a month in the last stage.
+      <li>Once you're confident that there will be no more issues, increase the <code>max-age</code> to 2 years and submit your site to the preload list:
         <ul>
           <li>
             2 years, requesting to be preloaded:<br>
-            <tt class="header-example">max-age=63072000; includeSubDomains; preload</tt>
+            <code class="header-example">max-age=63072000; includeSubDomains; preload</code>
           </li>
         </ul>
       </li>
@@ -196,7 +197,7 @@
   <section id="opt-in">
     <h2><a class="hash-link" href="#opt-in">Preloading Should Be Opt-In</a></h2>
     <p>
-      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <b>do not include the <tt>preload</tt> directive by default</b>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
+      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <strong>do not include the <code>preload</code> directive by default</strong>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
     </p>
     <p>
       It's great to support HSTS preloading as a best practice, and for projects to provide a simple option to enable it. However, site operators who enable HSTS should know about the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
@@ -208,7 +209,7 @@
     <p>
       Be aware that inclusion in the preload list cannot easily be undone.
       Domains can be removed, but it takes months for a change to reach users with a Chrome update and we cannot make guarantees about other browsers.
-      Don't request inclusion unless you're sure that you can support HTTPS for <b>your entire site and all its subdomains</b> the long term.
+      Don't request inclusion unless you're sure that you can support HTTPS for <strong>your entire site and all its subdomains</strong> the long term.
     </p>
 
     <p>
@@ -227,7 +228,7 @@
   <section id="contact">
     <h2><a class="hash-link" href="#contact">Contact</a></h2>
     <p>
-      <b>Want to remove your domain?</b> Please visit the <a href="/removal/">removal form</a>.
+      <strong>Want to remove your domain?</strong> Please visit the <a href="/removal/">removal form</a>.
     </p>
     <p>
       Else, if you have questions or requests that are not covered by this site, email Lucas Garron <a href="mailto:hstspreload@chromium.org">here</a> using an appropriate subject line.
@@ -240,7 +241,6 @@
     <a href="https://github.com/chromium/hstspreload.org">On GitHub</a>
   </div>
 </div>
-<link rel="stylesheet" href="static/css/github.css">
 
 </body>
 </html>

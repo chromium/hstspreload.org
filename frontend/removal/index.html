@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.5">
   <title>HSTS Preload List Removal</title>
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="../static/app-icon.png"../>
+  <link rel="apple-touch-icon" href="../static/app-icon.png">
 
   <link rel="stylesheet" href="../static/css/style.css">
   <link rel="stylesheet" href="../static/css/form.css">
@@ -27,7 +28,6 @@
 
     <input id="domain" name="domain" type="text" placeholder="example.com"
       autocorrect="off" autocapitalize="off" spellcheck="false">
-    </input>
     <br>
     <input id="check" type="submit" value="Check eligibility for removal">
 
@@ -36,7 +36,7 @@
   <!-- We un-hide the form using inline JS so that (when JS is enabled)
        it shows in the normal rendering order as if it was never hidden. -->
   <script>document.getElementById("domain-form").classList.remove("hidden");</script>
-  <noscript>This form requires Javascript.</noscript>
+  <noscript>This form requires JavaScript.</noscript>
 
   <div id="result-waiting" class="hidden">
     <div id="spinner" class="spinner"></div>
@@ -58,9 +58,9 @@
     <div id="submit-success" class="submit-feedback hidden">
       <hr>
       <h2>Successful Removal</h2>
-        <p><tt class="domain-text">example.com</tt> is now pending removal from the HSTS preload list.
+        <p><code class="domain-text">example.com</code> is now pending removal from the HSTS preload list.
         </p>
-        <p>Please make sure that <tt class="domain-text">example.com</tt> never sends an HSTS header with the <tt>preload</tt> directive, unless you are ready to preload again.</p>
+        <p>Please make sure that <code class="domain-text">example.com</code> never sends an HSTS header with the <code>preload</code> directive, unless you are ready to preload again.</p>
         <p>Good luck with HSTS in the future!</p>
     </div>
     <div id="submit-failure" class="submit-feedback hidden">
@@ -81,16 +81,16 @@
   <section id="removal-requirements">
     <h2><a class="hash-link" href="#removal-requirements">Removal Requirements</a></h2>
     <p>
-      If a preloaded site sends a valid HSTS header <b>without</b> the <tt>preload</tt> directive, it is considered to be requesting removal from the preload list.
+      If a preloaded site sends a valid HSTS header <strong>without</strong> the <code>preload</code> directive, it is considered to be requesting removal from the preload list.
     </p>
     <p>
       In order to be removed from the HSTS preload list through this form, your site must demonstrate the removal request by satisfying the following set of requirements:</p>
     <ol>
-      <li>Be <b>preloaded</b> or <b>pending preload</b> through <tt>hstspreload.org</tt>.</li>
-      <li>Serve HTTPS with a <b>valid certificate</b>.</li>
-      <li>Send a <b>valid HSTS header</b>.</li>
+      <li>Be <strong>preloaded</strong> or <strong>pending preload</strong> through <code>hstspreload.org</code>.</li>
+      <li>Serve HTTPS with a <strong>valid certificate</strong>.</li>
+      <li>Send a <strong>valid HSTS header</strong>.
         <ul>
-          <li>The header must <b>not contain the <tt>preload</tt> directive</b>.</li>
+          <li>The header must <strong>not contain the <code>preload</code> directive</strong>.</li>
         </ul>
       </li>
     </ol>
@@ -106,10 +106,10 @@
       If you completely want to disable HSTS, you can send the following <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">knockout entry</a>:
     </p>
 
-    <tt class="header-example">Strict-Transport-Security: max-age=0</tt>
+    <code class="header-example">Strict-Transport-Security: max-age=0</code>
 
     <p>
-      If you want to be removed from the preload list but do not completely want to disable HSTS, it is up to you whether you would like remove the <tt>includeSubDomains</tt> directive or change the <tt>max-age</tt> value, as long as you remove the <tt>preload</tt> directive.
+      If you want to be removed from the preload list but do not completely want to disable HSTS, it is up to you whether you would like remove the <code>includeSubDomains</code> directive or change the <code>max-age</code> value, as long as you remove the <code>preload</code> directive.
     </p>
   </section>
   <section id="contact">
