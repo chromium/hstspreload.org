@@ -21,7 +21,7 @@ Requirements
     cd $GOPATH/src/github.com/chromium/hstspreload.org
     make serve
 
-The first tie you run it, `make serve` will download the [Cloud Datastore Emulator](https://cloud.google.com/datastore/docs/tools/datastore-emulator) (≈115MB) to a cache directory.
+The first time you run it, `make serve` will download the [Cloud Datastore Emulator](https://cloud.google.com/datastore/docs/tools/datastore-emulator) (≈115MB) to a cache directory.
 
 ## Disclaimer
 
