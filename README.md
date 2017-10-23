@@ -23,6 +23,14 @@ Requirements
 
 The first time you run it, `make serve` will download the [Cloud Datastore Emulator](https://cloud.google.com/datastore/docs/tools/datastore-emulator) (≈115MB) to a cache directory.
 
+### Deployment
+
+If you have access to the Google Cloud `hstspreload` project:
+
+    make deploy
+
+Unfortunately, this usually takes 5-10 minutes.
+
 ## Disclaimer
 
 This project is used by the Chromium team to maintain the HSTS preload list. This is not an official Google product.
