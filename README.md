@@ -9,7 +9,7 @@
 
 [![Build Status](https://travis-ci.org/chromium/hstspreload.org.svg?branch=master)](https://travis-ci.org/chromium/hstspreload.org)
 
-This folder contains the source for `v2` of [hstspreload.org](https://hstspreload.org/).
+This folder contains the source for the HSTS preload list submission website at [hstspreload.org](https://hstspreload.org/).
 
 See [github.com/chromium/hstspreload](https://github.com/chromium/hstspreload) for the core library that checks websites against the submission requirements.
 
