@@ -1,8 +1,11 @@
-<center>
-<img src="frontend/static/app-icon.png" width=144>
-</center>
+<p align="center">
+  <a href="https://hstspreload.org/">
+    <img src="frontend/static/app-icon.png" alt="" width="144" height="144">
+  </a>
 
-# `hstspreload.org`
+  <h1 align="center">hstspreload.org</h1>
+</p>
+
 
 [![Build Status](https://travis-ci.org/chromium/hstspreload.org.svg?branch=master)](https://travis-ci.org/chromium/hstspreload.org)
 
@@ -17,9 +20,11 @@ Requirements
 - A `go` development environment.
 - The `java` commandline program for running JAR files (for the Cloud Datastore Emulator).
 
-    go get github.com/chromium/hstspreload.org
-    cd $GOPATH/src/github.com/chromium/hstspreload.org
-    make serve
+  ```shell
+  go get github.com/chromium/hstspreload.org
+  cd $GOPATH/src/github.com/chromium/hstspreload.org
+  make serve
+  ```
 
 The first time you run it, `make serve` will download the [Cloud Datastore Emulator](https://cloud.google.com/datastore/docs/tools/datastore-emulator) (≈115MB) to a cache directory.
 
