@@ -1,6 +1,7 @@
 'use strict';
 
-var $ = document.querySelector.bind(document);
+window.$ = document.querySelector.bind(document);
+
 Element.prototype.createChild = function(tagName, className) {
   var el = document.createElement(tagName);
   if (className) {
@@ -47,17 +48,23 @@ HSTSPreload.prototype = {
     return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
 
-      var onload = function(ev) { resolve(JSON.parse(req.response)); };
+      var onload = function() {
+        resolve(JSON.parse(req.response));
+      };
 
       req.addEventListener('load', onload);
       req.addEventListener(
-          'error', (function(err) { reject(err); }).bind(this));
+        'error', function(err) {
+          reject(err);
+        });
       req.open(method, path);
       req.send();
     });
   },
 
-  status: function(domain) { return this.callAPI('GET', 'status', domain); },
+  status: function(domain) {
+    return this.callAPI('GET', 'status', domain);
+  },
 
   preloadable: function(domain) {
     return this.callAPI('GET', 'preloadable', domain);

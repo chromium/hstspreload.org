@@ -1,23 +1,25 @@
 'use strict';
 
+/* global $:false, HSTSPreload:false, URLParam:false, PreloadView:false, extractDomain:false */
+
 var Form = function(controller) {
   this._hstsPreload = new HSTSPreload();
   this._controller = new controller(this._hstsPreload);
 
   this._urlParam = new URLParam();
   this._view = new PreloadView(this._controller, this.submitDomain.bind(this), this._urlParam);
-  
+
   var domainParam = this._urlParam.get();
   if (domainParam) {
     var domain = extractDomain(domainParam);
 
-    if (domain != domainParam) {
-      this._view.setDomain(domain);
-      this._view.clickCheck();
-    } else {
+    if (domain === domainParam) {
       console.log('From URL parameter:', domain);
       $('#domain').value = domain;
       this.checkDomain(domain);
+    } else {
+      this._view.setDomain(domain);
+      this._view.clickCheck();
     }
   }
 };
@@ -36,31 +38,31 @@ Form.prototype = {
     this._currentResultsDomain = '';
 
     Promise
-        .all([
-          this._hstsPreload.status(domain),
-          this._controller.eligible(domain)
-        ])
-        .then(
-            function(values) {
-              this.handleResults(domain, values[0], values[1]);
-            }.bind(this),
-            function() {
-              // TODO: handle failure better.
-              $('#result').classList.remove('hidden');
-              $('#result-waiting').classList.add('hidden');
-            });
+      .all([
+        this._hstsPreload.status(domain),
+        this._controller.eligible(domain)
+      ])
+      .then(
+        function(values) {
+          this.handleResults(domain, values[0], values[1]);
+        }.bind(this),
+        function() {
+          // TODO: handle failure better.
+          $('#result').classList.remove('hidden');
+          $('#result-waiting').classList.add('hidden');
+        });
   },
 
   submitDomain: function() {
     var domain = this.domainToSubmit;
 
     this._controller.submit(domain).then(function(issues) {
-      if (issues.errors.length == 0) {
+      if (issues.errors.length === 0) {
         $('#submit-success').show();
-          if ($('#ssl-labs-link')) {
-            $('#ssl-labs-link')
-                .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
-          }
+        if ($('#ssl-labs-link')) {
+          $('#ssl-labs-link')
+            .href = 'https://www.ssllabs.com/ssltest/analyze.html?d=' + domain;
+        }
       } else {
         this._view.setTheme('theme-red');
         $('#submit-failure').show();
@@ -122,10 +124,10 @@ function statusString(status, issues, domain) {
         return 'Status: ' + domain +
           ' was previously rejected from the preload list for the following reason: ' +
           status.message;
-      } else {
-        return 'Status: ' + domain +
-          ' was previously rejected from the preload list.'
       }
+      return 'Status: ' + domain +
+          ' was previously rejected from the preload list.';
+
     case 'pending-removal':
       return 'Status: ' + domain +
           ' was previously submitted to the preload list, but is now pending removal.';
@@ -135,23 +137,23 @@ function statusString(status, issues, domain) {
     default:
       return 'Cannot determine preload status.';
   }
-};
+}
 
 function worstIssues(issues) {
-  if (issues.errors.length == 0) {
-    if (issues.warnings.length == 0) {
+  if (issues.errors.length === 0) {
+    if (issues.warnings.length === 0) {
       return 'none';
-    } else {
-      return 'warnings';
     }
-  } else {
-    return 'errors';
+    return 'warnings';
+
   }
+  return 'errors';
+
 }
 
 var PreloadController = function(hstsPreload) {
   this._hstsPreload = hstsPreload;
-}
+};
 
 PreloadController.prototype = {
   formHasCheckboxes: function() {
@@ -174,29 +176,31 @@ PreloadController.prototype = {
     switch (worstIssues(issues)) {
       case 'none':
         view.setStatus(
-            'Status: ' + domain +
+          'Status: ' + domain +
             ' is pending submission to the preload list.');
         view.setTheme('theme-green');
         break;
       case 'warnings':
         view.setStatus(
-            'Status: ' + domain +
+          'Status: ' + domain +
             ' is pending submission to the preload list.');
         view.setSummary(
-            'However, it still has the following issues, which we recommend fixing:');
+          'However, it still has the following issues, which we recommend fixing:');
         view.setTheme('theme-yellow');
         view.showIssues(issues);
         break;
       case 'errors':
         view.setStatus(
-            'Status: ' + domain +
+          'Status: ' + domain +
             ' was recently submitted to the preload list.');
         view.setSummary(
-            'However, ' + domain +
+          'However, ' + domain +
             ' has changed its behaviour since it was submitted, and will not be added to the official preload list unless the errors below are resolved:');
         view.setTheme('theme-red');
         view.showIssues(issues);
         break;
+      default:
+        throw new Error('Unknown Pending Status');
     }
   },
 
@@ -204,35 +208,36 @@ PreloadController.prototype = {
     switch (worstIssues(issues)) {
       case 'none':
         view.setSummary(
-            'Eligibility: ' + domain +
+          'Eligibility: ' + domain +
             ' is eligible for the HSTS preload list.');
         view.setTheme('theme-green');
         return true;
         break;
       case 'warnings':
         view.setSummary(
-            'Eligibility: ' + domain +
+          'Eligibility: ' + domain +
             ' is eligible for preloading, although we recommend fixing the following warnings:');
         view.setTheme('theme-yellow');
         return true;
         break;
       case 'errors':
         view.setSummary(
-            'Eligibility: In order for ' + domain +
+          'Eligibility: In order for ' + domain +
             ' to be eligible for preloading, the errors below must be resolved:');
         view.setTheme('theme-red');
         return false;
         break;
+      default:
+        throw new Error('Unknown Preload Eligibility');
     }
   },
 
   showResults: function(view, domain, issues, status) {
-
     view.setStatus(statusString(status, issues, domain));
 
     var showForm = false;
 
-    console.log("showResults", status)
+    console.log('showResults', status);
 
     switch (status.status) {
       case 'unknown':
@@ -255,18 +260,18 @@ PreloadController.prototype = {
         }
         break;
       default:
-        throw "Unknown status";
+        throw new Error('Unknown status');
     }
 
     view.showResults();
     return showForm;
   }
-}
+};
 
 
 var RemovalController = function(hstsPreload) {
   this._hstsPreload = hstsPreload;
-}
+};
 
 RemovalController.prototype = {
   formHasCheckboxes: function() {
@@ -282,7 +287,7 @@ RemovalController.prototype = {
   },
 
   submittableStatus: function(status) {
-    return ['preloaded', 'pending'].indexOf(status) != -1;
+    return ['preloaded', 'pending'].indexOf(status) !== -1;
   },
 
   submitButtonString: function(domain) {
@@ -293,35 +298,36 @@ RemovalController.prototype = {
     switch (worstIssues(issues)) {
       case 'none':
         view.setSummary(
-            'Eligibility: ' + domain +
+          'Eligibility: ' + domain +
             ' is eligible for removal from the HSTS preload list.');
         view.setTheme('theme-green');
         return true;
         break;
       case 'warnings':
         view.setSummary(
-            'Eligibility: ' + domain +
+          'Eligibility: ' + domain +
             ' is eligible for removal, although we recommend fixing the following warnings:');
         view.setTheme('theme-yellow');
         return true;
         break;
       case 'errors':
         view.setSummary(
-            'Eligibility: In order for ' + domain +
+          'Eligibility: In order for ' + domain +
             ' to be eligible for removal from the preload list, the errors below must be resolved:');
         view.setTheme('theme-red');
         return false;
         break;
+      default:
+        throw new Error('Unknown Eligibility');
     }
   },
 
   showResults: function(view, domain, issues, status) {
-
     view.setStatus(statusString(status, issues, domain));
 
     var showForm = false;
 
-    console.log("showResults", status)
+    console.log('showResults', status);
 
     switch (status.status) {
       case 'unknown':
@@ -336,10 +342,10 @@ RemovalController.prototype = {
         view.showIssues(issues);
         break;
       default:
-        throw "Unknown status";
+        throw new Error('Unknown status');
     }
 
     view.showResults();
     return showForm;
   }
-}
+};
