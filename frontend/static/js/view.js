@@ -1,5 +1,7 @@
 'use strict';
 
+/* global $:false, extractDomain:false */
+
 /*
   * verb: "add" or "remove"
  */
@@ -18,35 +20,35 @@ var PreloadView = function(controller, submitDomain, urlParam) {
 
   if (this._controller.formHasCheckboxes()) {
     $('#checkbox-owner')
-        .addEventListener('change', this._checkboxChangedHandler.bind(this));
+      .addEventListener('change', this._checkboxChangedHandler.bind(this));
     $('#checkbox-subdomains')
-        .addEventListener('change', this._checkboxChangedHandler.bind(this));
+      .addEventListener('change', this._checkboxChangedHandler.bind(this));
   }
 
   if (location.hash === '') {
-    $('#domain').focus()
+    $('#domain').focus();
   }
 };
 
 PreloadView.prototype = {
   _removeHash: function() {
     history.replaceState(
-        {}, document.title, window.location.pathname + window.location.search);
+      {}, document.title, window.location.pathname + window.location.search);
   },
 
-  _checkboxChangedHandler: function(ev) {
+  _checkboxChangedHandler: function() {
     $('#submit')
-        .disabled =
+      .disabled =
         !($('#checkbox-owner').checked && $('#checkbox-subdomains').checked);
   },
 
-  clearTheme: function(theme) {
+  clearTheme: function() {
     document.body.classList.remove('theme-green', 'theme-yellow', 'theme-red');
   },
 
   setTheme: function(theme) {
     this.clearTheme();
-    document.body.classList.add(theme)
+    document.body.classList.add(theme);
   },
 
   _DomainInput: function() {
@@ -124,13 +126,17 @@ PreloadView.prototype = {
     $('#submit-form').hide();
   },
 
-  clearSummary: function() { this.setSummary(''); },
+  clearSummary: function() {
+    this.setSummary('');
+  },
 
   setSummary: function(summaryMessage) {
     $('#summary').textContent = summaryMessage;
   },
 
-  clearStatus: function() { this.setStatus(''); },
+  clearStatus: function() {
+    this.setStatus('');
+  },
 
   setStatus: function(statusMessage) {
     $('#status').textContent = statusMessage;
@@ -160,12 +166,12 @@ var IssueBullet = function(issue, type, typeLabel) {
       typeLabel + ': ' + issue.summary;
   el.createChild('span', 'message').textContent = issue.message;
   return el;
-}
+};
 
 /* returns Element */
 var IssuesBulletList = function(issues) {
   var el = document.createElement('div');
-  el.classList.add("issues");
+  el.classList.add('issues');
 
   var errorsElem = el.createChild('div', 'errors');
   errorsElem.classList.add('issues-list');
@@ -179,4 +185,4 @@ var IssuesBulletList = function(issues) {
     warningsElem.appendChild(new IssueBullet(w, 'warning', 'Warning'));
   }
   return el;
-}
+};
