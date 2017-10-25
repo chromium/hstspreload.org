@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://hstspreload.org/">
-    <img src="frontend/static/app-icon.png" alt="" width="144" height="144">
+    <img src="frontend/static-data/favicon.svg" alt="" width="144" height="144">
   </a>
 
   <h1 align="center">hstspreload.org</h1>
