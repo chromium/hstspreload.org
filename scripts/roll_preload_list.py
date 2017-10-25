@@ -102,7 +102,7 @@ def parseJsonWithComments(rawText):
       continue
     else:
       s += l + "\n"
-  return json.loads(s);
+  return json.loads(s)
 
 def checkForDupes(parsedList):
   log("Checking for duplicates...\n")
