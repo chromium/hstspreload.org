@@ -74,7 +74,7 @@ def update(pendingRemovals, pendingAdditions, entryStrings):
         pendingRemovals.remove(domain)
       else:
         yield l
-    elif l == "    // END OF BULK ENTRIES":
+    elif l == "    // END OF 1-YEAR BULK HSTS ENTRIES":
       for domain in sorted(pendingAdditions):
         yield '    { "name": "%s", "include_subdomains": true, "mode": "force-https" },' % domain
       yield l
