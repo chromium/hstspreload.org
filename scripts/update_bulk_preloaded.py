@@ -8,7 +8,13 @@ def log(s):
   sys.stderr.write(s)
 
 class State:
-  BeforeBulkEntries, DuringBulkEntries, AfterBulkEntries = range(3)
+  BeforeLegacyBulkEntries, \
+  DuringLegacyBulkEntries, \
+  AfterLegacyBulkEntries, \
+  During18WeekBulkEntries, \
+  After18WeekBulkEntries, \
+  During1YearBulkEntries, \
+  After1YearBulkEntries = range(7)
 
 def getRawText():
   log("Fetching preload list from Chromium source...\n")
@@ -16,20 +22,38 @@ def getRawText():
 
 def extractBulkEntries(rawText):
   log("Extracting bulk entries...\n")
-  state = State.BeforeBulkEntries
+  state = State.BeforeLegacyBulkEntries
   bulkEntryString = "[\n"
   for line in rawText.splitlines():
-    if state == State.BeforeBulkEntries:
-      if "START OF BULK ENTRIES" in line:
-        state = State.DuringBulkEntries
-    elif state == State.DuringBulkEntries:
-      if "END OF BULK ENTRIES" in line:
-        state = State.AfterBulkEntries
+    if state == State.BeforeLegacyBulkEntries:
+      if "START OF LEGACY MANUAL HSTS ENTRIES" in line:
+        state = State.DuringLegacyBulkEntries
+    elif state == State.DuringLegacyBulkEntries:
+      if "END OF LEGACY MANUAL HSTS ENTRIES" in line:
+        state = State.AfterLegacyBulkEntries
       else:
         bulkEntryString += line + "\n"
-    elif state == State.AfterBulkEntries:
-      if "BULK ENTRIES" in line:
+    if state == State.AfterLegacyBulkEntries:
+      if "START OF 18-WEEK BULK HSTS ENTRIES" in line:
+        state = State.During18WeekBulkEntries
+    elif state == State.During18WeekBulkEntries:
+      if "END OF 18-WEEK BULK HSTS ENTRIES" in line:
+        state = State.After18WeekBulkEntries
+      else:
+        bulkEntryString += line + "\n"
+    if state == State.After18WeekBulkEntries:
+      if "START OF 1-YEAR BULK HSTS ENTRIES" in line:
+        state = State.During1YearBulkEntries
+    elif state == State.During1YearBulkEntries:
+      if "END OF 1-YEAR BULK HSTS ENTRIES" in line:
+        state = State.After1YearBulkEntries
+      else:
+        bulkEntryString += line + "\n"
+    elif state == State.After1YearBulkEntries:
+      if "BULK" in line:
         raise Exception("Preload list contains unexpected bulk entry markers.")
+  if state != State.After1YearBulkEntries:
+    raise Exception("Unexpected end state: %d" % state)
 
   # Add an empty object for the last entry to go after the trailing comma.
   bulkEntryString += "{}]"
