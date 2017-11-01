@@ -24,7 +24,7 @@ noscript {
   display: block;
   margin: 2em 4em;
   font-size: 1.5em;
-  color: gray;
+  color: #808080;
 }
 
 /******** result-waiting ********/
@@ -48,16 +48,20 @@ noscript {
   margin-bottom: 1em;
 }
 
-@keyframes spinnerRotate
-{
-  from { transform:rotate(0deg); }
-  to { transform:rotate(360deg); }
+@keyframes spinnerRotate {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /******** result ********/
 
 #result {
-  padding: 1em 0em;
+  padding: 1em 0;
 }
 
 #result .issues {
@@ -69,7 +73,7 @@ noscript {
 }
 
 #result .issues-list div {
-  border-top: 1px solid rgb(127, 127, 127);
+  border-top: 1px solid #7f7f7f;
   /*background: rgba(255, 0, 0, 0.25);*/
   display: block;
   padding: 1em 2em;
@@ -77,7 +81,7 @@ noscript {
 }
 
 #result .issues .summary {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 #result .issues .message {
@@ -91,13 +95,13 @@ noscript {
 }
 
 #result .issues-list div:last-child {
-  border-bottom: 1px solid rgb(127, 127, 127);
+  border-bottom: 1px solid #7f7f7f;
 }
 
 /******** submit-form ********/
 
 hr {
-  border: 1px solid #AAA;
+  border: 1px solid #aaa;
   border-bottom: none;
   margin: 1em 0 3em;
 }
@@ -106,7 +110,7 @@ hr {
   text-align: left;
   width: 80%;
   max-width: 30em;
-  margin: 0em auto;
+  margin: 0 auto;
 }
 
 #checkboxes input[type=checkbox] {
@@ -120,11 +124,11 @@ hr {
 }
 
 #oops {
-  color: rgb(160, 170, 160);
+  color: #a0aaa0;
 }
 
 #oops a {
-  color: rgb(130, 130, 140);
+  color: #82828c;
 }
 
 .subdomain-example {
