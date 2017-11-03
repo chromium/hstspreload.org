@@ -8,9 +8,9 @@ def log(s):
   sys.stderr.write(s)
 
 class State:
-  BeforeLegacyBulkEntries, \
-  DuringLegacyBulkEntries, \
-  AfterLegacyBulkEntries, \
+  BeforeLegacy18WeekBulkEntries, \
+  DuringLegacy18WeekBulkEntries, \
+  AfterLegacy18WeekBulkEntries, \
   During18WeekBulkEntries, \
   After18WeekBulkEntries, \
   During1YearBulkEntries, \
@@ -22,18 +22,18 @@ def getRawText():
 
 def extractBulkEntries(rawText):
   log("Extracting bulk entries...\n")
-  state = State.BeforeLegacyBulkEntries
+  state = State.BeforeLegacy18WeekBulkEntries
   bulkEntryString = "[\n"
   for line in rawText.splitlines():
-    if state == State.BeforeLegacyBulkEntries:
-      if "START OF LEGACY MANUAL HSTS ENTRIES" in line:
-        state = State.DuringLegacyBulkEntries
-    elif state == State.DuringLegacyBulkEntries:
-      if "END OF LEGACY MANUAL HSTS ENTRIES" in line:
-        state = State.AfterLegacyBulkEntries
+    if state == State.BeforeLegacy18WeekBulkEntries:
+      if "START OF LEGACY 18-WEEK BULK HSTS ENTRIES" in line:
+        state = State.DuringLegacy18WeekBulkEntries
+    elif state == State.DuringLegacy18WeekBulkEntries:
+      if "END OF LEGACY 18-WEEK BULK HSTS ENTRIES" in line:
+        state = State.AfterLegacy18WeekBulkEntries
       else:
         bulkEntryString += line + "\n"
-    if state == State.AfterLegacyBulkEntries:
+    if state == State.AfterLegacy18WeekBulkEntries:
       if "START OF 18-WEEK BULK HSTS ENTRIES" in line:
         state = State.During18WeekBulkEntries
     elif state == State.During18WeekBulkEntries:
