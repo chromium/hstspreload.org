@@ -62,6 +62,42 @@ def chunks(rawText):
     except StopIteration:
       break
 
+line_key_lists = [
+  ["name", "policy"],
+  ["mode", "include_subdomains", "pins", "include_subdomains_for_pinning"],
+  ["expect_staple", "include_subdomains_for_expect_staple"],
+  ["expect_staple_report_uri"],
+  ["expect_ct"],
+  ["expect_ct_report_uri"]
+]
+
+all_keys = [key for line_key_list in line_key_lists for key in line_key_list]
+basic_keys = ["name", "policy", "mode", "include_subdomains", "pins"]
+
+def keysToFields(parsed, keys):
+  out_fields = []
+  for key in keys:
+    if key in parsed:
+      out_fields += ["%s: %s" % (json.dumps(key), json.dumps(parsed[key]))]
+  return ", ".join(out_fields)
+
+def formatEntry(parsed):
+  has_fancy_key = False
+  for key in parsed.keys():
+    if not key in all_keys:
+      raise Exception("Unknown key: %s" % key)
+    if not key in basic_keys:
+      has_fancy_key = True
+  if not has_fancy_key:
+    return "    { %s }," % keysToFields(parsed, basic_keys)
+  else:
+    lines = []
+    for line_key_list in line_key_lists:
+      if set(line_key_list).intersection(parsed.keys()):
+        lines += ["      %s" % keysToFields(parsed, line_key_list)]
+    print "    {\n%s\n    }," % (",\n".join(lines))
+    return "    {\n%s\n    }," % (",\n".join(lines))
+
 def update(pendingRemovals, pendingAdditions, entryStrings):
   log("Removing and adding entries...\n")
   removedCount = 0
@@ -73,7 +109,7 @@ def update(pendingRemovals, pendingAdditions, entryStrings):
         removedCount += 1
         pendingRemovals.remove(domain)
       else:
-        yield l
+        yield formatEntry(parsed)
     elif l == "    // END OF 1-YEAR BULK HSTS ENTRIES":
       for domain in sorted(pendingAdditions):
         yield '    { "name": "%s", "policy": "bulk-1-year", "mode": "force-https", "include_subdomains": true },' % domain
