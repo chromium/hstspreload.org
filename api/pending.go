@@ -38,7 +38,7 @@ func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, sta
 //
 // Example: GET /pending
 func (api API) Pending(w http.ResponseWriter, r *http.Request) {
-	api.listDomainsWithStatus(w, r, database.StatusPending, `    { "name": "%s", "include_subdomains": true, "mode": "force-https" }%s
+	api.listDomainsWithStatus(w, r, database.StatusPending, `    { "name": "%s", "policy": "bulk-1-year", "mode": "force-https", "include_subdomains": true }%s
 `)
 }
 

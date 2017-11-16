@@ -197,7 +197,7 @@ func TestAPI(t *testing.T) {
 
 		// pending
 		{"pending 2", data1, failNone, api.Pending, "GET", "",
-			200, jsonContentType, wantBody{text: "[\n    { \"name\": \"garron.net\", \"include_subdomains\": true, \"mode\": \"force-https\" }\n]\n"}},
+			200, jsonContentType, wantBody{text: "[\n    { \"name\": \"garron.net\", \"policy\": \"bulk-1-year\", \"mode\": \"force-https\", \"include_subdomains\": true }\n]\n"}},
 		{"submit while pending", data1, failNone, api.Submit, "POST", "?domain=garron.net",
 			200, jsonContentType, wantBody{issues: &hstspreload.Issues{
 				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
