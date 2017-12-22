@@ -14,7 +14,9 @@ class State:
   During18WeekBulkEntries, \
   After18WeekBulkEntries, \
   During1YearBulkEntries, \
-  After1YearBulkEntries = range(7)
+  After1YearBulkEntries, \
+  During1YearBulkSubdomainEntries, \
+  After1YearBulkSubdomainEntries = range(9)
 
 def getRawText():
   log("Fetching preload list from Chromium source...\n")
@@ -50,9 +52,18 @@ def extractBulkEntries(rawText):
       else:
         bulkEntryString += line + "\n"
     elif state == State.After1YearBulkEntries:
+      if "START OF 1-YEAR BULK SUBDOMAIN HSTS ENTRIES" in line:
+        state = State.During1YearBulkSubdomainEntries
+    elif state == State.During1YearBulkSubdomainEntries:
+      if "END OF 1-YEAR BULK SUBDOMAIN HSTS ENTRIES" in line:
+        state = State.After1YearBulkSubdomainEntries
+      else:
+        bulkEntryString += line + "\n"
+    elif state == State.After1YearBulkSubdomainEntries:
       if "BULK" in line:
+        print(line)
         raise Exception("Preload list contains unexpected bulk entry markers.")
-  if state != State.After1YearBulkEntries:
+  if state != State.After1YearBulkSubdomainEntries:
     raise Exception("Unexpected end state: %d" % state)
 
   # Add an empty object for the last entry to go after the trailing comma.
