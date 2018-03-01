@@ -58,7 +58,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get domains currently recorded as preloaded.
+	// Get domains currently recorded as pending removal.
 	databasePendingRemoval, dbErr := api.database.DomainsWithStatus(database.StatusPendingRemoval)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
@@ -119,7 +119,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		written = true
 	}
 
-	// Update the database
+	// Update the database.
 	putErr := api.database.PutStates(updates, logf)
 	if putErr != nil {
 		msg := fmt.Sprintf(
