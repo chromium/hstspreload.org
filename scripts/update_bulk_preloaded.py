@@ -27,6 +27,7 @@ def extractBulkEntries(rawText):
   state = State.BeforeLegacy18WeekBulkEntries
   bulkEntryString = "[\n"
   for line in rawText.splitlines():
+    line = line.decode()
     if state == State.BeforeLegacy18WeekBulkEntries:
       if "START OF LEGACY 18-WEEK BULK HSTS ENTRIES" in line:
         state = State.DuringLegacy18WeekBulkEntries

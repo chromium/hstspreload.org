@@ -11,7 +11,7 @@ import (
 
 const (
 	localProjectID = "hstspreload-local"
-	prodProjectID  = "hstspreload"
+	prodProjectID  = "domain-registry-preload"
 
 	batchSize = 450
 	timeout   = 10 * time.Second
@@ -26,7 +26,8 @@ type Database interface {
 	PutState(DomainState) error
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
-	DomainsWithStatus(PreloadStatus) ([]string, error)
+	DomainsWithStatus(PreloadStatus) ([]DomainState, error)
+	DomainsWithStatus_old(PreloadStatus) ([]string, error)
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -182,6 +183,27 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 }
 
 // DomainsWithStatus returns the domains with the given status in the database.
-func (db DatastoreBacked) DomainsWithStatus(status PreloadStatus) (domains []string, err error) {
+func (db DatastoreBacked) DomainsWithStatus(status PreloadStatus) (domains []DomainState, err error) {
+	domainNames, err := db.domainsForQuery(
+		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", false))
+	if (err != nil) {
+		return domains, err
+	}
+	for _, domain := range domainNames {
+		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: false})
+	}
+	domainNames, err = db.domainsForQuery(
+		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", true))
+	if (err != nil) {
+		return domains, err
+	}
+	for _, domain := range domainNames {
+		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: true})
+	}
+	return domains, err
+}
+
+// DomainsWithStatus returns the domains with the given status in the database.
+func (db DatastoreBacked) DomainsWithStatus_old(status PreloadStatus) (domains []string, err error) {
 	return db.domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }

@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"time"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
@@ -31,7 +32,8 @@ type DomainState struct {
 	// current status of the site (usually to explain a StatusRejected).
 	Message string `datastore:",noindex" json:"message,omitempty"`
 	// The Unix time this domain was last submitted.
-	SubmissionDate time.Time `json:"-"`
+	SubmissionDate    time.Time `json:"-"`
+	IncludeSubDomains bool      `json:"-"`
 }
 
 // MatchesWanted checks if the fields of `s` match `wanted`.
@@ -51,6 +53,14 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 		return false
 	}
 	return true
+}
+
+func (s DomainState) ToEntry() preloadlist.Entry {
+	mode := preloadlist.ForceHTTPS
+	if (s.Status != StatusPreloaded) {
+		mode = ""
+	}
+	return preloadlist.Entry{s.Name, mode, s.IncludeSubDomains}
 }
 
 func getDomain(states []DomainState, domain string) (DomainState, error) {
