@@ -174,7 +174,7 @@ func TestStateForDomain(t *testing.T) {
 }
 
 // Test PutStates and AllDomainStates.
-func TestDomainsWithStatus(t *testing.T) {
+func TestStatesWithStatus(t *testing.T) {
 	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true}
 	domainB := DomainState{Name: "b.com", Status: StatusPending, IncludeSubDomains: true}
 	domainC := DomainState{Name: "c.com", Status: StatusRejected, IncludeSubDomains: false}
@@ -187,7 +187,7 @@ func TestDomainsWithStatus(t *testing.T) {
 	domainK := DomainState{Name: "k.com", Status: StatusPending, IncludeSubDomains: true}
 	resetDB()
 
-	domainStates, err := testDB.DomainsWithStatus(StatusPreloaded)
+	domainStates, err := testDB.StatesWithStatus(StatusPreloaded)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -219,7 +219,7 @@ func TestDomainsWithStatus(t *testing.T) {
 
 	for _, tt := range table {
 
-		domainStates, err = testDB.DomainsWithStatus(tt.status)
+		domainStates, err = testDB.StatesWithStatus(tt.status)
 		if err != nil {
 			t.Errorf("%s", err)
 		}

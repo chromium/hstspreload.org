@@ -11,7 +11,7 @@ import (
 
 const (
 	localProjectID = "hstspreload-local"
-	prodProjectID  = "domain-registry-preload"
+	prodProjectID  = "hstspreload"
 
 	batchSize = 450
 	timeout   = 10 * time.Second
@@ -26,7 +26,7 @@ type Database interface {
 	PutState(DomainState) error
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
-	DomainsWithStatus(PreloadStatus) ([]DomainState, error)
+	StatesWithStatus(PreloadStatus) ([]DomainState, error)
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -181,8 +181,8 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 	return db.statesForQuery(datastore.NewQuery("DomainState"))
 }
 
-// DomainsWithStatus returns the domains with the given status in the database.
-func (db DatastoreBacked) DomainsWithStatus(status PreloadStatus) (domains []DomainState, err error) {
+// StatesWithStatus returns the states of domains with the given status in the database.
+func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
 	// Calling StatesForQuery results in timeout. Instead, call domainsForQuery, which returns keys
 	// only, with filter on IncludeSubDomains, and reconstruct the DomainState explicitly.
 	domainNames, err := db.domainsForQuery(

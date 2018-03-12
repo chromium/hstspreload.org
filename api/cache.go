@@ -35,7 +35,7 @@ func (api API) domainsWithStatusCached(status database.PreloadStatus) ([]databas
 		}
 	}
 
-	domains, err := api.database.DomainsWithStatus(status)
+	domains, err := api.database.StatesWithStatus(status)
 	if err != nil {
 		return domains, err
 	}

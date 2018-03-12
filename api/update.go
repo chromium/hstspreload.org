@@ -48,7 +48,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	preloadedDomains, dbErr := api.database.DomainsWithStatus(database.StatusPreloaded)
+	preloadedDomains, dbErr := api.database.StatesWithStatus(database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -63,7 +63,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as pending removal.
-	pendingRemovalDomains, dbErr := api.database.DomainsWithStatus(database.StatusPendingRemoval)
+	pendingRemovalDomains, dbErr := api.database.StatesWithStatus(database.StatusPendingRemoval)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as pending removal. (%s)\n",
@@ -175,7 +175,7 @@ func (api API) UpdateIncludeSubDomains(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
-	preloadedDomains, dbErr := api.database.DomainsWithStatus(database.StatusPreloaded)
+	preloadedDomains, dbErr := api.database.StatesWithStatus(database.StatusPreloaded)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
