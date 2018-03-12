@@ -7,7 +7,7 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
-func (api API) listStatesWithStatus(w http.ResponseWriter, r *http.Request, status database.PreloadStatus, entryFormat string) {
+func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, status database.PreloadStatus, entryFormat string) {
 	if r.Method != "GET" {
 		http.Error(w, fmt.Sprintf("Wrong method. Requires GET."), http.StatusMethodNotAllowed)
 		return
@@ -38,7 +38,7 @@ func (api API) listStatesWithStatus(w http.ResponseWriter, r *http.Request, stat
 //
 // Example: GET /pending
 func (api API) Pending(w http.ResponseWriter, r *http.Request) {
-	api.listStatesWithStatus(w, r, database.StatusPending, `    { "name": "%s", "policy": "bulk-1-year", "mode": "force-https", "include_subdomains": true }%s
+	api.listDomainsWithStatus(w, r, database.StatusPending, `    { "name": "%s", "policy": "bulk-1-year", "mode": "force-https", "include_subdomains": true }%s
 `)
 }
 
@@ -46,6 +46,6 @@ func (api API) Pending(w http.ResponseWriter, r *http.Request) {
 //
 // Example: GET /pending-removal
 func (api API) PendingRemoval(w http.ResponseWriter, r *http.Request) {
-	api.listStatesWithStatus(w, r, database.StatusPendingRemoval, `    "%s"%s
+	api.listDomainsWithStatus(w, r, database.StatusPendingRemoval, `    "%s"%s
 `)
 }
