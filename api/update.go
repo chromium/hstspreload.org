@@ -150,10 +150,20 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Success. %d domain states updated.\n", len(updates))
 }
 
-// Update tells the server to update pending/removed entries based
-// on the HSTS preload list source.
+// UpdateIncludeSubDomains tells the server to update the IncludeSubDomains property on existing
+// database entities based on the HSTS preload list source.
 //
-// Example: GET /update
+// The database entities used to not have this property, as a result this property is implicitly
+// false for all entities. This action loads the preload list from the source, and explicitly sets
+// IncludeSubDomains on entities with preloaded status if its corresponding Entry in the preload
+// list has include_subdomains = true.
+//
+// This action should only be used during data transition. After all existing entities have their
+// IncludeSubDomains property set correctly, this handler function should be deleted.
+//
+// Example: GET /update-includesubdomains
+//
+// TODO: delte this function once data migration is completed.
 func (api API) UpdateIncludeSubDomains(w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 

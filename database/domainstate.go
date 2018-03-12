@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"time"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
+	"time"
 )
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
@@ -57,7 +57,7 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 
 func (s DomainState) ToEntry() preloadlist.Entry {
 	mode := preloadlist.ForceHTTPS
-	if (s.Status != StatusPreloaded) {
+	if s.Status != StatusPreloaded {
 		mode = ""
 	}
 	return preloadlist.Entry{s.Name, mode, s.IncludeSubDomains}

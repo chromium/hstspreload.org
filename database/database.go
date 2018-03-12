@@ -187,7 +187,7 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 	// only, with filter on IncludeSubDomains, and reconstruct the DomainState explicitly.
 	domainNames, err := db.domainsForQuery(
 		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", false))
-	if (err != nil) {
+	if err != nil {
 		return domains, err
 	}
 	for _, domain := range domainNames {
@@ -195,7 +195,7 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 	}
 	domainNames, err = db.domainsForQuery(
 		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", true))
-	if (err != nil) {
+	if err != nil {
 		return domains, err
 	}
 	for _, domain := range domainNames {
