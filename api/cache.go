@@ -25,7 +25,7 @@ func cacheWithDuration(duration time.Duration) *cache {
 	}
 }
 
-func (api API) domainsWithStatusCached(status database.PreloadStatus) ([]database.DomainState, error) {
+func (api API) statesWithStatusCached(status database.PreloadStatus) ([]database.DomainState, error) {
 	api.cache.lock.Lock()
 	defer api.cache.lock.Unlock()
 

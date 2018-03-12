@@ -16,7 +16,7 @@ func TestCacheZeroDuration(t *testing.T) {
 
 	api.database.PutState(domainA)
 
-	domains, err := api.domainsWithStatusCached(database.StatusPending)
+	domains, err := api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -30,7 +30,7 @@ func TestCacheZeroDuration(t *testing.T) {
 	api.database.PutState(domainB)
 	api.database.PutState(domainC)
 
-	domains, err = api.domainsWithStatusCached(database.StatusPending)
+	domains, err = api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestCacheZeroDuration(t *testing.T) {
 		t.Fatalf("Second pending retrieval had wrong number of domains: %d", len(domains))
 	}
 
-	domains, err = api.domainsWithStatusCached(database.StatusPendingRemoval)
+	domains, err = api.statesWithStatusCached(database.StatusPendingRemoval)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestCacheZeroDuration(t *testing.T) {
 	}
 
 	mc.FailCalls = true
-	_, err = api.domainsWithStatusCached(database.StatusPending)
+	_, err = api.statesWithStatusCached(database.StatusPending)
 	if err == nil {
 		t.Fatalf("Expected uncached call to fail")
 	}
@@ -66,7 +66,7 @@ func TestCacheShortDuration(t *testing.T) {
 
 	api.database.PutState(domainA)
 
-	domains, err := api.domainsWithStatusCached(database.StatusPending)
+	domains, err := api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestCacheShortDuration(t *testing.T) {
 		t.Fatalf("First pending retrieval had wrong domain: %v", domains[0])
 	}
 
-	domains, err = api.domainsWithStatusCached(database.StatusPendingRemoval)
+	domains, err = api.statesWithStatusCached(database.StatusPendingRemoval)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestCacheShortDuration(t *testing.T) {
 	api.database.PutState(domainB)
 	api.database.PutState(domainC)
 
-	domains, err = api.domainsWithStatusCached(database.StatusPending)
+	domains, err = api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestCacheShortDuration(t *testing.T) {
 		t.Fatalf("Cached pending retrieval had wrong number of domains: %d", len(domains))
 	}
 
-	domains, err = api.domainsWithStatusCached(database.StatusPendingRemoval)
+	domains, err = api.statesWithStatusCached(database.StatusPendingRemoval)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestCacheShortDuration(t *testing.T) {
 
 	mc.FailCalls = true
 
-	domains, err = api.domainsWithStatusCached(database.StatusPending)
+	domains, err = api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestCacheShortDuration(t *testing.T) {
 		t.Fatalf("Failing database pending retrieval had wrong number of domains: %d", len(domains))
 	}
 
-	domains, err = api.domainsWithStatusCached(database.StatusPendingRemoval)
+	domains, err = api.statesWithStatusCached(database.StatusPendingRemoval)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -125,7 +125,7 @@ func TestCacheShortDuration(t *testing.T) {
 	time.Sleep(duration)
 	mc.FailCalls = false
 
-	domains, err = api.domainsWithStatusCached(database.StatusPending)
+	domains, err = api.statesWithStatusCached(database.StatusPending)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestCacheShortDuration(t *testing.T) {
 		t.Fatalf("Last pending retrieval had wrong number of domains: %d", len(domains))
 	}
 
-	domains, err = api.domainsWithStatusCached(database.StatusPendingRemoval)
+	domains, err = api.statesWithStatusCached(database.StatusPendingRemoval)
 	if err != nil {
 		t.Fatalf("Error getting domains: %v", err)
 	}

@@ -13,7 +13,7 @@ func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, sta
 		return
 	}
 
-	domainStates, err := api.domainsWithStatusCached(status)
+	domainStates, err := api.statesWithStatusCached(status)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve list for status \"%s\". (%s)\n", status, err)
 		http.Error(w, msg, http.StatusInternalServerError)
