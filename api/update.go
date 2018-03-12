@@ -151,15 +151,17 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateIncludeSubDomains tells the server to update the IncludeSubDomains property on existing
-// database entities based on the HSTS preload list source.
+// datastore entities based on the HSTS preload list source.
 //
-// The database entities used to not have this property, as a result this property is implicitly
+// The datastore Store entities used to not have this property, as a result this property is implicitly
 // false for all entities. This action loads the preload list from the source, and explicitly sets
 // IncludeSubDomains on entities with preloaded status if its corresponding Entry in the preload
 // list has include_subdomains = true.
 //
 // This action should only be used during data transition. After all existing entities have their
-// IncludeSubDomains property set correctly, this handler function should be deleted.
+// IncludeSubDomains property set correctly, this handler function should be deleted. The regular
+// Update function has been updated to set the IncludeSubDomains property correctly when updating
+// datastore.
 //
 // Example: GET /update-includesubdomains
 //
@@ -194,6 +196,8 @@ func (api API) UpdateIncludeSubDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+
+	// Find entities in the database that need their property updated.
 	var updates []database.DomainState
 	for _, ds := range preloadedDomains {
 		if actualPreload[ds.Name].IncludeSubDomains && !ds.IncludeSubDomains {
