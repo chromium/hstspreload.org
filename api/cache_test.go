@@ -10,7 +10,11 @@ import (
 func TestCacheZeroDuration(t *testing.T) {
 	api, mc, _, _ := mockAPI(0 * time.Second)
 
-	api.database.PutState(database.DomainState{Name: "a.test", Status: database.StatusPending})
+	domainA := database.DomainState{Name: "a.test", Status: database.StatusPending}
+	domainB := database.DomainState{Name: "b.test", Status: database.StatusPending}
+	domainC := database.DomainState{Name: "c.test", Status: database.StatusPendingRemoval}
+
+	api.database.PutState(domainA)
 
 	domains, err := api.domainsWithStatusCached(database.StatusPending)
 	if err != nil {
@@ -19,12 +23,12 @@ func TestCacheZeroDuration(t *testing.T) {
 	if len(domains) != 1 {
 		t.Fatalf("First pending retrieval had wrong number of domains: %d", len(domains))
 	}
-	if domains[0] != "a.test" {
+	if domains[0] != domainA {
 		t.Fatalf("First pending retrieval had wrong domain: %v", domains[0])
 	}
 
-	api.database.PutState(database.DomainState{Name: "b.test", Status: database.StatusPending})
-	api.database.PutState(database.DomainState{Name: "c.test", Status: database.StatusPendingRemoval})
+	api.database.PutState(domainB)
+	api.database.PutState(domainC)
 
 	domains, err = api.domainsWithStatusCached(database.StatusPending)
 	if err != nil {
@@ -41,7 +45,7 @@ func TestCacheZeroDuration(t *testing.T) {
 	if len(domains) != 1 {
 		t.Fatalf("First pending removal retrieval had wrong number of domains: %d", len(domains))
 	}
-	if domains[0] != "c.test" {
+	if domains[0] != domainC {
 		t.Fatalf("First pending removal retrieval had wrong domain: %v", domains[0])
 	}
 
@@ -56,7 +60,11 @@ func TestCacheShortDuration(t *testing.T) {
 	duration := 1 * time.Second
 	api, mc, _, _ := mockAPI(duration)
 
-	api.database.PutState(database.DomainState{Name: "a.test", Status: database.StatusPending})
+	domainA := database.DomainState{Name: "a.test", Status: database.StatusPending}
+	domainB := database.DomainState{Name: "b.test", Status: database.StatusPending}
+	domainC := database.DomainState{Name: "c.test", Status: database.StatusPendingRemoval}
+
+	api.database.PutState(domainA)
 
 	domains, err := api.domainsWithStatusCached(database.StatusPending)
 	if err != nil {
@@ -65,7 +73,7 @@ func TestCacheShortDuration(t *testing.T) {
 	if len(domains) != 1 {
 		t.Fatalf("First pending retrieval had wrong number of domains: %d", len(domains))
 	}
-	if domains[0] != "a.test" {
+	if domains[0] != domainA {
 		t.Fatalf("First pending retrieval had wrong domain: %v", domains[0])
 	}
 
@@ -77,8 +85,8 @@ func TestCacheShortDuration(t *testing.T) {
 		t.Fatalf("First pending removal retrieval had wrong number of domains: %d", len(domains))
 	}
 
-	api.database.PutState(database.DomainState{Name: "b.test", Status: database.StatusPending})
-	api.database.PutState(database.DomainState{Name: "c.test", Status: database.StatusPendingRemoval})
+	api.database.PutState(domainB)
+	api.database.PutState(domainC)
 
 	domains, err = api.domainsWithStatusCached(database.StatusPending)
 	if err != nil {
@@ -132,7 +140,7 @@ func TestCacheShortDuration(t *testing.T) {
 	if len(domains) != 1 {
 		t.Fatalf("Last removal retrieval had wrong number of domains: %d", len(domains))
 	}
-	if domains[0] != "c.test" {
+	if domains[0] != domainC {
 		t.Fatalf("Last removal retrieval had wrong domain: %v", domains[0])
 	}
 }

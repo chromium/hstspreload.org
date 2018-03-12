@@ -13,7 +13,7 @@ func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, sta
 		return
 	}
 
-	names, err := api.domainsWithStatusCached(status)
+	domainStates, err := api.domainsWithStatusCached(status)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve list for status \"%s\". (%s)\n", status, err)
 		http.Error(w, msg, http.StatusInternalServerError)
@@ -23,13 +23,13 @@ func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, sta
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	fmt.Fprintf(w, "[\n")
-	for i, name := range names {
+	for i, ds := range domainStates {
 		comma := ","
-		if i+1 == len(names) {
+		if i+1 == len(domainStates) {
 			comma = ""
 		}
 
-		fmt.Fprintf(w, entryFormat, name, comma)
+		fmt.Fprintf(w, entryFormat, ds.Name, comma)
 	}
 	fmt.Fprintf(w, "]\n")
 }

@@ -74,7 +74,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	var databasePendingRemoval []preloadlist.Entry
 	for _, ds := range pendingRemovalDomains {
-		databasePreload = append(databasePreload, ds.ToEntry())
+		databasePendingRemoval = append(databasePendingRemoval, ds.ToEntry())
 	}
 
 	// Calculate values that are out of date.

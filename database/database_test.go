@@ -175,6 +175,16 @@ func TestStateForDomain(t *testing.T) {
 
 // Test PutStates and AllDomainStates.
 func TestDomainsWithStatus(t *testing.T) {
+	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true}
+	domainB := DomainState{Name: "b.com", Status: StatusPending, IncludeSubDomains: true}
+	domainC := DomainState{Name: "c.com", Status: StatusRejected, IncludeSubDomains: false}
+	domainD := DomainState{Name: "d.com", Status: StatusRemoved, IncludeSubDomains: true}
+	domainE := DomainState{Name: "e.com", Status: StatusPending, IncludeSubDomains: true}
+	domainG := DomainState{Name: "g.com", Status: StatusRejected, IncludeSubDomains: false}
+	domainH := DomainState{Name: "h.com", Status: StatusPreloaded, IncludeSubDomains: true}
+	domainI := DomainState{Name: "i.com", Status: StatusPreloaded, IncludeSubDomains: false}
+	domainJ := DomainState{Name: "j.com", Status: StatusRejected, IncludeSubDomains: false}
+	domainK := DomainState{Name: "k.com", Status: StatusPending, IncludeSubDomains: true}
 	resetDB()
 
 	domainStates, err := testDB.DomainsWithStatus(StatusPreloaded)
@@ -187,16 +197,7 @@ func TestDomainsWithStatus(t *testing.T) {
 
 	err = testDB.PutStates(
 		[]DomainState{
-			{Name: "a.com", Status: StatusPending},
-			{Name: "b.com", Status: StatusPending},
-			{Name: "c.com", Status: StatusRejected},
-			{Name: "d.com", Status: StatusRemoved},
-			{Name: "e.com", Status: StatusPending},
-			{Name: "g.com", Status: StatusRejected},
-			{Name: "h.com", Status: StatusPreloaded},
-			{Name: "i.com", Status: StatusPreloaded},
-			{Name: "j.com", Status: StatusRejected},
-			{Name: "k.com", Status: StatusPending},
+			domainA, domainB, domainC, domainD, domainE, domainG, domainH, domainI, domainJ, domainK,
 		},
 		blackholeLogf,
 	)
@@ -207,13 +208,13 @@ func TestDomainsWithStatus(t *testing.T) {
 
 	table := []struct {
 		status  PreloadStatus
-		domains sort.StringSlice // sorted order
+		domains []DomainState // sorted order
 	}{
 		{status: StatusUnknown},
-		{StatusPending, sort.StringSlice{"a.com", "b.com", "e.com", "k.com"}},
-		{StatusPreloaded, sort.StringSlice{"h.com", "i.com"}},
-		{StatusRejected, sort.StringSlice{"c.com", "g.com", "j.com"}},
-		{StatusRemoved, sort.StringSlice{"d.com"}},
+		{StatusPending, []DomainState{domainA, domainB, domainE, domainK}},
+		{StatusPreloaded, []DomainState{domainH, domainI}},
+		{StatusRejected, []DomainState{domainC, domainG, domainJ}},
+		{StatusRemoved, []DomainState{domainD}},
 	}
 
 	for _, tt := range table {
@@ -222,10 +223,9 @@ func TestDomainsWithStatus(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s", err)
 		}
-		ss := sort.StringSlice(domainStates)
-		sort.Sort(ss)
-		if !reflect.DeepEqual(ss, tt.domains) {
-			t.Errorf("not the list of expected domains for status %s: %#v", tt.status, ss)
+		sort.Slice(domainStates, func(i, j int) bool { return domainStates[i].Name < domainStates[j].Name })
+		if !reflect.DeepEqual(domainStates, tt.domains) {
+			t.Errorf("not the list of expected domains for status %s: %#v", tt.status, domainStates)
 		}
 	}
 }

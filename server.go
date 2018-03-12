@@ -41,7 +41,6 @@ func main() {
 	server.HandleFunc("/api/v2/pending", a.Pending)
 	server.HandleFunc("/api/v2/pending-removal", a.PendingRemoval)
 	server.HandleFunc("/api/v2/update", a.Update)
-	server.HandleFunc("/api/v2/update-old", a.Update_old)
 	server.HandleFunc("/api/v2/update-includesubdomains", a.UpdateIncludeSubDomains)
 
 	if *local {

@@ -32,8 +32,9 @@ func (api API) DebugSetPreloaded(w http.ResponseWriter, r *http.Request) {
 	issues := hstspreload.Issues{}
 
 	putErr := api.database.PutState(database.DomainState{
-		Name:   domain,
-		Status: database.StatusPreloaded,
+		Name:              domain,
+		Status:            database.StatusPreloaded,
+		IncludeSubDomains: true,
 	})
 
 	if putErr != nil {
@@ -62,9 +63,10 @@ func (api API) DebugSetRejected(w http.ResponseWriter, r *http.Request) {
 	issues := hstspreload.Issues{}
 
 	putErr := api.database.PutState(database.DomainState{
-		Name:    domain,
-		Status:  database.StatusRejected,
-		Message: "Domain failed to satisfy continued requirements while pending.",
+		Name:              domain,
+		Status:            database.StatusRejected,
+		IncludeSubDomains: true,
+		Message:           "Domain failed to satisfy continued requirements while pending.",
 	})
 
 	if putErr != nil {

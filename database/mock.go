@@ -74,14 +74,14 @@ func (m Mock) AllDomainStates() (states []DomainState, err error) {
 }
 
 // DomainsWithStatus mock method
-func (m Mock) DomainsWithStatus(status PreloadStatus) (domains []string, err error) {
+func (m Mock) DomainsWithStatus(status PreloadStatus) (domains []DomainState, err error) {
 	if m.state.FailCalls == true {
 		return domains, errors.New("forced failure")
 	}
 
 	for _, s := range m.ds {
 		if s.Status == status {
-			domains = append(domains, s.Name)
+			domains = append(domains, s)
 		}
 	}
 	return domains, nil

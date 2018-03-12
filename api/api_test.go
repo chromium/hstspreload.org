@@ -322,7 +322,7 @@ func TestAPI(t *testing.T) {
 		if tt.wantBody.text != "" {
 			text := w.Body.String()
 			if text != tt.wantBody.text {
-				t.Errorf("[%s] Body text does not match wanted: %#v", tt.description, text)
+				t.Errorf("[%s] Body text does not match wanted: \n%#v\n%#v", tt.description, text,tt.wantBody.text)
 			}
 		}
 
