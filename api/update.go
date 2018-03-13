@@ -206,8 +206,8 @@ func (api API) UpdateIncludeSubDomains(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Fprintf(w, `The datastore has %d entries.
-- # of entries to be udpated: %d
+	fmt.Fprintf(w, `The database has %d entries.
+- # of entries to be updated: %d
 `,
 		len(preloadedDomains),
 		len(updates),
