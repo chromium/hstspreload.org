@@ -32,8 +32,10 @@ type DomainState struct {
 	// current status of the site (usually to explain a StatusRejected).
 	Message string `datastore:",noindex" json:"message,omitempty"`
 	// The Unix time this domain was last submitted.
-	SubmissionDate    time.Time `json:"-"`
-	IncludeSubDomains bool      `json:"-"`
+	SubmissionDate time.Time `json:"-"`
+	// If this domain is preloaded, this boolean determines whether its descendant
+	// domains also are preloaded.
+	IncludeSubDomains bool `json:"-"`
 }
 
 // MatchesWanted checks if the fields of `s` match `wanted`.
@@ -60,7 +62,7 @@ func (s DomainState) ToEntry() preloadlist.Entry {
 	if s.Status != StatusPreloaded {
 		mode = ""
 	}
-	return preloadlist.Entry{s.Name, mode, s.IncludeSubDomains}
+	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains}
 }
 
 func getDomain(states []DomainState, domain string) (DomainState, error) {
