@@ -65,7 +65,7 @@ func (api API) DebugSetRejected(w http.ResponseWriter, r *http.Request) {
 	putErr := api.database.PutState(database.DomainState{
 		Name:              domain,
 		Status:            database.StatusRejected,
-		IncludeSubDomains: true,
+		IncludeSubDomains: false,
 		Message:           "Domain failed to satisfy continued requirements while pending.",
 	})
 

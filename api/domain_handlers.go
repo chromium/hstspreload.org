@@ -308,7 +308,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 		putErr := api.database.PutState(database.DomainState{
 			Name:              domain,
 			Status:            database.StatusPendingRemoval,
-			IncludeSubDomains: true,
+			IncludeSubDomains: false,
 			SubmissionDate:    time.Now(),
 		})
 		if putErr != nil {
