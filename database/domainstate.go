@@ -57,6 +57,9 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 	return true
 }
 
+// ToEntry converts a DomainState to a preloadlist.Entry.
+//
+// Only the name, preload status and include subdomains boolean is preserved during the conversion.
 func (s DomainState) ToEntry() preloadlist.Entry {
 	mode := preloadlist.ForceHTTPS
 	if s.Status != StatusPreloaded {
