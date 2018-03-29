@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 	"time"
 )
 
@@ -32,6 +33,9 @@ type DomainState struct {
 	Message string `datastore:",noindex" json:"message,omitempty"`
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
+	// If this domain is preloaded, this boolean determines whether its descendant
+	// domains also are preloaded.
+	IncludeSubDomains bool `json:"-"`
 }
 
 // MatchesWanted checks if the fields of `s` match `wanted`.
@@ -51,6 +55,17 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 		return false
 	}
 	return true
+}
+
+// ToEntry converts a DomainState to a preloadlist.Entry.
+//
+// Only the name, preload status and include subdomains boolean is preserved during the conversion.
+func (s DomainState) ToEntry() preloadlist.Entry {
+	mode := preloadlist.ForceHTTPS
+	if s.Status != StatusPreloaded {
+		mode = ""
+	}
+	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains}
 }
 
 func getDomain(states []DomainState, domain string) (DomainState, error) {

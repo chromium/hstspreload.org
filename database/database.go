@@ -26,7 +26,7 @@ type Database interface {
 	PutState(DomainState) error
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
-	DomainsWithStatus(PreloadStatus) ([]string, error)
+	StatesWithStatus(PreloadStatus) ([]DomainState, error)
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -181,7 +181,25 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 	return db.statesForQuery(datastore.NewQuery("DomainState"))
 }
 
-// DomainsWithStatus returns the domains with the given status in the database.
-func (db DatastoreBacked) DomainsWithStatus(status PreloadStatus) (domains []string, err error) {
-	return db.domainsForQuery(datastore.NewQuery("DomainState").Filter("Status =", string(status)))
+// StatesWithStatus returns the states of domains with the given status in the database.
+func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
+	// Calling statesForQuery results in timeout. Instead, call domainsForQuery, which returns keys
+	// only, with filter on IncludeSubDomains, and reconstruct the DomainState explicitly.
+	domainNames, err := db.domainsForQuery(
+		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", false))
+	if err != nil {
+		return domains, err
+	}
+	for _, domain := range domainNames {
+		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: false})
+	}
+	domainNames, err = db.domainsForQuery(
+		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", true))
+	if err != nil {
+		return domains, err
+	}
+	for _, domain := range domainNames {
+		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: true})
+	}
+	return domains, err
 }

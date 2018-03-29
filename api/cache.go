@@ -8,7 +8,7 @@ import (
 )
 
 type entry struct {
-	domains   []string
+	domains   []database.DomainState
 	cacheTime time.Time
 }
 
@@ -25,7 +25,7 @@ func cacheWithDuration(duration time.Duration) *cache {
 	}
 }
 
-func (api API) domainsWithStatusCached(status database.PreloadStatus) ([]string, error) {
+func (api API) statesWithStatusCached(status database.PreloadStatus) ([]database.DomainState, error) {
 	api.cache.lock.Lock()
 	defer api.cache.lock.Unlock()
 
@@ -35,7 +35,7 @@ func (api API) domainsWithStatusCached(status database.PreloadStatus) ([]string,
 		}
 	}
 
-	domains, err := api.database.DomainsWithStatus(status)
+	domains, err := api.database.StatesWithStatus(status)
 	if err != nil {
 		return domains, err
 	}

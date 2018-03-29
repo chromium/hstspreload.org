@@ -178,9 +178,10 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		fallthrough
 	case database.StatusRemoved:
 		putErr := api.database.PutState(database.DomainState{
-			Name:           domain,
-			Status:         database.StatusPending,
-			SubmissionDate: time.Now(),
+			Name:              domain,
+			Status:            database.StatusPending,
+			IncludeSubDomains: true,
+			SubmissionDate:    time.Now(),
 		})
 		if putErr != nil {
 			issue := hstspreload.Issue{
@@ -305,9 +306,10 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 		}
 
 		putErr := api.database.PutState(database.DomainState{
-			Name:           domain,
-			Status:         database.StatusPendingRemoval,
-			SubmissionDate: time.Now(),
+			Name:              domain,
+			Status:            database.StatusPendingRemoval,
+			IncludeSubDomains: false,
+			SubmissionDate:    time.Now(),
 		})
 		if putErr != nil {
 			issue := hstspreload.Issue{
