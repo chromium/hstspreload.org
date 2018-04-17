@@ -7,7 +7,7 @@ import (
 	"github.com/chromium/hstspreload.org/database"
 )
 
-type statesEntry struct {
+type domainList struct {
 	domains   []database.DomainState
 	cacheTime time.Time
 }
@@ -19,14 +19,14 @@ type stateEntry struct {
 
 type cache struct {
 	lock            sync.Mutex
-	domainsByStatus map[database.PreloadStatus]statesEntry
+	domainsByStatus map[database.PreloadStatus]domainList
 	stateForDomain  map[string]stateEntry
 	cacheDuration   time.Duration
 }
 
 func cacheWithDuration(duration time.Duration) *cache {
 	return &cache{
-		domainsByStatus: make(map[database.PreloadStatus]statesEntry),
+		domainsByStatus: make(map[database.PreloadStatus]domainList),
 		stateForDomain:  make(map[string]stateEntry),
 		cacheDuration:   duration,
 	}
@@ -47,7 +47,7 @@ func (api API) statesWithStatusCached(status database.PreloadStatus) ([]database
 		return domains, err
 	}
 
-	api.cache.domainsByStatus[status] = statesEntry{
+	api.cache.domainsByStatus[status] = domainList{
 		domains:   domains,
 		cacheTime: time.Now(),
 	}

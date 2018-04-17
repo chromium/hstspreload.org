@@ -81,9 +81,9 @@ type MockData struct {
 }
 
 const (
-	failDatabase        = 1 << iota
+	failDatabase = 1 << iota
 	failChromiumpreload
-	failNone            = 0
+	failNone = 0
 )
 
 type apiTestCase struct {
@@ -169,17 +169,17 @@ func TestAPI(t *testing.T) {
 		// initial
 		{"garron.net initial", data1, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "garron.net", Status: database.StatusUnknown}}},
+				Name: "garron.net", Status: database.StatusUnknown}}},
 		{"example.com initial", data1, failNone, api.Status, "GET", "?domain=example.com",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "example.com", Status: database.StatusUnknown}}},
+				Name: "example.com", Status: database.StatusUnknown}}},
 		{"pending 1", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
 		{"bulk status", data1, failNone, api.Status, "GET", "?domain=removal-not-preloaded-bulk-eligible.test",
 			200, jsonContentType, wantBody{bulkState: &DomainStateWithBulk{
-			DomainState: &database.DomainState{Name: "removal-not-preloaded-bulk-eligible.test", Status: database.StatusUnknown},
-			Bulk:        true,
-		}}},
+				DomainState: &database.DomainState{Name: "removal-not-preloaded-bulk-eligible.test", Status: database.StatusUnknown},
+				Bulk:        true,
+			}}},
 
 		// initial with database failure
 		{"pending failure", data1, failDatabase, api.Pending, "GET", "",
@@ -200,13 +200,13 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{text: "[\n    { \"name\": \"garron.net\", \"policy\": \"bulk-1-year\", \"mode\": \"force-https\", \"include_subdomains\": true }\n]\n"}},
 		{"submit while pending", data1, failNone, api.Submit, "POST", "?domain=garron.net",
 			200, jsonContentType, wantBody{issues: &hstspreload.Issues{
-			Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
-		}}},
+				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
+			}}},
 
 		// update
 		{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "garron.net", Status: database.StatusPending}}},
+				Name: "garron.net", Status: database.StatusPending}}},
 		{"update chromiumpreload failure", data1, failChromiumpreload, api.Update, "GET", "",
 			500, textContentType, wantBody{text: "Internal error: could not retrieve latest preload list. (forced failure)\n\n"}},
 		{"update database failure", data1, failDatabase, api.Update, "GET", "",
@@ -249,50 +249,50 @@ func TestAPI(t *testing.T) {
 		// Check removals
 		{"remove preloaded-bulk-eligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-bulk-eligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "removal-preloaded-bulk-eligible.test", Status: database.StatusPendingRemoval}}},
+				Name: "removal-preloaded-bulk-eligible.test", Status: database.StatusPendingRemoval}}},
 		{"remove preloaded-not-bulk-eligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-not-bulk-eligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "removal-preloaded-not-bulk-eligible.test", Status: database.StatusPreloaded}}},
+				Name: "removal-preloaded-not-bulk-eligible.test", Status: database.StatusPreloaded}}},
 		{"remove preloaded-bulk-ineligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-bulk-ineligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "removal-preloaded-bulk-ineligible.test", Status: database.StatusPreloaded}}},
+				Name: "removal-preloaded-bulk-ineligible.test", Status: database.StatusPreloaded}}},
 		{"remove pending-eligible", data1, failNone, api.Status, "GET", "?domain=removal-pending-eligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "removal-pending-eligible.test", Status: database.StatusPendingRemoval}}},
+				Name: "removal-pending-eligible.test", Status: database.StatusPendingRemoval}}},
 		{"remove pending-ineligible", data1, failNone, api.Status, "GET", "?domain=removal-pending-ineligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "removal-pending-ineligible.test", Status: database.StatusPending}}},
+				Name: "removal-pending-ineligible.test", Status: database.StatusPending}}},
 
 		// after update
 		{"submit after preloaded", data1, failNone, api.Submit, "POST", "?domain=garron.net",
 			200, jsonContentType, wantBody{issues: &hstspreload.Issues{
-			Errors: []hstspreload.Issue{{Code: "server.preload.already_preloaded"}},
-		}}},
+				Errors: []hstspreload.Issue{{Code: "server.preload.already_preloaded"}},
+			}}},
 		{"example.com after update", data1, failNone, api.Status, "GET", "?domain=example.com",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "example.com", Status: database.StatusUnknown}}},
+				Name: "example.com", Status: database.StatusUnknown}}},
 		{"garron.net after update", data1, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "garron.net", Status: database.StatusPreloaded}}},
+				Name: "garron.net", Status: database.StatusPreloaded}}},
 		{"subdomains of garron.net after update", data1, failNone, api.Status, "GET", "?domain=www.sub.garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "www.sub.garron.net", Status: database.StatusPreloaded}}},
+				Name: "www.sub.garron.net", Status: database.StatusPreloaded}}},
 		{"chromium.org after update", data1, failNone, api.Status, "GET", "?domain=chromium.org",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "chromium.org", Status: database.StatusPreloaded}}},
+				Name: "chromium.org", Status: database.StatusPreloaded}}},
 		{"godoc.org after update", data1, failNone, api.Status, "GET", "?domain=godoc.org",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "godoc.org", Status: database.StatusUnknown}}},
+				Name: "godoc.org", Status: database.StatusUnknown}}},
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
 			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 3\n- # to be self-rejected this update: 2\nSuccess. 5 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "garron.net", Status: database.StatusRemoved}}},
+				Name: "garron.net", Status: database.StatusRemoved}}},
 		{"chromium.org after update with removal", data2, failNone, api.Status, "GET", "?domain=chromium.org",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-			Name: "chromium.org", Status: database.StatusPreloaded}}},
+				Name: "chromium.org", Status: database.StatusPreloaded}}},
 	}
 
 	for _, tt := range apiTestSequence {
