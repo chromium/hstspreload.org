@@ -128,11 +128,25 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, err := api.database.StateForDomain(domain)
+	state, err := api.stateForDomainCached(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
+	}
+
+	if state.Status == database.StatusUnknown {
+		// walk up the domain name chain.
+		for ancestorDomain, ok := parentDomain(domain); ok; ancestorDomain, ok = parentDomain(ancestorDomain) {
+			if ancestorState, err := api.stateForDomainCached(ancestorDomain); err == nil {
+				// if an ancestor domain is preloaded and includes subdomains, set current domain status
+				// to preloaded as well.
+				if ancestorState.Status == database.StatusPreloaded && ancestorState.IncludeSubDomains {
+					state.Status = database.StatusPreloaded
+					break
+				}
+			}
+		}
 	}
 
 	state.Name = domain
@@ -141,6 +155,15 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 		Bulk:        api.bulkPreloaded[domain],
 	}
 	writeJSONOrBust(w, bulkState)
+}
+
+// parentDomain finds the parent (immediate ancestor) domain of the input domain.
+func parentDomain(domain string) (string, bool) {
+	dot := strings.Index(domain, ".")
+	if dot == -1 || dot == len(domain) {
+		return "", false
+	}
+	return domain[dot+1:], true
 }
 
 // Submit takes a single domain and attempts to submit it to the
