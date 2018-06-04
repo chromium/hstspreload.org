@@ -224,8 +224,13 @@ func TestStatesWithStatus(t *testing.T) {
 			t.Errorf("%s", err)
 		}
 		sort.Slice(domainStates, func(i, j int) bool { return domainStates[i].Name < domainStates[j].Name })
-		if !reflect.DeepEqual(domainStates, tt.domains) {
-			t.Errorf("not the list of expected domains for status %s: %#v", tt.status, domainStates)
+		if len(domainStates) != len(tt.domains) {
+			t.Errorf("Incorrect count of states for status %s", tt.status)
+		}
+		for i, domainState := range domainStates {
+			if !domainState.Equal(tt.domains[i]) {
+				t.Errorf("unexpected domain at position %d for status %s: %#v", i, tt.status, domainState)
+			}
 		}
 	}
 }

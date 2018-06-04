@@ -57,6 +57,17 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 	return true
 }
 
+// Equal checks if the fields of `s` are equal to the fields of `s2`,
+// using == for all fields except for SubmissionDate, where Time.Equal is
+// used instead. This is a more strict check than MatchesWanted and is
+// intended for testing purposes.
+func (s DomainState) Equal(s2 DomainState) bool {
+	return s.Name == s2.Name && s.Status == s2.Status &&
+		s.Message == s2.Message &&
+		s.SubmissionDate.Equal(s2.SubmissionDate) &&
+		s.IncludeSubDomains == s2.IncludeSubDomains
+}
+
 // ToEntry converts a DomainState to a preloadlist.Entry.
 //
 // Only the name, preload status and include subdomains boolean is preserved during the conversion.

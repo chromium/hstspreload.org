@@ -183,23 +183,6 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 
 // StatesWithStatus returns the states of domains with the given status in the database.
 func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
-	// Calling statesForQuery results in timeout. Instead, call domainsForQuery, which returns keys
-	// only, with filter on IncludeSubDomains, and reconstruct the DomainState explicitly.
-	domainNames, err := db.domainsForQuery(
-		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", false))
-	if err != nil {
-		return domains, err
-	}
-	for _, domain := range domainNames {
-		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: false})
-	}
-	domainNames, err = db.domainsForQuery(
-		datastore.NewQuery("DomainState").Filter("Status =", string(status)).Filter("IncludeSubDomains =", true))
-	if err != nil {
-		return domains, err
-	}
-	for _, domain := range domainNames {
-		domains = append(domains, DomainState{Name: domain, Status: status, IncludeSubDomains: true})
-	}
-	return domains, err
+	return db.statesForQuery(
+		datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
