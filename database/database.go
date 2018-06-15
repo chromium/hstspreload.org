@@ -14,7 +14,7 @@ const (
 	prodProjectID  = "hstspreload"
 
 	batchSize = 450
-	timeout   = 10 * time.Second
+	timeout   = 30 * time.Second
 
 	domainStateKind = "DomainState"
 )

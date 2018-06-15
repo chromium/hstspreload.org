@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/chromium/hstspreload.org/database"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
@@ -31,7 +32,9 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	// In order to allow visiting the URL directly in the browser, we allow any method.
 
 	// Get preload list.
+	preloadListFetchStart := time.Now()
 	preloadList, listErr := api.preloadlist.NewFromLatest()
+	preloadListFetchDuration := time.Since(preloadListFetchStart)
 	if listErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve latest preload list. (%s)\n",
@@ -48,7 +51,9 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get domains currently recorded as preloaded.
+	preloadedDomainsFetchStart := time.Now()
 	preloadedDomains, dbErr := api.database.StatesWithStatus(database.StatusPreloaded)
+	preloadedDomainsFetchDuration := time.Since(preloadedDomainsFetchStart)
 	if dbErr != nil {
 		msg := fmt.Sprintf(
 			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
@@ -120,6 +125,8 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		len(removed),
 		len(selfRejected),
 	)
+	fmt.Fprintf(w, "Time spent fetching preload list: %s\n", preloadListFetchDuration)
+	fmt.Fprintf(w, "Time spent loading domains from database: %s\n", preloadedDomainsFetchDuration)
 
 	// Create log function to show progress.
 	written := false
