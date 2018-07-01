@@ -4,7 +4,3 @@ env: flex
 handlers:
 - url: /.*
   script: _go_app
-
-error_handlers:
-- error_code: dos_api_denial
-  file: static-data/dos-response.txt
