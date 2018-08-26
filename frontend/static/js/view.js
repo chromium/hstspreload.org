@@ -75,7 +75,7 @@ PreloadView.prototype = {
   },
 
   currentDomain: function() {
-    var domain = $('#domain').value;
+    var domain = $('#domain').value.trim();
     return extractDomain(domain);
   },
 
