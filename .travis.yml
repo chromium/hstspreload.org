@@ -4,7 +4,7 @@ go:
   - 1.8
 
 install:
-  - go get github.com/golang/lint/golint
+  - go get golang.org/x/lint/golint
   - go get github.com/chromium/hstspreload
   - go get cloud.google.com/go/datastore
   - go get google.golang.org/api/option
