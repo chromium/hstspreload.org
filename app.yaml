@@ -1,4 +1,4 @@
-runtime: go
+runtime: go1.10
 env: flex
 
 handlers:
