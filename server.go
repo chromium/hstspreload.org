@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"google.golang.org/appengine"
-
 	"github.com/chromium/hstspreload.org/api"
 	"github.com/chromium/hstspreload.org/database"
 )
@@ -48,8 +46,12 @@ func main() {
 		server.HandleFunc("/api/v2/debug/set-rejected", a.DebugSetRejected)
 	}
 
+	server.HandleFunc("/_ah/health", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "ok")
+	})
+
 	fmt.Printf("Serving from: %s\n", origin(*local))
-	appengine.Main()
+	fmt.Println(http.ListenAndServe(fmt.Sprintf(":%s", port()), nil))
 }
 
 func port() string {
