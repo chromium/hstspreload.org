@@ -12,10 +12,10 @@
 .form input[type=text],
 .form input[type=submit] {
   text-align: center;
-  font-size: 1.5em;
+  font-size: 1.4em;
 
   width: 80%;
-  max-width: 20em;
+  max-width: 22em;
 
   margin: 0 auto 0.5em;
 }
