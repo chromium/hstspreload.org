@@ -1,5 +1,8 @@
-runtime: go1.10
+runtime: go1.12
 env: flex
+
+env_variables:
+  GODEBUG: "tls13=1"
 
 handlers:
 - url: /.*
