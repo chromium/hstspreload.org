@@ -7,3 +7,6 @@ env_variables:
 handlers:
 - url: /.*
   script: _go_app
+
+readiness_check:
+  path: "/_ah/health"
