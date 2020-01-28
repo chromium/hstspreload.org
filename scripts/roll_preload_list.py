@@ -4,27 +4,33 @@ import re
 import requests
 import sys
 
+
 def log(s):
   sys.stderr.write(s)
 
+
 class Chunk:
   BlankLine, CommentLine, OneLineEntry, Unknown = range(4)
+
 
 def getPendingRemovals():
   log("Fetching pending removal...\n")
   return requests.get("https://hstspreload.org/api/v2/pending-removal").json()
 
+
 def getRawText(preloadListPath):
   log("Fetching preload list from Chromium source...\n")
   with open(preloadListPath, "r") as f:
-      s = f.read()
+    s = f.read()
   return s
+
 
 def getPendingScan(pendingDataFilePath):
   log("Fetching pending list from provided path...\n")
   log("  %s\n" % pendingDataFilePath)
   with open(pendingDataFilePath, "r") as f:
-      return json.load(f)
+    return json.load(f)
+
 
 def domainsToPreload(pendingData, domainsToReject):
   numSkipping = 0
@@ -35,12 +41,11 @@ def domainsToPreload(pendingData, domainsToReject):
       yield result["domain"]
     else:
       errors = list(error["code"] for error in result["issues"]["errors"])
-      domainsToReject += [
-        {"domain": result["domain"], "errors": errors}
-      ]
+      domainsToReject += [{"domain": result["domain"], "errors": errors}]
       numSkipping += 1
   log("Pending entries preloaded: %d\n" % numPreloading)
   log("Pending entries rejected: %d\n" % numSkipping)
+
 
 def chunks(rawText):
   log("Chunking...\n")
@@ -60,6 +65,7 @@ def chunks(rawText):
         yield chunk, Chunk.Unknown
     except StopIteration:
       break
+
 
 def update(pendingRemovals, pendingAdditions, entryStrings):
   log("Removing and adding entries...\n")
@@ -81,11 +87,13 @@ def update(pendingRemovals, pendingAdditions, entryStrings):
       yield l
   log("Removed: %s\n" % removedCount)
 
+
 def write(file, output):
   log("Writing to %s...\n" % file)
   with open(file, 'w') as file:
     file.write(output)
     file.close()
+
 
 def getArgs():
   parser = argparse.ArgumentParser(description='Roll the HSTS preload list (experimental).')
@@ -93,6 +101,7 @@ def getArgs():
   parser.add_argument('pending_scan_path', type=str)
   parser.add_argument('rejected_domains_path', type=str)
   return parser.parse_args()
+
 
 def parseJsonWithComments(rawText):
   s = ""
@@ -102,6 +111,7 @@ def parseJsonWithComments(rawText):
     else:
       s += l + "\n"
   return json.loads(s)
+
 
 def checkForDupes(parsedList):
   log("Checking for duplicates...\n")
@@ -114,6 +124,7 @@ def checkForDupes(parsedList):
     else:
       seen.add(name)
   return dupes
+
 
 def main():
   args = getArgs()
@@ -141,4 +152,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+  main()

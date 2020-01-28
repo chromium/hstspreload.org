@@ -4,8 +4,10 @@ import re
 import requests
 import sys
 
+
 def log(s):
   sys.stderr.write(s)
+
 
 class State:
   BeforeLegacy18WeekBulkEntries, \
@@ -18,9 +20,11 @@ class State:
   During1YearBulkSubdomainEntries, \
   After1YearBulkSubdomainEntries = range(9)
 
+
 def getRawText():
   log("Fetching preload list from Chromium source...\n")
   return base64.b64decode(requests.get("https://chromium.googlesource.com/chromium/src/+/master/net/http/transport_security_state_static.json?format=TEXT").text)
+
 
 def extractBulkEntries(rawText):
   log("Extracting bulk entries...\n")
@@ -75,6 +79,7 @@ def extractBulkEntries(rawText):
   log("Found %d bulk entries.\n" % len(entries))
   return entries
 
+
 def sanityCheck(domainList):
   log("Sanity checking domains...\n")
   for domain in domainList:
@@ -85,16 +90,19 @@ def sanityCheck(domainList):
       raise Exception("Unexpected domain in list")
   log("\n")
 
+
 def formatForGo(domainList):
   obj = {}
   for domain in domainList:
     obj[domain] = True
   return obj
 
+
 def write(bulkDomains):
   log("Writing...\n")
   with open(sys.argv[1], 'w') as file:
     json.dump(formatForGo(bulkDomains), file)
+
 
 def main():
   rawText = getRawText()
@@ -104,5 +112,6 @@ def main():
   write(bulkDomains)
   log("\033[92mStatic bulk domain data update done!\x1b[0m\n")
 
+
 if __name__ == "__main__":
-    main()
+  main()
