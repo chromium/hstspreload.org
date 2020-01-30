@@ -92,6 +92,7 @@ def getArgs():
   parser.add_argument('preload_list_path', type=str)
   parser.add_argument('pending_scan_path', type=str)
   parser.add_argument('rejected_domains_path', type=str)
+  parser.add_argument('--skip_removals', action='store_true')
   return parser.parse_args()
 
 def parseJsonWithComments(rawText):
@@ -119,7 +120,9 @@ def main():
   args = getArgs()
 
   rawText = getRawText(args.preload_list_path)
-  pendingRemovals = getPendingRemovals()
+  pendingRemovals = []
+  if not args.skip_removals:
+    pendingRemovals = getPendingRemovals()
   domainsToReject = []
   pendingAdditions = domainsToPreload(getPendingScan(args.pending_scan_path), domainsToReject)
   updated = update(pendingRemovals, pendingAdditions, chunks(rawText))
