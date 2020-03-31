@@ -10,3 +10,6 @@ handlers:
 
 readiness_check:
   path: "/_ah/health"
+
+resources:
+  memory_gb: 3
