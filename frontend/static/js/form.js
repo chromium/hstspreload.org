@@ -268,6 +268,22 @@ PreloadController.prototype = {
   }
 };
 
+function issuesForSubdomainRemoval(status) {
+  var parentDomain = status.preloadedDomain;
+  var parentIsTLD = parentDomain.indexOf('.') == -1;
+  var error = {};
+  if (parentIsTLD) {
+    error.summary = "Domain is registered under a preloaded TLD";
+    error.message = "The entire TLD " + parentDomain + " is preloaded for HSTS and individual domain names cannot be removed.";
+  } else {
+    error.summary = "Domain is subdomain of a preloaded domain";
+    error.message = "This domain is a subdomain domain of " + parentDomain +
+                    ", which is on the preload list. To remove the HSTS " +
+                    "policy for " + status.name + ", you must remove " +
+                    parentDomain + " from the preload list.";
+  }
+  return { "errors": [error], "warnings": [] };
+}
 
 var RemovalController = function(hstsPreload) {
   this._hstsPreload = hstsPreload;
@@ -323,6 +339,9 @@ RemovalController.prototype = {
   },
 
   showResults: function(view, domain, issues, status) {
+    if (status.name != status.preloadedDomain) {
+      issues = issuesForSubdomainRemoval(status);
+    }
     view.setStatus(statusString(status, issues, domain));
 
     var showForm = false;
