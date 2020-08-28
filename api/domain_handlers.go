@@ -15,7 +15,8 @@ import (
 // DomainStateWithBulk is a DomainState that also includes information about the bulk status of the domain.
 type DomainStateWithBulk struct {
 	*database.DomainState
-	Bulk bool `json:"bulk"`
+	Bulk            bool   `json:"bulk"`
+	PreloadedDomain string `json:"preloadedDomain"`
 }
 
 func normalizeDomain(unicode string) (string, error) {
@@ -128,6 +129,7 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	preloadedDomain := domain
 	state, err := api.stateForDomainCached(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
@@ -143,6 +145,7 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 				// to preloaded as well.
 				if ancestorState.Status == database.StatusPreloaded && ancestorState.IncludeSubDomains {
 					state.Status = database.StatusPreloaded
+					preloadedDomain = ancestorDomain
 					break
 				}
 			}
@@ -153,6 +156,9 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 	bulkState := DomainStateWithBulk{
 		DomainState: &state,
 		Bulk:        api.bulkPreloaded[domain],
+	}
+	if state.Status == database.StatusPreloaded {
+		bulkState.PreloadedDomain = preloadedDomain
 	}
 	writeJSONOrBust(w, bulkState)
 }
