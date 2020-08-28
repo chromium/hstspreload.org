@@ -284,6 +284,28 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "godoc.org", Status: database.StatusUnknown}}},
 
+		// subdomain status checks
+		{"subdomain status parent", data1, failNone, api.Status, "GET", "?domain=garron.net", 200, jsonContentType,
+			wantBody{
+				bulkState: &DomainStateWithBulk{
+					DomainState: &database.DomainState{
+						Name:   "garron.net",
+						Status: database.StatusPreloaded,
+					},
+					PreloadedDomain: "garron.net",
+				},
+			}},
+		{"subdomain status child", data1, failNone, api.Status, "GET", "?domain=sub.garron.net", 200, jsonContentType,
+			wantBody{
+				bulkState: &DomainStateWithBulk{
+					DomainState: &database.DomainState{
+						Name:   "sub.garron.net",
+						Status: database.StatusPreloaded,
+					},
+					PreloadedDomain: "garron.net",
+				},
+			}},
+
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
 			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 3\n- # to be self-rejected this update: 2\nSuccess. 5 domain states updated.\n"}},
@@ -349,6 +371,9 @@ func TestAPI(t *testing.T) {
 			}
 			if s.Bulk != tt.wantBody.bulkState.Bulk {
 				t.Errorf("[%s] Domain state bulk does not match wanted: %#v", tt.description, s.Bulk)
+			}
+			if tt.wantBody.bulkState.PreloadedDomain != "" && s.PreloadedDomain != tt.wantBody.bulkState.PreloadedDomain {
+				t.Errorf("[%s] Domain state preloaded domain does not match wanted: %#v", tt.description, s.PreloadedDomain)
 			}
 		}
 
