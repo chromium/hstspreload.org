@@ -33,6 +33,18 @@ var issuesRemovableProtected = hstspreload.Issues{
 	},
 }
 
+var issuesRemovableSubdomain = hstspreload.Issues{
+	Errors: []hstspreload.Issue{
+		{Code: "server.removable.subdomain"},
+	},
+}
+
+var issuesRemovablePreloadedTld = hstspreload.Issues{
+	Errors: []hstspreload.Issue{
+		{Code: "server.removable.preloaded_tld"},
+	},
+}
+
 var issuesRemoveProtected = hstspreload.Issues{
 	Errors: []hstspreload.Issue{
 		{Code: "server.remove.protected"},
@@ -127,6 +139,7 @@ func TestAPI(t *testing.T) {
 		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
+		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 	}}
 
 	pl2 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
@@ -212,7 +225,7 @@ func TestAPI(t *testing.T) {
 		{"update database failure", data1, failDatabase, api.Update, "GET", "",
 			500, textContentType, wantBody{text: "Internal error: could not retrieve domain names previously marked as preloaded. (forced failure)\n\n"}},
 		{"update success", data1, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 6 entries.\n- # of preloaded HSTS entries: 5\n- # to be added in this update: 5\n- # to be removed this update: 0\n- # to be self-rejected this update: 0\nSuccess. 5 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 7 entries.\n- # of preloaded HSTS entries: 6\n- # to be added in this update: 6\n- # to be removed this update: 0\n- # to be self-rejected this update: 0\nSuccess. 6 domain states updated.\n"}},
 		{"pending 3", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
 
@@ -225,6 +238,9 @@ func TestAPI(t *testing.T) {
 		// removable
 		{"removable preloaded-bulk-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-bulk-eligible.test",
 			200, jsonContentType, wantBody{issues: &emptyIssues}},
+		{"removable subdomain", data1, failNone, api.Removable, "GET", "?domain=subdomain.removal-preloaded-bulk-eligible.test", 200, jsonContentType, wantBody{issues: &issuesRemovableSubdomain}},
+		{"removable subsubdomain", data1, failNone, api.Removable, "GET", "?domain=sub.subdomain.removal-preloaded-bulk-eligible.test", 200, jsonContentType, wantBody{issues: &issuesRemovableSubdomain}},
+		{"removable subdomain-of-preloaded-tld", data1, failNone, api.Removable, "GET", "?domain=subdomain.dev", 200, jsonContentType, wantBody{issues: &issuesRemovablePreloadedTld}},
 		{"removable preloaded-not-bulk-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-not-bulk-eligible.test",
 			200, jsonContentType, wantBody{issues: &issuesRemovableProtected}},
 		{"removable preloaded-bulk-ineligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-bulk-ineligible.test",
@@ -308,7 +324,7 @@ func TestAPI(t *testing.T) {
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 3\n- # to be self-rejected this update: 2\nSuccess. 5 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 4\n- # to be self-rejected this update: 2\nSuccess. 6 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "garron.net", Status: database.StatusRemoved}}},
