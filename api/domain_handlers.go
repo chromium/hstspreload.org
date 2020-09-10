@@ -92,16 +92,40 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, err := api.database.StateForDomain(domain)
+	bulkState, err := api.statusForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
+	if bulkState.Status == database.StatusPreloaded && bulkState.PreloadedDomain != domain {
+		ancestorDomain := bulkState.PreloadedDomain
+		_, ancestorHasParent := parentDomain(ancestorDomain)
+		issue := hstspreload.Issue{}
+		if ancestorHasParent {
+			issue = hstspreload.Issue{
+				Code:    "server.removable.subdomain",
+				Summary: "Domain is subdomain of preloaded domain",
+				Message: fmt.Sprintf("This domain is a subdomain of %s, which is on the preload list. To remove the HSTS policy for %s, the domain %s would need to be removed from the preload list.", ancestorDomain, domain, ancestorDomain),
+			}
+		} else {
+			issue = hstspreload.Issue{
+				Code:    "server.removable.preloaded_tld",
+				Summary: "Domain is registered under a preloaded TLD",
+				Message: fmt.Sprintf("The entire TLD %s is preloaded for HSTS and individual domain names cannot be removed.", ancestorDomain),
+			}
+		}
+		issues := hstspreload.Issues{
+			Errors: []hstspreload.Issue{issue},
+		}
+		writeJSONOrBust(w, issues)
+		return
+	}
+
 	_, issues := api.hstspreload.RemovableDomain(domain)
 
-	if api.protected(domain, state.Status) {
+	if api.protected(domain, bulkState.Status) {
 		issue := hstspreload.Issue{
 			Code:    "server.removable.protected",
 			Summary: "Domain protected",
@@ -129,12 +153,20 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	preloadedDomain := domain
-	state, err := api.stateForDomainCached(domain)
+	bulkState, err := api.statusForDomain(domain)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve status. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
+	}
+	writeJSONOrBust(w, bulkState)
+}
+
+func (api API) statusForDomain(domain string) (*DomainStateWithBulk, error) {
+	preloadedDomain := domain
+	state, err := api.stateForDomainCached(domain)
+	if err != nil {
+		return nil, err
 	}
 
 	if state.Status == database.StatusUnknown {
@@ -153,14 +185,14 @@ func (api API) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	state.Name = domain
-	bulkState := DomainStateWithBulk{
+	bulkState := &DomainStateWithBulk{
 		DomainState: &state,
 		Bulk:        api.bulkPreloaded[domain],
 	}
 	if state.Status == database.StatusPreloaded {
 		bulkState.PreloadedDomain = preloadedDomain
 	}
-	writeJSONOrBust(w, bulkState)
+	return bulkState, nil
 }
 
 // parentDomain finds the parent (immediate ancestor) domain of the input domain.
