@@ -11,6 +11,11 @@
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/form.css">
   <link rel="stylesheet" href="/static/css/github.css">
+
+  <!-- Fork Corner CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-corner/dist/fork-corner.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/fork-corner/dist/fork-corner.min.js" defer></script>
+
   <script src="/static/js/base.js"></script>
   <script src="/static/js/view.js"></script>
   <script src="/static/js/form.js"></script>
@@ -21,7 +26,9 @@
   </script>
 </head>
 <body class="theme-green">
-<a class="github-fork-ribbon" href="https://github.com/chromium/hstspreload.org" data-ribbon="On GitHub" title="On GitHub">On GitHub</a>
+
+<!-- Fork Corner -->
+<a href="https://github.com/chromium/hstspreload.org" target="_blank" id="fork-corner" class="fork-corner fc-pos-tr fc-animate-default fc-theme-github"></a>
 
 <div class="content form">
   <form id="domain-form" class="hidden">
