@@ -12,9 +12,6 @@ lint:
 .PHONY: pre-commit
 pre-commit: lint build test
 
-.PHONY: travis
-travis: pre-commit
-
 .PHONY: deploy
 deploy: bulk-preloaded-force-update check version
 	date
