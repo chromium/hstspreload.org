@@ -20,7 +20,7 @@ class State:
 
 def getRawText():
   log("Fetching preload list from Chromium source...\n")
-  return base64.b64decode(requests.get("https://chromium.googlesource.com/chromium/src/+/master/net/http/transport_security_state_static.json?format=TEXT").text)
+  return base64.b64decode(requests.get("https://chromium.googlesource.com/chromium/src/+/main/net/http/transport_security_state_static.json?format=TEXT").text)
 
 def extractBulkEntries(rawText):
   log("Extracting bulk entries...\n")
