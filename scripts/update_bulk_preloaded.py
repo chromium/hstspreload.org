@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import range
+from builtins import object
 import base64
 import json
 import re
@@ -7,7 +10,7 @@ import sys
 def log(s):
   sys.stderr.write(s)
 
-class State:
+class State(object):
   BeforeLegacy18WeekBulkEntries, \
   DuringLegacy18WeekBulkEntries, \
   AfterLegacy18WeekBulkEntries, \
@@ -16,7 +19,7 @@ class State:
   During1YearBulkEntries, \
   After1YearBulkEntries, \
   During1YearBulkSubdomainEntries, \
-  After1YearBulkSubdomainEntries = range(9)
+  After1YearBulkSubdomainEntries = list(range(9))
 
 def getRawText():
   log("Fetching preload list from Chromium source...\n")

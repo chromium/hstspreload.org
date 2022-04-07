@@ -1,3 +1,7 @@
+from __future__ import print_function
+from builtins import next
+from builtins import range
+from builtins import object
 import argparse
 import json
 import re
@@ -7,8 +11,8 @@ import sys
 def log(s):
   sys.stderr.write(s)
 
-class Chunk:
-  BlankLine, CommentLine, OneLineEntry, Unknown = range(4)
+class Chunk(object):
+  BlankLine, CommentLine, OneLineEntry, Unknown = list(range(4))
 
 def getPendingRemovals():
   log("Fetching pending removal...\n")
@@ -134,13 +138,13 @@ def main():
   write(args.rejected_domains_path, json.dumps(domainsToReject, indent=2) + "\n")
 
   if dupes:
-    print "\nWARNING\nDuplicate entries:"
+    print("\nWARNING\nDuplicate entries:")
     for dupe in dupes:
-      print "- %s" % dupe
-    print "\nYou'll need to manually deduplicate entries before commiting them to Chromium."
-    print "\nNote: if there are a lot of duplicate entries, you may have accidentally run this script twice. Reset your checkout and try again."
+      print("- %s" % dupe)
+    print("\nYou'll need to manually deduplicate entries before commiting them to Chromium.")
+    print("\nNote: if there are a lot of duplicate entries, you may have accidentally run this script twice. Reset your checkout and try again.")
   else:
-    print "\nSUCCESS\n"
+    print ("\nSUCCESS\n")
 
 
 if __name__ == "__main__":
