@@ -30,7 +30,7 @@ def get_raw_text():
       requests.get(
           "https://chromium.googlesource.com/chromium/src/+/main/net/http/"
           "transport_security_state_static.json?format=TEXT"
-      ).text)
+      ).text).decode("UTF-8")
 
 
 def extract_bulk_entries(raw_text):
