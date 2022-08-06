@@ -4,6 +4,10 @@ import re
 import requests
 import sys
 
+
+TRANSPORT_SECURITY_STATE_STATIC_URL = "https://chromium.googlesource.com/chromium/src/+/main/net/http/transport_security_state_static.json?format=TEXT"
+
+
 def log(s):
   sys.stderr.write(s)
 
@@ -20,7 +24,8 @@ class State:
 
 def getRawText():
   log("Fetching preload list from Chromium source...\n")
-  return base64.b64decode(requests.get("https://chromium.googlesource.com/chromium/src/+/main/net/http/transport_security_state_static.json?format=TEXT").text)
+  return base64.b64decode(
+          requests.get(TRANSPORT_SECURITY_STATE_STATIC_URL).text).decode()
 
 def extractBulkEntries(rawText):
   log("Extracting bulk entries...\n")
