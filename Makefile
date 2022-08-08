@@ -7,13 +7,12 @@ build:
 .PHONY: lint
 lint:
 	go vet ${PROJECT}
-	golint -set_exit_status ${PROJECT}
 
 .PHONY: pre-commit
 pre-commit: lint build test
 
 .PHONY: deploy
-deploy: bulk-preloaded-force-update check version
+deploy: bulk-preloaded-force-update version
 	date
 	time gcloud app deploy app.yaml
 	date
@@ -27,19 +26,6 @@ bulk-preloaded: static-data/bulk-preloaded.json
 
 static-data/bulk-preloaded.json:
 	make bulk-preloaded-force-update
-
-CURRENT_DIR = "$(shell pwd)"
-EXPECTED_DIR = "${GOPATH}/src/github.com/chromium/hstspreload.org"
-
-.PHONY: check
-check:
-ifeq (${CURRENT_DIR}, ${EXPECTED_DIR})
-	@echo "PASS: Current directory is in \$$GOPATH."
-else
-	@echo "FAIL"
-	@echo "Expected: ${EXPECTED_DIR}"
-	@echo "Actual:   ${CURRENT_DIR}"
-endif
 
 # Version file.
 
@@ -64,7 +50,7 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 # Testing
 
 .PHONY: serve
-serve: bulk-preloaded check get-datastore-emulator version
+serve: bulk-preloaded get-datastore-emulator version
 	go run *.go -local
 
 .PHONY: test
