@@ -7,6 +7,8 @@ build:
 .PHONY: lint
 lint:
 	go vet ${PROJECT}
+	go install honnef.co/go/tools/cmd/staticcheck@v0.4.3
+	staticcheck ${PROJECT}
 
 .PHONY: pre-commit
 pre-commit: lint build test
