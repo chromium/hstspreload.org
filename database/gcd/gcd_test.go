@@ -1,10 +1,9 @@
 package gcd
 
 import "testing"
-import "github.com/chromium/hstspreload.org/database/gcd"
 
 func TestNewLocalBackend(t *testing.T) {
-	_, shutdown, err := gcd.NewLocalBackend()
+	_, shutdown, err := NewLocalBackend()
 	if err != nil {
 		t.Errorf("%s", err)
 	}

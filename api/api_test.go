@@ -351,7 +351,7 @@ func TestAPI(t *testing.T) {
 
 		tt.handlerFunc(w, r)
 
-		contentType := w.HeaderMap.Get(http.CanonicalHeaderKey("Content-Type"))
+		contentType := w.Result().Header.Get("Content-Type")
 		if contentType != tt.wantContentType {
 			t.Errorf("[%s] Wrong content type: %s", tt.description, contentType)
 		}

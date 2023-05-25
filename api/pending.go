@@ -9,7 +9,7 @@ import (
 
 func (api API) listDomainsWithStatus(w http.ResponseWriter, r *http.Request, status database.PreloadStatus, entryFormat string) {
 	if r.Method != "GET" {
-		http.Error(w, fmt.Sprintf("Wrong method. Requires GET."), http.StatusMethodNotAllowed)
+		http.Error(w, "Wrong method. Requires GET.", http.StatusMethodNotAllowed)
 		return
 	}
 

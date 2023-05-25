@@ -28,7 +28,7 @@ func NewMock() (m Mock, mc *MockController) {
 
 // PutStates mock method
 func (m Mock) PutStates(updates []DomainState, logf func(format string, args ...interface{})) error {
-	if m.state.FailCalls == true {
+	if m.state.FailCalls {
 		return errors.New("forced failure")
 	}
 
@@ -40,7 +40,7 @@ func (m Mock) PutStates(updates []DomainState, logf func(format string, args ...
 
 // PutState mock method
 func (m Mock) PutState(update DomainState) error {
-	if m.state.FailCalls == true {
+	if m.state.FailCalls {
 		return errors.New("forced failure")
 	}
 
@@ -50,7 +50,7 @@ func (m Mock) PutState(update DomainState) error {
 
 // StateForDomain mock method
 func (m Mock) StateForDomain(domain string) (state DomainState, err error) {
-	if m.state.FailCalls == true {
+	if m.state.FailCalls {
 		return state, errors.New("forced failure")
 	}
 
@@ -63,7 +63,7 @@ func (m Mock) StateForDomain(domain string) (state DomainState, err error) {
 
 // AllDomainStates mock method
 func (m Mock) AllDomainStates() (states []DomainState, err error) {
-	if m.state.FailCalls == true {
+	if m.state.FailCalls {
 		return states, errors.New("forced failure")
 	}
 
@@ -75,7 +75,7 @@ func (m Mock) AllDomainStates() (states []DomainState, err error) {
 
 // StatesWithStatus mock method
 func (m Mock) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
-	if m.state.FailCalls == true {
+	if m.state.FailCalls {
 		return domains, errors.New("forced failure")
 	}
 

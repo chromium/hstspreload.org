@@ -128,30 +128,6 @@ func (db DatastoreBacked) statesForQuery(query *datastore.Query) (states []Domai
 	return states, nil
 }
 
-// domainsForQuery returns the domains that match the given datastore query.
-func (db DatastoreBacked) domainsForQuery(query *datastore.Query) (domains []string, err error) {
-	// Set up the datastore context.
-	c, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	client, datastoreErr := db.backend.NewClient(c, db.projectID)
-	if datastoreErr != nil {
-		return domains, datastoreErr
-	}
-
-	keys, err := client.GetAll(c, query.KeysOnly(), nil)
-	if err != nil {
-		return domains, err
-	}
-
-	for _, key := range keys {
-		domain := key.Name
-		domains = append(domains, domain)
-	}
-
-	return domains, nil
-}
-
 // StateForDomain get the state for the given domain.
 // Note that the Name field of `state` will not be set.
 func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err error) {
@@ -184,5 +160,5 @@ func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 // StatesWithStatus returns the states of domains with the given status in the database.
 func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
 	return db.statesForQuery(
-		datastore.NewQuery("DomainState").Filter("Status =", string(status)))
+		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
 }
