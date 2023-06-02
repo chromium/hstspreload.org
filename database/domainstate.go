@@ -2,8 +2,9 @@ package database
 
 import (
 	"fmt"
-	"github.com/chromium/hstspreload/chromium/preloadlist"
 	"time"
+
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
@@ -33,6 +34,9 @@ type DomainState struct {
 	Message string `datastore:",noindex" json:"message,omitempty"`
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
+	//  The policy under which the domain is part of the
+	//  preload list. This field is used for list maintenance.
+	Policy string `json:"policy"`
 	// If this domain is preloaded, this boolean determines whether its descendant
 	// domains also are preloaded.
 	IncludeSubDomains bool `json:"-"`

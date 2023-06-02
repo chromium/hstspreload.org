@@ -1,6 +1,8 @@
 package api
 
-import "testing"
+import (
+	"testing"
+)
 
 var normalizeDomainTests = []struct {
 	input    string

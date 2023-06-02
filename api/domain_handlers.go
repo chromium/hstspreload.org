@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"golang.org/x/net/idna"
+	"golang.org/x/net/publicsuffix"
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.org/database"
@@ -77,6 +78,22 @@ func (api API) Preloadable(w http.ResponseWriter, r *http.Request) {
 	domain, ok := getASCIIDomain(http.MethodGet, w, r)
 	if !ok {
 		return
+	}
+
+	ps, _ := publicsuffix.PublicSuffix(domain)
+	state, _ := database.ProdDatabase().StateForDomain(ps)
+	if state.Policy == "public-suffix" {
+		_, issues := api.hstspreload.PreloadableDomain(domain)
+		issue := hstspreload.Issue{
+			Code:    "domain.preloaded_tld",
+			Summary: "Public-suffix is already preloaded",
+			Message: "This domain has a public-suffix that is already preloaded",
+		}
+		issues = hstspreload.Issues{
+			Errors:   append(issues.Errors, issue),
+			Warnings: issues.Warnings,
+		}
+		writeJSONOrBust(w, issues)
 	}
 
 	_, issues := api.hstspreload.PreloadableDomain(domain)
