@@ -140,7 +140,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		if written {
 			// The header and part of the body have already been sent, so we
 			// can't change the status code anymore.
-			fmt.Fprintf(w, msg)
+			fmt.Fprint(w, msg)
 		} else {
 			http.Error(w, msg, http.StatusInternalServerError)
 		}

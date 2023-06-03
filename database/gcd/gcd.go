@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -86,7 +87,7 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 
 	jarPath := path.Join(xdgCacheHome(), "datastore-emulator", "gcd", "CloudDatastore.jar")
 	if _, err := os.Stat(jarPath); os.IsNotExist(err) {
-		return db, shutdown, fmt.Errorf("Datastore emulator does not exist: %s", err)
+		return db, shutdown, fmt.Errorf("datastore emulator does not exist: %s", err)
 	}
 
 	cmd := exec.Command(
@@ -117,7 +118,7 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 		resp, err := http.Get("http://" + db.addr)
 		if err == nil {
 			if resp.StatusCode != 200 {
-				return db, shutdown, fmt.Errorf("Wrong status code: %d", resp.StatusCode)
+				return db, shutdown, fmt.Errorf("wrong status code: %d", resp.StatusCode)
 			}
 			return db, shutdown, nil
 		}
@@ -136,16 +137,15 @@ func (db LocalBackend) NewClient(ctx context.Context, projectID string) (*datast
 	// datastore.NewClient().
 
 	if db.addr == "" {
-		return nil, errors.New("Empty addr. Uninitialized local backend?")
+		return nil, errors.New("empty addr, uninitialized local backend?")
 	}
 
-	conn, err := grpc.Dial(db.addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(db.addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.Dial: %v", err)
 	}
 
-	var o []option.ClientOption
-	o = []option.ClientOption{option.WithGRPCConn(conn)}
+	var o = []option.ClientOption{option.WithGRPCConn(conn)}
 	client, err := datastore.NewClient(ctx, projectID, o...)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (db LocalBackend) Reset() error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Could not clear local datastore. Unexpected status: %d", 200)
+		return fmt.Errorf("could not clear local datastore, unexpected status: %d", 200)
 	}
 	return nil
 }

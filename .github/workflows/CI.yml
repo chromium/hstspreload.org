@@ -1,0 +1,16 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.15.0'
+      - uses: actions/checkout@v3
+      - run: make lint
+      - run: make build
+      - run: make test

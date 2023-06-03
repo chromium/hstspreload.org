@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -98,7 +97,7 @@ func mustSetupAPI(local bool, bulkPreloadedEntries map[string]bool) (a api.API, 
 }
 
 func mustReadBulkPreloaded() api.DomainSet {
-	file, err := ioutil.ReadFile("static-data/bulk-preloaded.json")
+	file, err := os.ReadFile("static-data/bulk-preloaded.json")
 	exitIfNotNil(err)
 
 	var bulkPreloaded api.DomainSet
