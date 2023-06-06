@@ -111,6 +111,7 @@
       <li>Serve all <strong>subdomains</strong> over HTTPS.
         <ul>
           <li>In particular, you must support HTTPS for the <code>www</code> subdomain if a DNS record for that subdomain exists.</li>
+          <li><strong>Note:</strong> HSTS preloading applies to <em>all</em> subdomains, including internal subdomains that are not publicly accessible.</li>
         </ul>
       </li>
       <li>Serve an <strong>HSTS header</strong> on the base domain for HTTPS requests:
@@ -158,7 +159,11 @@
     </p>
 
     <ol>
-      <li>Examine all subdomains (and nested subdomains) of your site and make sure that they work properly over HTTPS.</li>
+      <li>Examine all subdomains (and nested subdomains) of your site and make sure that they work properly over HTTPS.
+        <ul>
+          <li><strong>Note:</strong> This also includes internal subdomains that are not publicly accessible.</li>
+        </ul>
+      </li>
       <li>Add the <code>Strict-Transport-Security</code> header to all HTTPS responses and ramp up the <code>max-age</code> in stages, using the following header values:
         <ul>
           <li>
@@ -201,7 +206,7 @@
       If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <strong>do not include the <code>preload</code> directive by default</strong>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
     </p>
     <p>
-      It's great to support HSTS preloading as a best practice, and for projects to provide a simple option to enable it. However, site operators who enable HSTS should know about the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
+      Site operators who enable HSTS should know about the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
     </p>
   </section>
 
