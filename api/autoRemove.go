@@ -32,12 +32,12 @@ func (api API) gatherList(w http.ResponseWriter, r *http.Request) {
 
 	// Iterates over the objects and filters them by their policy, if the
 	// policy is "custom" we don't do anything
-	for _, domain := range actualPreload {
-		if domain.Policy == "bulk-18-weeks" {
-			domains18weeks = append(domains18weeks, domain.Name)
+	for _, entry := range actualPreload {
+		if entry.Policy == "bulk-18-weeks" {
+			domains18weeks = append(domains18weeks, entry.Name)
 		}
-		if domain.Policy == "bulk-1-year" {
-			domains1year = append(domains1year, domain.Name)
+		if entry.Policy == "bulk-1-year" {
+			domains1year = append(domains1year, entry.Name)
 		}
 	}
 }
