@@ -7,7 +7,7 @@ import (
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
-func (api API) gatherList(w http.ResponseWriter, r *http.Request) {
+func (api API) gatherLists(w http.ResponseWriter, r *http.Request) {
 	// Gets a preload list of domains
 	prealoadList, listErr := api.preloadlist.NewFromLatest()
 	if listErr != nil {
