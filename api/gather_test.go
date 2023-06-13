@@ -16,10 +16,11 @@ func TestGatherLists(t *testing.T) {
 		{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"}},
 	}
 
-	domains18weeks, domains1year := gatherLists(TestPreloadList)
-
 	expected18weeks := []string{"garron.net", "example.com"}
 	expected1year := []string{"pinned.badssl.com"}
+
+	domains18weeks, domains1year := gatherLists(TestPreloadList)
+
 	if !reflect.DeepEqual(domains18weeks, expected18weeks) {
 		t.Errorf("bulk18week domains does not match expected")
 	}
