@@ -4,19 +4,41 @@ import (
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
-// gatherLists returns a list of domains filtered by Policy types "bulk-18-weeks" and "bulk-1-year"
-func gatherLists(list preloadlist.PreloadList) ([]string, []string) {
-	var domains18weeks []string
-	var domains1year []string
+type PolicyType int
+
+const (
+	bulk18Week PolicyType = iota
+	bulk1Year
+)
+
+func (pt PolicyType) String() string {
+	return []string{"bulk-18-weeks", "bulk-1-year"}[pt]
+}
+
+type Domain string
+
+// GetBulk18Weeks reuturns a list of domains from the preloadlist that are of the "bulk-18-week" policy type
+func GetBulk18WeeksDomains(list preloadlist.PreloadList) []Domain {
+	var domains []Domain
 
 	for _, entry := range list.Entries {
-		if entry.Policy == "bulk-18-weeks" {
-			domains18weeks = append(domains18weeks, entry.Name)
-		}
-		if entry.Policy == "bulk-1-year" {
-			domains1year = append(domains1year, entry.Name)
+		if entry.Policy == bulk18Week.String() {
+			domains = append(domains, Domain(entry.Name))
 		}
 	}
 
-	return domains18weeks, domains1year
+	return domains
+}
+
+// GetBulk1Year returns a list of domaisn from the preloadlist that are of the "bulk-1-year" policy type
+func GetBulk1YearDomains(list preloadlist.PreloadList) []Domain {
+	var domains []Domain
+
+	for _, entry := range list.Entries {
+		if entry.Policy == bulk1Year.String() {
+			domains = append(domains, Domain(entry.Name))
+		}
+	}
+
+	return domains
 }
