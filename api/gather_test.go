@@ -15,8 +15,13 @@ var TestPreloadList = preloadlist.PreloadList{Entries: []preloadlist.Entry{
 	{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"}},
 }
 
-var expected18weeks = []Domain{"garron.net", "example.com"}
-var expected1year = []Domain{"pinned.badssl.com"}
+var expected18weeks = []preloadlist.Entry{
+	{Name: "garron.net", Mode: "force-https", IncludeSubDomains: true, Policy: "bulk-18-weeks"},
+	{Name: "example.com", Mode: "force-https", IncludeSubDomains: false, Policy: "bulk-18-weeks"},
+}
+var expected1year = []preloadlist.Entry{
+	{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"},
+}
 
 func TestGetBulk18WeeksDomains(t *testing.T) {
 	domains18weeks := GetBulk18WeeksDomains(TestPreloadList)
