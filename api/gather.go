@@ -17,7 +17,7 @@ func (pt PolicyType) String() string {
 
 type Domain string
 
-// GetBulk18Weeks reuturns a list of domains from the preloadlist that are of the "bulk-18-week" policy type
+// GetBulk18Weeks reuturns a list of domains from the preloadlist that are of the "bulk-18-weeks" policy type
 func GetBulk18WeeksDomains(list preloadlist.PreloadList) []Domain {
 	var domains []Domain
 
