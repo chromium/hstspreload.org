@@ -20,6 +20,7 @@ type IneligibleDomainState struct {
 	Policy string `json:"policy"`
 }
 
+// Scan stores the Unix time this domain was scanned and the issues that arose 
 type Scan struct {
 	ScanTime time.Time
 	Issues   []hstspreload.Issues 
