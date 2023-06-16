@@ -17,7 +17,11 @@ const (
 	timeout   = 45 * time.Second
 
 	domainStateKind        = "DomainState"
+<<<<<<< HEAD
 	ineligibleDomainStateKind = "IneligibleDomainState"
+=======
+	invalidDomainStateKind = "InvalidDomainState"
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 )
 
 // A Database is an abstraction over Datastore with hstspreload-specific
@@ -191,14 +195,26 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 		datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
 
+<<<<<<< HEAD
 // GetInvalidDomain returns the state for the given domain.
 func (db DatastoreBacked) GetInvalidDomains(domains []string) (states []IneligibleDomainState, err error) {
+=======
+type Datastore interface {
+	GetInvalidDomains(string) (InvalidDomainState, error)
+	SetInvalidDomains([]InvalidDomainState, func(string, ...interface{}))
+	DeleteInvalidDomains([]InvalidDomainState) error
+}
+
+// GetInvalidDomain returns the state for the given domain.
+func (db DatastoreBacked) GetInvalidDomains(domain []string) (state []InvalidDomainState, err error) {
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
+<<<<<<< HEAD
 		return states, datastoreErr
 	}
 
@@ -225,11 +241,34 @@ func (db DatastoreBacked) GetInvalidDomains(domains []string) (states []Ineligib
 		}
 	}
 	return get(keys)
+=======
+		return state, datastoreErr
+	}
+	for _, status := range domain{ // change to for each after testing
+		key := datastore.NameKey(invalidDomainStateKind, status, nil)
+		states := InvalidDomainState{}
+		getErr := client.Get(c, key, &states)
+		if getErr != nil {
+			if getErr == datastore.ErrNoSuchEntity {
+				println("Does not exist")
+				return state, nil
+			}
+			return state, getErr
+		}
+		states.Name = key.Name
+		state = append(state, states)
+	}
+	return state, nil
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 }
 
 // SetInvalidDomains updates the given domains updates in batches.
 // Writes updates to logf in real-time.
+<<<<<<< HEAD
 func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
+=======
+func (db DatastoreBacked) SetInvalidDomains(updates []InvalidDomainState, logf func(format string, args ...interface{})) error {
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
@@ -240,7 +279,11 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 		return datastoreErr
 	}
 
+<<<<<<< HEAD
 	set := func(keys []*datastore.Key, values []IneligibleDomainState) error {
+=======
+	set := func(keys []*datastore.Key, values []InvalidDomainState) error {
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 		
 		logf("Updating %d entries...", len(keys))
 
@@ -254,6 +297,7 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 	}
 
 	var keys []*datastore.Key
+<<<<<<< HEAD
 	var values []IneligibleDomainState
 	for _, state := range updates {
 		key := datastore.NameKey(ineligibleDomainStateKind, state.Name, nil)
@@ -261,6 +305,19 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 		values = append(values, state)
 		if len(keys) >= batchSize {
 			if err := set(keys, values); err != nil {
+=======
+	var values []InvalidDomainState
+	for _, state := range updates {
+		key := datastore.NameKey(invalidDomainStateKind, state.Name, nil)
+		keys = append(keys, key)
+		values = append(values, state)
+		for p, value := range values {
+			println(p, ": values: ", value.Name)
+		}
+		if len(keys) >= batchSize {
+			if err := set(keys, values); err != nil {
+				println("error here")
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 				return err
 			}
 			keys = keys[:0]
@@ -272,7 +329,11 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 }
 
 // DeleteInvalidDomain deletes the state for the given domain from the datbase
+<<<<<<< HEAD
 func (db DatastoreBacked) DeleteInvalidDomains(domains []string) (err error) {
+=======
+func (db DatastoreBacked) DeleteInvalidDomains(domain []string) (err error) {
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -281,6 +342,7 @@ func (db DatastoreBacked) DeleteInvalidDomains(domains []string) (err error) {
 	if datastoreErr != nil {
 		return datastoreErr
 	}
+<<<<<<< HEAD
 	delete := func(keys []*datastore.Key) error {
 		if err := client.DeleteMulti(c, keys); err != nil {
 			return err
@@ -301,3 +363,17 @@ func (db DatastoreBacked) DeleteInvalidDomains(domains []string) (err error) {
 	}
 	return delete(keys)
 }
+=======
+	for _, state := range domain{ 
+		key := datastore.NameKey(invalidDomainStateKind, state, nil)
+		getErr := client.Delete(c, key)
+		if getErr != nil {
+			if getErr == datastore.ErrNoSuchEntity {
+				return nil
+			}
+			return getErr
+		}
+	}
+	return nil
+}
+>>>>>>> 1d9f92e3649beb49099fa5a5e266ad070f10c654
