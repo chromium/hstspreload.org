@@ -262,7 +262,7 @@ var setTests = []struct {
 }
 
 // Test SetIneligibleDomainStates
-func TestSet(t *testing.T) {
+func TestSetIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
 	for _, tt := range setTests {
@@ -273,7 +273,7 @@ func TestSet(t *testing.T) {
 			statuses = append(statuses, formatted)
 		}
 
-		err := testDB.SetIneligibleDomains(
+		err := testDB.SetIneligibleDomainStates(
 			tt.domainStates,
 			statusReport,
 		)
@@ -323,13 +323,13 @@ var getAndDeleteTests = []struct {
 	},
 }
 
-// Test Set and Get
-func TestGet(t *testing.T) {
+// Test GetIneligibleDomainStates
+func TestGetIneligibleDomainStates(t *testing.T) {
 
 	resetDB()
 
 	// domainStates should be empty as domains are not added to database
-	domainStates, err := testDB.GetIneligibleDomains([]string{"a.com"})
+	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.com"})
 	if len(domainStates) != 0 {
 		t.Errorf("Empty database should contain no preloaded domains")
 	}
@@ -342,7 +342,7 @@ func TestGet(t *testing.T) {
 	}
 	for _, tt := range getAndDeleteTests {
 
-		err := testDB.SetIneligibleDomains(
+		err := testDB.SetIneligibleDomainStates(
 			tt.wantStates,
 			statusReport,
 		)
@@ -353,7 +353,7 @@ func TestGet(t *testing.T) {
 	}
 	// get domains from the database
 	for _, tr := range getAndDeleteTests {
-		domainStates, err = testDB.GetIneligibleDomains(tr.domainStates)
+		domainStates, err = testDB.GetIneligibleDomainStates(tr.domainStates)
 		if err != nil {
 			t.Errorf("%s", err)
 		}
@@ -370,13 +370,13 @@ func TestGet(t *testing.T) {
 	}
 }
 
-// TestDelete tests the DeleteIneligibleDomains
-func TestDelete(t *testing.T) {
+// TestDeleteIneligibleDomainStates tests the DeleteIneligibleDomainStates function
+func TestDeleteIneligibleDomainStates(t *testing.T) {
 
 	resetDB()
 
 	// domainStates should be empty as domains are not added to database
-	domainStates, err := testDB.GetIneligibleDomains([]string{"a.com"})
+	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.com"})
 
 	if len(domainStates) != 0 {
 		t.Errorf("Empty database should contain no preloaded domains")
@@ -389,7 +389,7 @@ func TestDelete(t *testing.T) {
 		statuses = append(statuses, formatted)
 	}
 	for _, tt := range getAndDeleteTests {
-		err := testDB.SetIneligibleDomains(
+		err := testDB.SetIneligibleDomainStates(
 			tt.wantStates,
 			statusReport,
 		)
@@ -400,7 +400,7 @@ func TestDelete(t *testing.T) {
 	}
 	// delete domains from the database
 	for _, tr := range getAndDeleteTests {
-		err = testDB.DeleteIneligibleDomains(tr.domainStates)
+		err = testDB.DeleteIneligibleDomainStates(tr.domainStates)
 		if err != nil {
 			t.Errorf("%s", err)
 		}

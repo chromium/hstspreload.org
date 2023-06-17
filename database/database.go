@@ -28,9 +28,9 @@ type Database interface {
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
-	GetIneligibleDomains(string) (IneligibleDomainState, error)
-	SetIneligibleDomains([]IneligibleDomainState, func(string, ...interface{}))
-	DeleteIneligibleDomains([]string) error
+	GetIneligibleDomainStates([]string) (IneligibleDomainState, error)
+	SetIneligibleDomainStates([]IneligibleDomainState, func(string, ...interface{}))
+	DeleteIneligibleDomainStates([]string) error
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -192,7 +192,7 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 }
 
 // GetIneligibleDomain returns the state for the given domain.
-func (db DatastoreBacked) GetIneligibleDomains(domains []string) (states []IneligibleDomainState, err error) {
+func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -228,7 +228,7 @@ func (db DatastoreBacked) GetIneligibleDomains(domains []string) (states []Ineli
 
 // SetIneligibleDomains updates the given domains updates in batches.
 // Writes updates to logf in real-time.
-func (db DatastoreBacked) SetIneligibleDomains(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
+func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
 
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
@@ -269,7 +269,7 @@ func (db DatastoreBacked) SetIneligibleDomains(updates []IneligibleDomainState, 
 }
 
 // DeleteIneligibleDomain deletes the state for the given domain from the datbase
-func (db DatastoreBacked) DeleteIneligibleDomains(domains []string) (err error) {
+func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
