@@ -28,9 +28,9 @@ type Database interface {
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
-	GetInvalidDomains(string) (IneligibleDomainState, error)
-	SetInvalidDomains([]IneligibleDomainState, func(string, ...interface{}))
-	DeleteInvalidDomains([]string) error
+	GetIneligibleDomains(string) (IneligibleDomainState, error)
+	SetIneligibleDomains([]IneligibleDomainState, func(string, ...interface{}))
+	DeleteIneligibleDomains([]string) error
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -191,8 +191,8 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 		datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
 
-// GetInvalidDomain returns the state for the given domain.
-func (db DatastoreBacked) GetInvalidDomains(domains []string) (states []IneligibleDomainState, err error) {
+// GetIneligibleDomain returns the state for the given domain.
+func (db DatastoreBacked) GetIneligibleDomains(domains []string) (states []IneligibleDomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -226,9 +226,9 @@ func (db DatastoreBacked) GetInvalidDomains(domains []string) (states []Ineligib
 	return get(keys)
 }
 
-// SetInvalidDomains updates the given domains updates in batches.
+// SetIneligibleDomains updates the given domains updates in batches.
 // Writes updates to logf in real-time.
-func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
+func (db DatastoreBacked) SetIneligibleDomains(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
 
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
@@ -268,8 +268,8 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 	return set(keys, values)
 }
 
-// DeleteInvalidDomain deletes the state for the given domain from the datbase
-func (db DatastoreBacked) DeleteInvalidDomains(domains []string) (err error) {
+// DeleteIneligibleDomain deletes the state for the given domain from the datbase
+func (db DatastoreBacked) DeleteIneligibleDomains(domains []string) (err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
