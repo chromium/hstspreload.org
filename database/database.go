@@ -16,7 +16,7 @@ const (
 	batchSize = 450
 	timeout   = 45 * time.Second
 
-	domainStateKind        = "DomainState"
+	domainStateKind           = "DomainState"
 	ineligibleDomainStateKind = "IneligibleDomainState"
 )
 
@@ -30,7 +30,7 @@ type Database interface {
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
 	GetInvalidDomains(string) (IneligibleDomainState, error)
 	SetInvalidDomains([]IneligibleDomainState, func(string, ...interface{}))
-	DeleteInvalidDomains([]IneligibleDomainState) error
+	DeleteInvalidDomains([]string) error
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
@@ -199,11 +199,10 @@ func (db DatastoreBacked) GetInvalidDomains(domains []string) (states []Ineligib
 
 	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
-		return states, datastoreErr
 	}
 
 	get := func(keys []*datastore.Key) ([]IneligibleDomainState, error) {
-		state := make([]IneligibleDomainState, len(keys)) 
+		state := make([]IneligibleDomainState, len(keys))
 		if err := client.GetMulti(c, keys, state); err != nil {
 			return nil, err
 		}
@@ -241,7 +240,7 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 	}
 
 	set := func(keys []*datastore.Key, values []IneligibleDomainState) error {
-		
+
 		logf("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
@@ -261,13 +260,11 @@ func (db DatastoreBacked) SetInvalidDomains(updates []IneligibleDomainState, log
 		values = append(values, state)
 		if len(keys) >= batchSize {
 			if err := set(keys, values); err != nil {
-				return err
+				keys = keys[:0]
+				values = values[:0]
 			}
-			keys = keys[:0]
-			values = values[:0]
 		}
 	}
-
 	return set(keys, values)
 }
 
@@ -286,7 +283,7 @@ func (db DatastoreBacked) DeleteInvalidDomains(domains []string) (err error) {
 			return err
 		}
 		return nil
-	} 
+	}
 
 	var keys []*datastore.Key
 	for _, domain := range domains {

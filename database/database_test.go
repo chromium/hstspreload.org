@@ -340,7 +340,6 @@ func TestGet(t *testing.T) {
 		formatted := fmt.Sprintf(format, args...)
 		statuses = append(statuses, formatted)
 	}
-
 	for _, tt := range getAndDeleteTests {
 
 		err := testDB.SetInvalidDomains(
@@ -352,7 +351,6 @@ func TestGet(t *testing.T) {
 			return
 		}
 	}
-
 	// get domains from the database
 	for _, tr := range getAndDeleteTests {
 		domainStates, err = testDB.GetInvalidDomains(tr.domainStates)
@@ -372,6 +370,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
+// TestDelete tests the DeleteIneligibleDomains
 func TestDelete(t *testing.T) {
 
 	resetDB()
@@ -389,7 +388,6 @@ func TestDelete(t *testing.T) {
 		formatted := fmt.Sprintf(format, args...)
 		statuses = append(statuses, formatted)
 	}
-
 	for _, tt := range getAndDeleteTests {
 		err := testDB.SetInvalidDomains(
 			tt.wantStates,
@@ -400,7 +398,6 @@ func TestDelete(t *testing.T) {
 			return
 		}
 	}
-
 	// delete domains from the database
 	for _, tr := range getAndDeleteTests {
 		err = testDB.DeleteInvalidDomains(tr.domainStates)
