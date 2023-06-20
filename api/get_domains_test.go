@@ -15,26 +15,27 @@ var TestPreloadList = preloadlist.PreloadList{Entries: []preloadlist.Entry{
 	{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"}},
 }
 
-var expected18weeks = []preloadlist.Entry{
-	{Name: "garron.net", Mode: "force-https", IncludeSubDomains: true, Policy: "bulk-18-weeks"},
-	{Name: "example.com", Mode: "force-https", IncludeSubDomains: false, Policy: "bulk-18-weeks"},
-}
-var expected1year = []preloadlist.Entry{
-	{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"},
-}
-
 func TestGetBulk18WeeksDomains(t *testing.T) {
 	domains18weeks := GetBulk18WeeksDomains(TestPreloadList)
 
+	var expected18weeks = []preloadlist.Entry{
+		{Name: "garron.net", Mode: "force-https", IncludeSubDomains: true, Policy: "bulk-18-weeks"},
+		{Name: "example.com", Mode: "force-https", IncludeSubDomains: false, Policy: "bulk-18-weeks"},
+	}
+
 	if !reflect.DeepEqual(domains18weeks, expected18weeks) {
-		t.Errorf("bulk18week domains does not match expected")
+		t.Errorf("bulk-18-week policy domains does not match expected")
 	}
 }
 
 func TestGetBulk1YearDomains(t *testing.T) {
 	domains1year := GetBulk1YearDomains(TestPreloadList)
 
+	var expected1year = []preloadlist.Entry{
+		{Name: "pinned.badssl.com", Mode: "", IncludeSubDomains: false, Policy: "bulk-1-year"},
+	}
+
 	if !reflect.DeepEqual(domains1year, expected1year) {
-		t.Errorf("bulk1year domains does not match")
+		t.Errorf("bulk-1-year policy domains does not match expected")
 	}
 }
