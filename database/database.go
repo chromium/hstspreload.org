@@ -191,7 +191,7 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 		datastore.NewQuery("DomainState").Filter("Status =", string(status)))
 }
 
-// GetIneligibleDomain returns the state for the given domain.
+// GetIneligibleDomainStates returns the state for the given domain.
 func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
@@ -226,7 +226,7 @@ func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []
 	return get(keys)
 }
 
-// SetIneligibleDomains updates the given domains updates in batches.
+// SetIneligibleDomainStates updates the given domains updates in batches.
 // Writes updates to logf in real-time.
 func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
 
@@ -268,7 +268,7 @@ func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainSt
 	return set(keys, values)
 }
 
-// DeleteIneligibleDomain deletes the state for the given domain from the datbase
+// DeleteIneligibleDomainStates deletes the state for the given domain from the datbase
 func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
