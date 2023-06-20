@@ -397,37 +397,3 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONOrBust(w, issues)
 }
-
-// Adds ineligible domains to the ineligible domains database
-//
-// Example: GET /ineligible?domain=garron.net
-func (api API) Ineligible (w http.ResponseWriter, r *http.Request) (domainState database.IneligibleDomainState){
-	if cont := api.allowCORS(w, r); !cont {
-		return
-	}
-
-	domain, ok := getASCIIDomain(http.MethodGet, w, r)
-	if !ok {
-		return
-	}
-	
-	_, issues := api.hstspreload.PreloadableDomain(domain)
-	
-	if len(issues.Errors) > 0 {
-		domainState = database.IneligibleDomainState{
-			Name: domain,
-			Scans: []database.Scan{
-				{
-					ScanTime: time.Now(),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: issues.Errors,
-							Warnings: issues.Warnings,
-						},
-					},
-				},
-			},
-		}
-	}
-	return domainState
-}
