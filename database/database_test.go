@@ -62,11 +62,11 @@ var putAndAllTests = []struct {
 	{
 		"one domain",
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusPending},
+			{Name: "gmail.test", Status: StatusPending},
 		},
 		[]string{"Updating 1 entries...", " done.\n"},
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusPending},
+			{Name: "gmail.test", Status: StatusPending},
 		},
 	},
 	{
@@ -74,33 +74,33 @@ var putAndAllTests = []struct {
 		[]DomainState{},
 		[]string{"No updates.\n"},
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusPending},
+			{Name: "gmail.test", Status: StatusPending},
 		},
 	},
 	{
 		"two domains",
 		[]DomainState{
-			{Name: "example.com", Status: StatusRejected, Message: "not enough cowbell"},
-			{Name: "garron.net", Status: StatusPreloaded},
+			{Name: "example.test", Status: StatusRejected, Message: "not enough cowbell"},
+			{Name: "garron.test", Status: StatusPreloaded},
 		},
 		[]string{"Updating 2 entries...", " done.\n"},
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusPending},
-			{Name: "example.com", Status: StatusRejected, Message: "not enough cowbell"},
-			{Name: "garron.net", Status: StatusPreloaded},
+			{Name: "gmail.test", Status: StatusPending},
+			{Name: "example.test", Status: StatusRejected, Message: "not enough cowbell"},
+			{Name: "garron.test", Status: StatusPreloaded},
 		},
 	},
 	{
 		"new + old",
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusUnknown},
+			{Name: "gmail.test", Status: StatusUnknown},
 			{Name: "wikipedia.org", Status: StatusPreloaded},
 		},
 		[]string{"Updating 2 entries...", " done.\n"},
 		[]DomainState{
-			{Name: "gmail.com", Status: StatusUnknown},
-			{Name: "example.com", Status: StatusRejected, Message: "not enough cowbell"},
-			{Name: "garron.net", Status: StatusPreloaded},
+			{Name: "gmail.test", Status: StatusUnknown},
+			{Name: "example.test", Status: StatusRejected, Message: "not enough cowbell"},
+			{Name: "garron.test", Status: StatusPreloaded},
 			{Name: "wikipedia.org", Status: StatusPreloaded},
 		},
 	},
@@ -147,14 +147,14 @@ func TestStateForDomain(t *testing.T) {
 	resetDB()
 
 	err := testDB.PutState(
-		DomainState{Name: "gmail.com", Status: StatusPending},
+		DomainState{Name: "gmail.test", Status: StatusPending},
 	)
 	if err != nil {
 		t.Errorf("cannot put state %s", err)
 		return
 	}
 
-	state, err := testDB.StateForDomain("gmail.com")
+	state, err := testDB.StateForDomain("gmail.test")
 	if err != nil {
 		t.Errorf("error retrieving state: %s", err)
 		return
@@ -163,7 +163,7 @@ func TestStateForDomain(t *testing.T) {
 		t.Errorf("Wrong status: %s", state.Status)
 	}
 
-	state, err = testDB.StateForDomain("garron.net")
+	state, err = testDB.StateForDomain("garron.test")
 	if err != nil {
 		t.Errorf("error retrieving state: %s", err)
 		return
@@ -175,16 +175,16 @@ func TestStateForDomain(t *testing.T) {
 
 // Test PutStates and AllDomainStates.
 func TestStatesWithStatus(t *testing.T) {
-	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true}
-	domainB := DomainState{Name: "b.com", Status: StatusPending, IncludeSubDomains: true}
-	domainC := DomainState{Name: "c.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainD := DomainState{Name: "d.com", Status: StatusRemoved, IncludeSubDomains: true}
-	domainE := DomainState{Name: "e.com", Status: StatusPending, IncludeSubDomains: true}
-	domainG := DomainState{Name: "g.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainH := DomainState{Name: "h.com", Status: StatusPreloaded, IncludeSubDomains: true}
-	domainI := DomainState{Name: "i.com", Status: StatusPreloaded, IncludeSubDomains: false}
-	domainJ := DomainState{Name: "j.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainK := DomainState{Name: "k.com", Status: StatusPending, IncludeSubDomains: true}
+	domainA := DomainState{Name: "a.test", Status: StatusPending, IncludeSubDomains: true}
+	domainB := DomainState{Name: "b.test", Status: StatusPending, IncludeSubDomains: true}
+	domainC := DomainState{Name: "c.test", Status: StatusRejected, IncludeSubDomains: false}
+	domainD := DomainState{Name: "d.test", Status: StatusRemoved, IncludeSubDomains: true}
+	domainE := DomainState{Name: "e.test", Status: StatusPending, IncludeSubDomains: true}
+	domainG := DomainState{Name: "g.test", Status: StatusRejected, IncludeSubDomains: false}
+	domainH := DomainState{Name: "h.test", Status: StatusPreloaded, IncludeSubDomains: true}
+	domainI := DomainState{Name: "i.test", Status: StatusPreloaded, IncludeSubDomains: false}
+	domainJ := DomainState{Name: "j.test", Status: StatusRejected, IncludeSubDomains: false}
+	domainK := DomainState{Name: "k.test", Status: StatusPending, IncludeSubDomains: true}
 	resetDB()
 
 	domainStates, err := testDB.StatesWithStatus(StatusPreloaded)
@@ -244,19 +244,19 @@ var setTests = []struct {
 	{
 		"two domains",
 		[]IneligibleDomainState{
-			{Name: "youtube.com", Policy: "bulk-1-year"},
-			{Name: "garron.net", Policy: "bulk-1-year"},
+			{Name: "youtube.test", Policy: "bulk-1-year"},
+			{Name: "garron.test", Policy: "bulk-1-year"},
 		},
 		[]string{"Updating 2 entries...", " done.\n"},
 	},
 	{
 		"bulk-18-week",
-		[]IneligibleDomainState{{Name: "gmail.com", Policy: "bulk-18-week"}},
+		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week"}},
 		[]string{"Updating 1 entries...", " done.\n"},
 	},
 	{
 		"bulk-1-year",
-		[]IneligibleDomainState{{Name: "wikipedia.com", Policy: "bulk-1-year"}},
+		[]IneligibleDomainState{{Name: "wikipedia.test", Policy: "bulk-1-year"}},
 		[]string{"Updating 1 entries...", " done.\n"},
 	},
 }
@@ -297,28 +297,28 @@ var getAndDeleteTests = []struct {
 }{
 	{
 		"one domain",
-		[]string{"a.com"},
+		[]string{"a.test"},
 		[]IneligibleDomainState{
-			{Name: "a.com", Policy: "bulk-1-year"},
+			{Name: "a.test", Policy: "bulk-1-year"},
 		},
 	},
 	{
 		"two domains",
-		[]string{"b.com", "c.com"},
-		[]IneligibleDomainState{{Name: "b.com", Policy: "bulk-18-week"},
-			{Name: "c.com", Policy: "bulk-18-week"}},
+		[]string{"b.test", "c.test"},
+		[]IneligibleDomainState{{Name: "b.test", Policy: "bulk-18-week"},
+			{Name: "c.test", Policy: "bulk-18-week"}},
 	},
 	{
 		"multiple domains",
-		[]string{"e.com", "f.com", "g.com", "h.com", "i.com", "j.com", "k.com"},
+		[]string{"e.test", "f.test", "g.test", "h.test", "i.test", "j.test", "k.test"},
 		[]IneligibleDomainState{
-			{Name: "e.com", Policy: "bulk-1-year"},
-			{Name: "f.com", Policy: "bulk-1-year"},
-			{Name: "g.com", Policy: "bulk-18-week"},
-			{Name: "h.com", Policy: "bulk-18-week"},
-			{Name: "i.com", Policy: "bulk-1-year"},
-			{Name: "j.com", Policy: "bulk-18-week"},
-			{Name: "k.com", Policy: "bulk-1-year"},
+			{Name: "e.test", Policy: "bulk-1-year"},
+			{Name: "f.test", Policy: "bulk-1-year"},
+			{Name: "g.test", Policy: "bulk-18-week"},
+			{Name: "h.test", Policy: "bulk-18-week"},
+			{Name: "i.test", Policy: "bulk-1-year"},
+			{Name: "j.test", Policy: "bulk-18-week"},
+			{Name: "k.test", Policy: "bulk-1-year"},
 		},
 	},
 }
@@ -329,7 +329,7 @@ func TestGetIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
 	// domainStates should be empty as domains are not added to database
-	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.com"})
+	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.test"})
 	if len(domainStates) != 0 {
 		t.Errorf("Empty database should contain no preloaded domains")
 	}
@@ -376,7 +376,7 @@ func TestDeleteIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
 	// domainStates should be empty as domains are not added to database
-	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.com"})
+	domainStates, err := testDB.GetIneligibleDomainStates([]string{"a.test"})
 
 	if len(domainStates) != 0 {
 		t.Errorf("Empty database should contain no preloaded domains")
