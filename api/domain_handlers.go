@@ -397,3 +397,37 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONOrBust(w, issues)
 }
+
+//
+// Example: GET /ineligible?
+func (api API) Ineligible (w http.ResponseWriter, r *http.Request){
+	
+	// Get domains from preloadList
+	preload :=  GetDomainsByPolicyType(api.preloadlist)
+
+	var domains []database.IneligibleDomainState
+
+	// Store ineligible domains in slice
+	for _, d := range preload {
+		_, issues := api.hstspreload.PreloadableDomain(d)
+	
+		if len(issues.Errors) > 0 {
+			append(domains, database.IneligibleDomainState{
+				Name: d,
+				Scans: append(Scans, []database.Scan{
+					{
+						ScanTime: time.Now(),
+						Issues: issues,
+					},
+				}),
+				Policy: database.GetIneligibleDomains({d}).policy
+			})
+		}
+	}
+
+	err := api.database.SetIneligibleDomainStates(domains, func(format string, args ...interface{}) {}) 
+	if err != nil {
+		logf(" failed.\n")
+		return err
+	}
+}
