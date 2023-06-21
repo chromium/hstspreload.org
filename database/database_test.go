@@ -94,14 +94,14 @@ var putAndAllTests = []struct {
 		"new + old",
 		[]DomainState{
 			{Name: "gmail.test", Status: StatusUnknown},
-			{Name: "wikipedia.org", Status: StatusPreloaded},
+			{Name: "wikipedia.test", Status: StatusPreloaded},
 		},
 		[]string{"Updating 2 entries...", " done.\n"},
 		[]DomainState{
 			{Name: "gmail.test", Status: StatusUnknown},
 			{Name: "example.test", Status: StatusRejected, Message: "not enough cowbell"},
 			{Name: "garron.test", Status: StatusPreloaded},
-			{Name: "wikipedia.org", Status: StatusPreloaded},
+			{Name: "wikipedia.test", Status: StatusPreloaded},
 		},
 	},
 }
