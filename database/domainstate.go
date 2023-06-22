@@ -35,7 +35,7 @@ type DomainState struct {
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
 	// If this domain is preloaded, this boolean determines whether its descendant
-	// domains also are preloadqed.
+	// domains also are preloaded.
 	IncludeSubDomains bool `json:"-"`
 	// PolicyType represents the policy under which the domain is a part of the preload list
 	Policy preloadlist.PolicyType `json:"-"`
