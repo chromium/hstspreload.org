@@ -2,8 +2,9 @@ package database
 
 import (
 	"fmt"
-	"github.com/chromium/hstspreload/chromium/preloadlist"
 	"time"
+
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
@@ -34,8 +35,10 @@ type DomainState struct {
 	// The Unix time this domain was last submitted.
 	SubmissionDate time.Time `json:"-"`
 	// If this domain is preloaded, this boolean determines whether its descendant
-	// domains also are preloaded.
+	// domains also are preloadqed.
 	IncludeSubDomains bool `json:"-"`
+	// PolicyType represents the policy under which the domain is a part of the preload list
+	Policy preloadlist.PolicyType `json:"-"`
 }
 
 // MatchesWanted checks if the fields of `s` match `wanted`.
@@ -76,7 +79,7 @@ func (s DomainState) ToEntry() preloadlist.Entry {
 	if s.Status != StatusPreloaded {
 		mode = ""
 	}
-	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains}
+	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains, Policy: s.Policy}
 }
 
 func getDomain(states []DomainState, domain string) (DomainState, error) {

@@ -86,6 +86,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 			Name:              entry.Name,
 			Status:            database.StatusPreloaded,
 			IncludeSubDomains: entry.IncludeSubDomains,
+			Policy:            entry.Policy,
 		})
 	}
 
@@ -95,6 +96,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 			Name:              entry.Name,
 			Status:            database.StatusRemoved,
 			IncludeSubDomains: entry.IncludeSubDomains,
+			Policy:            entry.Policy,
 		})
 	}
 
@@ -105,6 +107,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 			Message:           "Domain was added and removed without being preloaded.",
 			Status:            database.StatusRejected,
 			IncludeSubDomains: entry.IncludeSubDomains,
+			Policy:            entry.Policy,
 		})
 	}
 
