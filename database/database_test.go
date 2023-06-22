@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/chromium/hstspreload.org/database/gcd"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // We can share a database across tests because tests are not run
@@ -175,16 +176,16 @@ func TestStateForDomain(t *testing.T) {
 
 // Test PutStates and AllDomainStates.
 func TestStatesWithStatus(t *testing.T) {
-	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true}
-	domainB := DomainState{Name: "b.com", Status: StatusPending, IncludeSubDomains: true}
-	domainC := DomainState{Name: "c.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainD := DomainState{Name: "d.com", Status: StatusRemoved, IncludeSubDomains: true}
-	domainE := DomainState{Name: "e.com", Status: StatusPending, IncludeSubDomains: true}
-	domainG := DomainState{Name: "g.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainH := DomainState{Name: "h.com", Status: StatusPreloaded, IncludeSubDomains: true}
-	domainI := DomainState{Name: "i.com", Status: StatusPreloaded, IncludeSubDomains: false}
-	domainJ := DomainState{Name: "j.com", Status: StatusRejected, IncludeSubDomains: false}
-	domainK := DomainState{Name: "k.com", Status: StatusPending, IncludeSubDomains: true}
+	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true, Policy: preloadlist.Test}
+	domainB := DomainState{Name: "b.com", Status: StatusPending, IncludeSubDomains: true, Policy: preloadlist.Custom}
+	domainC := DomainState{Name: "c.com", Status: StatusRejected, IncludeSubDomains: false, Policy: preloadlist.UnspecifiedPolicyType}
+	domainD := DomainState{Name: "d.com", Status: StatusRemoved, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks}
+	domainE := DomainState{Name: "e.com", Status: StatusPending, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year}
+	domainG := DomainState{Name: "g.com", Status: StatusRejected, IncludeSubDomains: false, Policy: preloadlist.Test}
+	domainH := DomainState{Name: "h.com", Status: StatusPreloaded, IncludeSubDomains: true, Policy: preloadlist.Custom}
+	domainI := DomainState{Name: "i.com", Status: StatusPreloaded, IncludeSubDomains: false, Policy: preloadlist.UnspecifiedPolicyType}
+	domainJ := DomainState{Name: "j.com", Status: StatusRejected, IncludeSubDomains: false, Policy: preloadlist.Bulk18Weeks}
+	domainK := DomainState{Name: "k.com", Status: StatusPending, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year}
 	resetDB()
 
 	domainStates, err := testDB.StatesWithStatus(StatusPreloaded)
