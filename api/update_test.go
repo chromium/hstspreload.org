@@ -37,21 +37,20 @@ func TestPolicyType(t *testing.T) {
 		"removal-pending-ineligible.test":          issuesWithErrors,
 	}
 
-	// add policies here
+	// Policy types set to preloadlist.Test for testing simplicity
 	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false},
-		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
-		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
+		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Test},
+		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "godoc.og", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
 	}}
 
 	data1 := MockData{pr1, rr1, pl1}
 
 	jsonContentType := "application/json; charset=utf-8"
-	textContentType := "text/plain; charset=utf-8" // Errors
 
 	updateTest := apiTestCase{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
 		200, jsonContentType, wantBody{state: &database.DomainState{
@@ -79,9 +78,9 @@ func TestPolicyType(t *testing.T) {
 		t.Fatalf("Couldn't get the states of all domains in the database.")
 	}
 	for _, state := range states {
-		if state.Policy == preloadlist.UnspecifiedPolicyType {
-			t.Errorf("Policy field not populated in database for %s", state.Name)
+		// change to preloadlist.UnspecifiedPolicyType in due time
+		if state.Policy != preloadlist.Test {
+			t.Errorf("Policy field not accurately populated in the database for %s.", state.Name)
 		}
 	}
-
 }
