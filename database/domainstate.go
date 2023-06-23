@@ -73,7 +73,7 @@ func (s DomainState) Equal(s2 DomainState) bool {
 
 // ToEntry converts a DomainState to a preloadlist.Entry.
 //
-// Only the name, preload status and include subdomains boolean is preserved during the conversion.
+// Only the name, preload status, include subdomains boolean and policy is preserved during the conversion.
 func (s DomainState) ToEntry() preloadlist.Entry {
 	mode := preloadlist.ForceHTTPS
 	if s.Status != StatusPreloaded {
