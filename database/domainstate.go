@@ -82,6 +82,16 @@ func (s DomainState) ToEntry() preloadlist.Entry {
 	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains, Policy: s.Policy}
 }
 
+// ToDomainState converts a preloadlist.Entry to a DomainState.
+func ToDomainState(entry preloadlist.Entry, status PreloadStatus, message string) DomainState {
+	return DomainState{Name: entry.Name, Status: status, Message: message, IncludeSubDomains: entry.IncludeSubDomains, Policy: entry.Policy}
+}
+
+// ToDomainStateWithoutMessage converts a preloadlist.Entry to a DomainState with no accompanying message.
+func ToDomainStateWithoutMessage(entry preloadlist.Entry, status PreloadStatus) DomainState {
+	return ToDomainState(entry, status, "")
+}
+
 func getDomain(states []DomainState, domain string) (DomainState, error) {
 	for _, s := range states {
 		if s.Name == domain {
