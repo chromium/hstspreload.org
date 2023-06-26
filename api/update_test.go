@@ -50,9 +50,6 @@ func TestPolicyType(t *testing.T) {
 	mockHstspreload.removableResponses = TestRemovableResponses
 	mockPreloadlist.list = TestPreloadlist
 
-	mockController.FailCalls = (failNone & failDatabase) != 0
-	mockPreloadlist.failCalls = (failNone & failChromiumpreload) != 0
-
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
 
@@ -62,6 +59,10 @@ func TestPolicyType(t *testing.T) {
 	}
 
 	api.Update(w, r)
+
+	if w.Code != 200 {
+		t.Errorf("HTTP Response Invalid: Status code is not 200")
+	}
 
 	states, err := api.database.AllDomainStates()
 	if err != nil {
