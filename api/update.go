@@ -82,17 +82,17 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 
 	added := difference(difference(actualPreload, databasePreload), databasePendingRemoval)
 	for _, entry := range added {
-		updates = append(updates, database.ToDomainStateWithoutMessage(entry, database.StatusPreloaded))
+		updates = append(updates, database.EntryToDomainState(entry, database.StatusPreloaded))
 	}
 
 	removed := difference(databasePreload, actualPreload)
 	for _, entry := range removed {
-		updates = append(updates, database.ToDomainStateWithoutMessage(entry, database.StatusRemoved))
+		updates = append(updates, database.EntryToDomainState(entry, database.StatusRemoved))
 	}
 
 	selfRejected := difference(databasePendingRemoval, actualPreload)
 	for _, entry := range selfRejected {
-		updates = append(updates, database.ToDomainState(entry, database.StatusRejected, "Domain was added and removed without being preloaded."))
+		updates = append(updates, database.EntryToDomainStateWithMessage(entry, database.StatusRejected, "Domain was added and removed without being preloaded."))
 	}
 
 	fmt.Fprintf(w, `The preload list has %d entries.
