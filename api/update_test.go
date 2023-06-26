@@ -15,20 +15,20 @@ const ()
 
 // TestPolicyType tests that PolicyType is populated within the database when the Update endpoint is called.
 func TestPolicyType(t *testing.T) {
-	api, mc, h, c := mockAPI(0 * time.Second)
+	api, mockController, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	api.bulkPreloaded["removal-preloaded-bulk-eligible.test"] = true
 	api.bulkPreloaded["removal-not-preloaded-bulk-eligible.test"] = true
 	api.bulkPreloaded["removal-preloaded-bulk-ineligible.test"] = true
 
-	pr1 := map[string]hstspreload.Issues{
+	TestPreloadableResponses := map[string]hstspreload.Issues{
 		"garron.net":                      emptyIssues,
 		"badssl.com":                      issuesWithWarnings,
 		"example.com":                     issuesWithErrors,
 		"removal-pending-eligible.test":   emptyIssues,
 		"removal-pending-ineligible.test": emptyIssues,
 	}
-	rr1 := map[string]hstspreload.Issues{
+	TestRemovableResponses := map[string]hstspreload.Issues{
 		"removal-preloaded-bulk-eligible.test":     emptyIssues,
 		"removal-preloaded-not-bulk-eligible.test": emptyIssues,
 		"removal-preloaded-bulk-ineligible.test":   issuesWithErrors,
@@ -36,7 +36,7 @@ func TestPolicyType(t *testing.T) {
 		"removal-pending-ineligible.test":          issuesWithErrors,
 	}
 
-	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Custom},
 		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.UnspecifiedPolicyType},
@@ -46,12 +46,12 @@ func TestPolicyType(t *testing.T) {
 		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.UnspecifiedPolicyType},
 	}}
 
-	h.preloadableResponses = pr1
-	h.removableResponses = rr1
-	c.list = pl1
+	mockHstspreload.preloadableResponses = TestPreloadableResponses
+	mockHstspreload.removableResponses = TestRemovableResponses
+	mockPreloadlist.list = TestPreloadlist
 
-	mc.FailCalls = (failNone & failDatabase) != 0
-	c.failCalls = (failNone & failChromiumpreload) != 0
+	mockController.FailCalls = (failNone & failDatabase) != 0
+	mockPreloadlist.failCalls = (failNone & failChromiumpreload) != 0
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
