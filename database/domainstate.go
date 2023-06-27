@@ -2,8 +2,9 @@ package database
 
 import (
 	"fmt"
-	"github.com/chromium/hstspreload/chromium/preloadlist"
 	"time"
+
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // PreloadStatus represents the current status of a domain, e.g. whether it
@@ -36,6 +37,8 @@ type DomainState struct {
 	// If this domain is preloaded, this boolean determines whether its descendant
 	// domains also are preloaded.
 	IncludeSubDomains bool `json:"-"`
+	// PolicyType represents the policy under which the domain is a part of the preload list
+	Policy preloadlist.PolicyType `json:"-"`
 }
 
 // MatchesWanted checks if the fields of `s` match `wanted`.
@@ -70,13 +73,23 @@ func (s DomainState) Equal(s2 DomainState) bool {
 
 // ToEntry converts a DomainState to a preloadlist.Entry.
 //
-// Only the name, preload status and include subdomains boolean is preserved during the conversion.
+// Only the name, preload status, include subdomains boolean and policy is preserved during the conversion.
 func (s DomainState) ToEntry() preloadlist.Entry {
 	mode := preloadlist.ForceHTTPS
 	if s.Status != StatusPreloaded {
 		mode = ""
 	}
-	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains}
+	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains, Policy: s.Policy}
+}
+
+// ToDomainStateWithMessage converts a preloadlist.Entry to a DomainState.
+func EntryToDomainStateWithMessage(entry preloadlist.Entry, status PreloadStatus, message string) DomainState {
+	return DomainState{Name: entry.Name, Status: status, Message: message, IncludeSubDomains: entry.IncludeSubDomains, Policy: entry.Policy}
+}
+
+// EntryToDomainState converts a preloadlist.Entry to a DomainState with no accompanying message.
+func EntryToDomainState(entry preloadlist.Entry, status PreloadStatus) DomainState {
+	return EntryToDomainStateWithMessage(entry, status, "")
 }
 
 func getDomain(states []DomainState, domain string) (DomainState, error) {
