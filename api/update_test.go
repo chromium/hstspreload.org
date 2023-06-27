@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/chromium/hstspreload"
+	"github.com/chromium/hstspreload.org/database"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
@@ -15,7 +16,7 @@ const ()
 
 // TestPolicyType tests that PolicyType is populated within the database when the Update endpoint is called.
 func TestPolicyType(t *testing.T) {
-	api, mockController, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	api.bulkPreloaded["removal-preloaded-bulk-eligible.test"] = true
 	api.bulkPreloaded["removal-not-preloaded-bulk-eligible.test"] = true
@@ -49,6 +50,10 @@ func TestPolicyType(t *testing.T) {
 	mockHstspreload.preloadableResponses = TestPreloadableResponses
 	mockHstspreload.removableResponses = TestRemovableResponses
 	mockPreloadlist.list = TestPreloadlist
+
+	// tests for correct behavior when a domain changes from pending status to preloaded status
+	testPendingToPreloaded := database.DomainState{Name: "garron.net", Status: database.StatusPending, IncludeSubDomains: true, Policy: preloadlist.Custom}
+	api.database.PutState(testPendingToPreloaded)
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
