@@ -408,7 +408,6 @@ var getAndDeleteTests = []struct {
 func TestGetIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
-	// add domains to the database
 	var statuses []string
 	statusReport := func(format string, args ...interface{}) {
 		formatted := fmt.Sprintf(format, args...)
@@ -416,6 +415,7 @@ func TestGetIneligibleDomainStates(t *testing.T) {
 	}
 	for _, tt := range getAndDeleteTests {
 
+		// add domains to the database
 		err := testDB.SetIneligibleDomainStates(
 			tt.wantStates,
 			statusReport,
@@ -449,13 +449,13 @@ func TestDeleteIneligibleDomainStates(t *testing.T) {
 
 	var domainStates []IneligibleDomainState
 
-	// add domains to the database
 	var statuses []string
 	statusReport := func(format string, args ...interface{}) {
 		formatted := fmt.Sprintf(format, args...)
 		statuses = append(statuses, formatted)
 	}
 	for _, tt := range getAndDeleteTests {
+		// add domains to the database
 		err := testDB.SetIneligibleDomainStates(
 			tt.wantStates,
 			statusReport,
@@ -480,7 +480,6 @@ func TestDeleteIneligibleDomainStates(t *testing.T) {
 				if err != datastore.ErrNoSuchEntity {
 					t.Errorf("%s", err)
 				}
-				_ = err
 			}
 		} else {
 			if err != datastore.ErrNoSuchEntity {
@@ -552,27 +551,35 @@ func TestSetDuplicateIneligibleDomainStates(t *testing.T) {
 func TestGetDuplicateIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
+	var statuses []string
+	statusReport := func(format string, args ...interface{}) {
+		formatted := fmt.Sprintf(format, args...)
+		statuses = append(statuses, formatted)
+	}
+
 	// add domains to the database
-	for _, tt := range setIneligibleDomainTests {
-
-		var statuses []string
-		statusReport := func(format string, args ...interface{}) {
-			formatted := fmt.Sprintf(format, args...)
-			statuses = append(statuses, formatted)
-		}
-
-		err := testDB.SetIneligibleDomainStates(
-			tt.domainStates,
-			statusReport,
-		)
-		if err != nil {
-			t.Errorf("[%s] cannot put states %s", tt.description, err)
-			return
-		}
-
-		if !reflect.DeepEqual(statuses, tt.wantStatusReports) {
-			t.Errorf("[%s] Incorrect status reports: %#v", tt.description, statuses)
-		}
+	err := testDB.SetIneligibleDomainStates(
+		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
+			{
+				ScanTime: time.Unix(1234, 54324),
+				Issues: []hstspreload.Issues{
+					{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "invalid domain",
+								Summary: "domain does not exist",
+								Message: "domain name added does not exist",
+							},
+						},
+					},
+				},
+			},
+		}}},
+		statusReport,
+	)
+	if err != nil {
+		t.Errorf("[getIneligibleDuplicateDomain] cannot put states %s", err)
+		return
 	}
 
 	// get duplicate domains from the database
@@ -599,46 +606,56 @@ func TestGetDuplicateIneligibleDomainStates(t *testing.T) {
 func TestDeleteDuplicateIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
-	// add domains to the database
 	var statuses []string
 	statusReport := func(format string, args ...interface{}) {
 		formatted := fmt.Sprintf(format, args...)
 		statuses = append(statuses, formatted)
 	}
-	for _, tt := range setIneligibleDomainTests {
-		err := testDB.SetIneligibleDomainStates(
-			tt.domainStates,
-			statusReport,
-		)
-		if err != nil {
-			t.Errorf("[%s] cannot put states %s", tt.description, err)
-			return
-		}
+	// add domains to the database
+	err := testDB.SetIneligibleDomainStates(
+		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
+			{
+				ScanTime: time.Unix(1234, 54324),
+				Issues: []hstspreload.Issues{
+					{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "invalid domain",
+								Summary: "domain does not exist",
+								Message: "domain name added does not exist",
+							},
+						},
+					},
+				},
+			},
+		}}},
+		statusReport,
+	)
+	if err != nil {
+		t.Errorf("[deleteIneligibleDuplicateDomains] cannot put states %s", err)
+		return
 	}
 
 	// delete domains from the database
 	var domainNames = []string{"gmail.test", "gmail.test"}
-	err := testDB.DeleteIneligibleDomainStates(domainNames)
+	err = testDB.DeleteIneligibleDomainStates(domainNames)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
 	// get domains from the database
 	// should not exist as they are deleted
-	var domainStates []IneligibleDomainState
-	for _, tr := range getAndDeleteTests {
-		domainStates, err = testDB.GetIneligibleDomainStates(tr.domainNames)
+	domainStates, err := testDB.GetIneligibleDomainStates([]string{"gmail.test"})
 
-		if merr, ok := err.(datastore.MultiError); ok {
-			for _, err := range merr {
-				if err != datastore.ErrNoSuchEntity {
-					t.Errorf("%s", err)
-				}
-			}
-		} else {
+	if merr, ok := err.(datastore.MultiError); ok {
+		for _, err := range merr {
 			if err != datastore.ErrNoSuchEntity {
 				t.Errorf("%s", err)
 			}
+		}
+	} else {
+		if err != datastore.ErrNoSuchEntity {
+			t.Errorf("%s", err)
 		}
 	}
 
