@@ -634,7 +634,6 @@ func TestDeleteDuplicateIneligibleDomainStates(t *testing.T) {
 				if err != datastore.ErrNoSuchEntity {
 					t.Errorf("%s", err)
 				}
-				_ = err
 			}
 		} else {
 			if err != datastore.ErrNoSuchEntity {
