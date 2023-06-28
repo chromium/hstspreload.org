@@ -102,7 +102,7 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 	if bulkState.Status == database.StatusPreloaded && bulkState.PreloadedDomain != domain {
 		ancestorDomain := bulkState.PreloadedDomain
 		_, ancestorHasParent := parentDomain(ancestorDomain)
-		issue := hstspreload.Issue{}
+		var issue hstspreload.Issue
 		if ancestorHasParent {
 			issue = hstspreload.Issue{
 				Code:    "server.removable.subdomain",

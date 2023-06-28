@@ -82,30 +82,17 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 
 	added := difference(difference(actualPreload, databasePreload), databasePendingRemoval)
 	for _, entry := range added {
-		updates = append(updates, database.DomainState{
-			Name:              entry.Name,
-			Status:            database.StatusPreloaded,
-			IncludeSubDomains: entry.IncludeSubDomains,
-		})
+		updates = append(updates, database.EntryToDomainState(entry, database.StatusPreloaded))
 	}
 
 	removed := difference(databasePreload, actualPreload)
 	for _, entry := range removed {
-		updates = append(updates, database.DomainState{
-			Name:              entry.Name,
-			Status:            database.StatusRemoved,
-			IncludeSubDomains: entry.IncludeSubDomains,
-		})
+		updates = append(updates, database.EntryToDomainState(entry, database.StatusRemoved))
 	}
 
 	selfRejected := difference(databasePendingRemoval, actualPreload)
 	for _, entry := range selfRejected {
-		updates = append(updates, database.DomainState{
-			Name:              entry.Name,
-			Message:           "Domain was added and removed without being preloaded.",
-			Status:            database.StatusRejected,
-			IncludeSubDomains: entry.IncludeSubDomains,
-		})
+		updates = append(updates, database.EntryToDomainStateWithMessage(entry, database.StatusRejected, "Domain was added and removed without being preloaded."))
 	}
 
 	fmt.Fprintf(w, `The preload list has %d entries.
@@ -140,7 +127,7 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		if written {
 			// The header and part of the body have already been sent, so we
 			// can't change the status code anymore.
-			fmt.Fprintf(w, msg)
+			fmt.Fprint(w, msg)
 		} else {
 			http.Error(w, msg, http.StatusInternalServerError)
 		}
