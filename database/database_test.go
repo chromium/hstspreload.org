@@ -637,6 +637,7 @@ func TestDeleteDuplicateIneligibleDomainStates(t *testing.T) {
 		return
 	}
 
+	// delete domains from the database
 	var domainNames = []string{"gmail.test", "gmail.test"}
 	err = testDB.DeleteIneligibleDomainStates(domainNames)
 	if err != nil {
