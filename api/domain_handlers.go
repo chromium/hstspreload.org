@@ -402,32 +402,51 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 // Example: GET /ineligible?
 func (api API) Ineligible (w http.ResponseWriter, r *http.Request){
 	
-	// Get domains from preloadList
-	preload :=  GetDomainsByPolicyType(api.preloadlist)
+	var ineligibleDomains []database.IneligibleDomainState
+	var deleteEligibleDomains []string
 
-	var domains []database.IneligibleDomainState
-
+	domains, err := database.ProdDatabase().AllDomainStates()
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
 	// Store ineligible domains in slice
-	for _, d := range preload {
-		_, issues := api.hstspreload.PreloadableDomain(d)
+	for _, d := range domains{
+		_, issues := api.hstspreload.PreloadableDomain(d.Name)
 	
 		if len(issues.Errors) > 0 {
-			append(domains, database.IneligibleDomainState{
-				Name: d,
-				Scans: append(Scans, []database.Scan{
+			ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
+				Name: d.Name,
+				Scans: []database.Scan{
 					{
 						ScanTime: time.Now(),
-						Issues: issues,
+						Issues: []hstspreload.Issues{issues},
 					},
-				}),
-				Policy: database.GetIneligibleDomains({d}).policy
+				},
+				Policy: string(d.Policy),
 			})
+		} else {
+			states, _ := database.ProdDatabase().GetIneligibleDomainStates([]string{d.Name}) 
+			if states != nil {
+				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
+			} 
 		}
 	}
 
-	err := api.database.SetIneligibleDomainStates(domains, func(format string, args ...interface{}) {}) 
+	// delete eligible domains from the database
+	err = database.ProdDatabase().DeleteIneligibleDomainStates(deleteEligibleDomains)
 	if err != nil {
-		logf(" failed.\n")
-		return err
+		msg := fmt.Sprintf("Internal error: could not delete domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	// add ineliglbe domains to the database
+	err = database.ProdDatabase().SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {}) 
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
 	}
 }
