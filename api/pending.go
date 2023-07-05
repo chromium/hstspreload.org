@@ -49,3 +49,11 @@ func (api API) PendingRemoval(w http.ResponseWriter, r *http.Request) {
 	api.listDomainsWithStatus(w, r, database.StatusPendingRemoval, `    "%s"%s
 `)
 }
+
+// PendingAutomatedRemoval returns a lsit of domain with status "pending-automated-removal"
+//
+// Example: Get /pending-automated-removal
+func (api API) PendingAutomatedRemoval(w http.ResponseWriter, r *http.Request) {
+	api.listDomainsWithStatus(w, r, database.StatusPendingAutomatedRemoval, `    "%s"%s
+`)
+}
