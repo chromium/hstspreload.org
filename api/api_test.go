@@ -118,11 +118,12 @@ func TestAPI(t *testing.T) {
 	api.bulkPreloaded["removal-preloaded-bulk-ineligible.test"] = true
 
 	pr1 := map[string]hstspreload.Issues{
-		"garron.net":                      emptyIssues,
-		"badssl.com":                      issuesWithWarnings,
-		"example.com":                     issuesWithErrors,
-		"removal-pending-eligible.test":   emptyIssues,
-		"removal-pending-ineligible.test": emptyIssues,
+		"garron.net":                              emptyIssues,
+		"badssl.com":                              issuesWithWarnings,
+		"example.com":                             issuesWithErrors,
+		"removal-pending-eligible.test":           emptyIssues,
+		"removal-pending-ineligible.test":         emptyIssues,
+		"automated-removal-pending-eligible.test": emptyIssues,
 	}
 	rr1 := map[string]hstspreload.Issues{
 		"removal-preloaded-bulk-eligible.test":     emptyIssues,
@@ -130,6 +131,7 @@ func TestAPI(t *testing.T) {
 		"removal-preloaded-bulk-ineligible.test":   issuesWithErrors,
 		"removal-pending-eligible.test":            emptyIssues,
 		"removal-pending-ineligible.test":          issuesWithErrors,
+		"rautomated-removal-pending-eligible.test": emptyIssues,
 	}
 
 	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
@@ -235,6 +237,10 @@ func TestAPI(t *testing.T) {
 		{"create removable pending ineligible", data1, failNone, api.Submit, "POST", "?domain=removal-pending-ineligible.test",
 			200, jsonContentType, wantBody{issues: &emptyIssues}},
 
+		// create autoamted removable pending
+		{"create automated rmeovable pending eligible", data1, failNone, api.Submit, "POST", "?domain=automated-removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
+
 		// removable
 		{"removable preloaded-bulk-eligible", data1, failNone, api.Removable, "GET", "?domain=removal-preloaded-bulk-eligible.test",
 			200, jsonContentType, wantBody{issues: &emptyIssues}},
@@ -249,6 +255,8 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{issues: &emptyIssues}},
 		{"removable pending-ineligible", data1, failNone, api.Removable, "GET", "?domain=removal-pending-ineligible.test",
 			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+		{"automated-removable pending-eligible", data1, failNone, api.Removable, "GET", "?domain=automated-removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
 
 		// remove
 		{"remove preloaded-bulk-eligible", data1, failNone, api.Remove, "POST", "?domain=removal-preloaded-bulk-eligible.test",
@@ -261,6 +269,8 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{issues: &emptyIssues}},
 		{"remove pending-ineligible", data1, failNone, api.Remove, "POST", "?domain=removal-pending-ineligible.test",
 			200, jsonContentType, wantBody{issues: &issuesWithErrors}},
+		{"remove automated pending-eligible", data1, failNone, api.Remove, "POST", "?domain=automated-removal-pending-eligible.test",
+			200, jsonContentType, wantBody{issues: &emptyIssues}},
 
 		// Check removals
 		{"remove preloaded-bulk-eligible", data1, failNone, api.Status, "GET", "?domain=removal-preloaded-bulk-eligible.test",
@@ -278,6 +288,9 @@ func TestAPI(t *testing.T) {
 		{"remove pending-ineligible", data1, failNone, api.Status, "GET", "?domain=removal-pending-ineligible.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "removal-pending-ineligible.test", Status: database.StatusPending}}},
+		{"remove automated pending-eligible", data1, failNone, api.Status, "GET", "?domain=automated-removal-pending-eligible.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "automated-removal-pending-eligible.test", Status: database.StatusPendingRemoval}}},
 
 		// after update
 		{"submit after preloaded", data1, failNone, api.Submit, "POST", "?domain=garron.net",
