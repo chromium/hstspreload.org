@@ -37,6 +37,7 @@ func main() {
 
 	server.HandleFunc("/api/v2/pending", a.Pending)
 	server.HandleFunc("/api/v2/pending-removal", a.PendingRemoval)
+	server.HandleFunc("/api/v2/pending-automated-removal", a.PendingAutomatedRemoval)
 	server.HandleFunc("/api/v2/update", a.Update)
 
 	if *local {

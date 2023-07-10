@@ -16,7 +16,7 @@ def getPendingRemovals():
 
 def getPendingAutomatedRemovals():
   log("Fetch pending automated removal... \n")
-  return requests.get("https://hstspreload.org/api/v2/pending-removal").json()
+  return requests.get("https://hstspreload.org/api/v2/pending-automated-removal").json()
 
 def getRawText(preloadListPath):
   log("Fetching preload list from Chromium source...\n")
@@ -123,9 +123,9 @@ def checkForDupes(parsedList):
 def main():
   args = getArgs()
   rawText = getRawText(args.preload_list_path)
-  pendingRemovals = getPendingAutomatedRemovals()
+  pendingRemovals = []
   if not args.skip_removals:
-    pendingRemovals += getPendingRemovals()
+    pendingRemovals = getPendingRemovals() + getPendingAutomatedRemovals()
   domainsToReject = []
   pendingAdditions = domainsToPreload(getPendingScan(args.pending_scan_path), domainsToReject)
   updated = update(pendingRemovals, pendingAdditions, chunks(rawText))
