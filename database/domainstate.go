@@ -13,12 +13,13 @@ type PreloadStatus string
 
 // Values for PreloadStatus
 const (
-	StatusUnknown        = "unknown"
-	StatusPending        = "pending"
-	StatusPreloaded      = "preloaded"
-	StatusRejected       = "rejected"
-	StatusRemoved        = "removed"
-	StatusPendingRemoval = "pending-removal"
+	StatusUnknown                 = "unknown"
+	StatusPending                 = "pending"
+	StatusPreloaded               = "preloaded"
+	StatusRejected                = "rejected"
+	StatusRemoved                 = "removed"
+	StatusPendingRemoval          = "pending-removal"
+	StatusPendingAutomatedRemoval = "pending-automated-removal"
 )
 
 // DomainState represents the state stored for a domain in the hstspreload

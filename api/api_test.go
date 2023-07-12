@@ -153,6 +153,10 @@ func TestAPI(t *testing.T) {
 	jsonContentType := "application/json; charset=utf-8"
 	textContentType := "text/plain; charset=utf-8" // Errors
 
+	// tests for correct behavior for domains that are StatusPendingAutomatedRemoval in the database
+	pendingAutomatedRemovalDomain := database.DomainState{Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval, IncludeSubDomains: true, Policy: preloadlist.Test}
+	api.database.PutState(pendingAutomatedRemovalDomain)
+
 	apiTestSequence := []apiTestCase{
 		// wrong HTTP method
 		{"submit wrong method", data1, failNone, api.Preloadable, "POST", "?domain=garron.net",
@@ -215,6 +219,13 @@ func TestAPI(t *testing.T) {
 			200, jsonContentType, wantBody{issues: &hstspreload.Issues{
 				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
 			}}},
+
+		// pending automated removal
+		{"pending automated removal", data1, failNone, api.PendingAutomatedRemoval, "GET", "",
+			200, jsonContentType, wantBody{text: "[\n    \"pending-automated-removal.test\"\n]\n"}},
+		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval}}},
 
 		// update
 		{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
