@@ -154,7 +154,7 @@ func TestAPI(t *testing.T) {
 	textContentType := "text/plain; charset=utf-8" // Errors
 
 	// tests for correct behavior for domains that are StatusPendingAutomatedRemoval in the database
-	pendingAutomatedRemovalDomain := database.DomainState{Name: "pending-automated-removal-domain", Status: database.StatusPendingAutomatedRemoval, IncludeSubDomains: true, Policy: preloadlist.Test}
+	pendingAutomatedRemovalDomain := database.DomainState{Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval, IncludeSubDomains: true, Policy: preloadlist.Test}
 	api.database.PutState(pendingAutomatedRemovalDomain)
 
 	apiTestSequence := []apiTestCase{
@@ -222,10 +222,10 @@ func TestAPI(t *testing.T) {
 
 		// pending automated removal
 		{"pending automated removal", data1, failNone, api.PendingAutomatedRemoval, "GET", "",
-			200, jsonContentType, wantBody{text: "[\n    \"pending-automated-removal-domain\"\n]\n"}},
-		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal-domain",
+			200, jsonContentType, wantBody{text: "[\n    \"pending-automated-removal.test\"\n]\n"}},
+		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
-				Name: "pending-automated-removal-domain", Status: database.StatusPendingAutomatedRemoval}}},
+				Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval}}},
 
 		// update
 		{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
