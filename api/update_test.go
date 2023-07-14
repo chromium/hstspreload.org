@@ -18,10 +18,6 @@ const ()
 func TestPolicyType(t *testing.T) {
 	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
-	api.bulkPreloaded["removal-preloaded-bulk-eligible.test"] = true
-	api.bulkPreloaded["removal-not-preloaded-bulk-eligible.test"] = true
-	api.bulkPreloaded["removal-preloaded-bulk-ineligible.test"] = true
-
 	TestPreloadableResponses := map[string]hstspreload.Issues{
 		"garron.net":                      emptyIssues,
 		"badssl.com":                      issuesWithWarnings,

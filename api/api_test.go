@@ -56,11 +56,10 @@ func mockAPI(cacheDuration time.Duration) (api API, mc *database.MockController,
 	h = &mockHstspreload{}
 	c = &mockPreloadlist{}
 	api = API{
-		database:      db,
-		hstspreload:   h,
-		preloadlist:   c,
-		bulkPreloaded: make(DomainSet),
-		cache:         cacheWithDuration(cacheDuration),
+		database:    db,
+		hstspreload: h,
+		preloadlist: c,
+		cache:       cacheWithDuration(cacheDuration),
 	}
 	return api, mc, h, c
 }
@@ -113,10 +112,6 @@ type apiTestCase struct {
 func TestAPI(t *testing.T) {
 	api, mc, h, c := mockAPI(0 * time.Second)
 
-	api.bulkPreloaded["removal-preloaded-bulk-eligible.test"] = true
-	api.bulkPreloaded["removal-not-preloaded-bulk-eligible.test"] = true
-	api.bulkPreloaded["removal-preloaded-bulk-ineligible.test"] = true
-
 	pr1 := map[string]hstspreload.Issues{
 		"garron.net":                      emptyIssues,
 		"badssl.com":                      issuesWithWarnings,
@@ -135,9 +130,9 @@ func TestAPI(t *testing.T) {
 	pl1 := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false},
-		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
-		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
+		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
+		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.BulkLegacy},
 		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
 		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 	}}
@@ -195,7 +190,7 @@ func TestAPI(t *testing.T) {
 		{"bulk status", data1, failNone, api.Status, "GET", "?domain=removal-not-preloaded-bulk-eligible.test",
 			200, jsonContentType, wantBody{bulkState: &DomainStateWithBulk{
 				DomainState: &database.DomainState{Name: "removal-not-preloaded-bulk-eligible.test", Status: database.StatusUnknown},
-				Bulk:        true,
+				Bulk:        false,
 			}}},
 
 		// initial with database failure

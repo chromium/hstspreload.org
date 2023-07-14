@@ -10,6 +10,7 @@ import (
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.org/database"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // DomainStateWithBulk is a DomainState that also includes information about the bulk status of the domain.
@@ -57,13 +58,19 @@ func (api API) protected(domain string, state database.PreloadStatus) bool {
 		return false
 	}
 
+	domainState, _ := api.database.StateForDomain(domain)
 	// Bulk preloaded entries are not protected
-	if api.bulkPreloaded[domain] {
+	switch domainState.Policy {
+	case preloadlist.Bulk18Weeks:
 		return false
+	case preloadlist.Bulk1Year:
+		return false
+	case preloadlist.BulkLegacy:
+		return false
+	// All other entires are protected.
+	default:
+		return true
 	}
-
-	// All other entries are protected.
-	return true
 }
 
 // Preloadable takes a single domain and returns if it is preloadable.
@@ -187,7 +194,7 @@ func (api API) statusForDomain(domain string) (*DomainStateWithBulk, error) {
 	state.Name = domain
 	bulkState := &DomainStateWithBulk{
 		DomainState: &state,
-		Bulk:        api.bulkPreloaded[domain],
+		Bulk:        !api.protected(domain, state.Status),
 	}
 	if state.Status == database.StatusPreloaded {
 		bulkState.PreloadedDomain = preloadedDomain
