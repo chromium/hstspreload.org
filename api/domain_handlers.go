@@ -413,7 +413,7 @@ func (api API) Ineligible (w http.ResponseWriter, r *http.Request){
 	}
 	// Store ineligible domains in slice
 	for _, d := range domains{
-		_, issues := api.hstspreload.PreloadableDomain(d.Name)
+		_, issues := hstspreload.EligibleDomain(d.Name, d.Policy)
 	
 		if len(issues.Errors) > 0 {
 			ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
@@ -427,14 +427,19 @@ func (api API) Ineligible (w http.ResponseWriter, r *http.Request){
 				Policy: string(d.Policy),
 			})
 		} else {
-			states, _ := database.ProdDatabase().GetIneligibleDomainStates([]string{d.Name}) 
+			states, err := database.ProdDatabase().GetIneligibleDomainStates([]string{d.Name}) 
+			if err != nil {
+				msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
+				http.Error(w, msg, http.StatusInternalServerError)
+				return
+			}
 			if states != nil {
 				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
 			} 
 		}
 	}
 
-	// delete eligible domains from the database
+	// Delete eligible domains from the database
 	err = database.ProdDatabase().DeleteIneligibleDomainStates(deleteEligibleDomains)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not delete domains. (%s)\n", err)
@@ -442,11 +447,11 @@ func (api API) Ineligible (w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	// add ineliglbe domains to the database
+	// Add ineligible domains to the database
 	err = database.ProdDatabase().SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {}) 
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
-	}
+	}              
 }

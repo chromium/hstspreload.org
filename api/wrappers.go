@@ -27,6 +27,9 @@ func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.
 func (actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return hstspreload.RemovableDomain(domain)
 }
+func (actualHstspreload) EligibleDomain(domain string, policy preloadlist.PolicyType) (*string, hstspreload.Issues) {
+	return hstspreload.EligibleDomain(domain, policy)
+}
 func (actualPreloadlist) NewFromLatest() (preloadlist.PreloadList, error) {
 	return preloadlist.NewFromLatest()
 }
