@@ -272,3 +272,28 @@ func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err er
 	}
 	return delete(keys)
 }
+
+// GetAllIneligibleDomainStates returns all the ineligible domains in the database
+func (db DatastoreBacked) GetAllIneligibleDomainStates() (states []IneligibleDomainState, err error) {
+	// Set up the datastore context.
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
+	if datastoreErr != nil {
+		return states, datastoreErr
+	}
+
+	keys, err := client.GetAll(c, datastore.NewQuery("IneligibleDomainState"), &states)
+	if err != nil {
+		return states, err
+	}
+
+	for i, key := range keys {
+		state := states[i]
+		state.Name = key.Name
+		states[i] = state
+	}
+
+	return states, nil
+}
