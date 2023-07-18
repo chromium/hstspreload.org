@@ -284,7 +284,7 @@ func (db DatastoreBacked) GetAllIneligibleDomainStates() (states []IneligibleDom
 		return states, datastoreErr
 	}
 
-	keys, err := client.GetAll(c, datastore.NewQuery(""), &states)
+	keys, err := client.GetAll(c, datastore.NewQuery("IneligibleDomainState"), &states)
 	if err != nil {
 		return states, err
 	}
