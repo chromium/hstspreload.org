@@ -509,7 +509,7 @@ var getAndDeleteTests = []struct {
 // Test GetIneligibleDomainStates tests getting IneligibleDomainStates from the
 // database
 
-func TestGetAndGetAllIneligibleDomainStates(t *testing.T) {
+func TestGetIneligibleDomainStates(t *testing.T) {
 	resetDB()
 
 	var statuses []string
@@ -544,8 +544,6 @@ func TestGetAndGetAllIneligibleDomainStates(t *testing.T) {
 				t.Errorf("unexpected domain at position %d for test %s: %#v", i, tt.description, domainState)
 			}
 		}
-
-		// get all domains from the database
 	}
 }
 
