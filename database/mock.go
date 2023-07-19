@@ -2,7 +2,7 @@ package database
 
 import "errors"
 
-// Mock is a very simple Mock for DomainState database.
+// Mock is a very simple Mock for our database.
 type Mock struct {
 	ds map[string]DomainState
 	ids map[string]IneligibleDomainState
@@ -17,7 +17,7 @@ type MockController struct {
 }
 
 // NewMock constructs a new mock, along with a MockController pointer to
-// control the behaviour of the new Mock for DomainState
+// control the behaviour of the new Mock
 func NewMock() (m Mock, mc *MockController) {
 	mc = &MockController{}
 	m = Mock{
