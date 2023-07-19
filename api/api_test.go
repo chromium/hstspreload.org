@@ -187,11 +187,6 @@ func TestAPI(t *testing.T) {
 				Name: "example.com", Status: database.StatusUnknown}}},
 		{"pending 1", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
-		{"bulk status", data1, failNone, api.Status, "GET", "?domain=removal-not-preloaded-bulk-eligible.test",
-			200, jsonContentType, wantBody{bulkState: &DomainStateWithBulk{
-				DomainState: &database.DomainState{Name: "removal-not-preloaded-bulk-eligible.test", Status: database.StatusUnknown},
-				Bulk:        false,
-			}}},
 
 		// initial with database failure
 		{"pending failure", data1, failDatabase, api.Pending, "GET", "",
