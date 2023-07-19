@@ -17,7 +17,7 @@ type MockController struct {
 }
 
 // NewMock constructs a new mock, along with a MockController pointer to
-// control the behaviour of the new Mock
+// control the behaviour of the new Mock.
 func NewMock() (m Mock, mc *MockController) {
 	mc = &MockController{}
 	m = Mock{
