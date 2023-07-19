@@ -28,6 +28,10 @@ type Database interface {
 	StateForDomain(string) (DomainState, error)
 	AllDomainStates() ([]DomainState, error)
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
+	GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error)
+	SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error
+	DeleteIneligibleDomainStates(domains []string) (err error)
+	GetAllIneligibleDomainStates() (states []IneligibleDomainState, err error)
 }
 
 // DatastoreBacked is a database backed by a gcd.Backend.
