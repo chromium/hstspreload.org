@@ -19,10 +19,6 @@ deploy: bulk-preloaded-force-update version
 	time gcloud app deploy app.yaml
 	date
 
-.PHONY: bulk-preloaded-force-update
-bulk-preloaded-force-update:
-	python3 scripts/update_bulk_preloaded.py static-data/bulk-preloaded.json
-
 .PHONY: bulk-preloaded
 bulk-preloaded: static-data/bulk-preloaded.json
 
