@@ -22,6 +22,7 @@ func NewMock() (m Mock, mc *MockController) {
 	mc = &MockController{}
 	m = Mock{
 		ds:    map[string]DomainState{},
+		ids:   map[string]IneligibleDomainState{},
 		state: mc,
 	}
 	return m, mc
