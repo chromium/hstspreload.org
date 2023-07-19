@@ -109,7 +109,7 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 
 	_, issues := api.hstspreload.RemovableDomain(domain)
 
-	if bulkState.DomainState.Protected() {
+	if bulkState.DomainState.IsProtected() {
 		issue := hstspreload.Issue{
 			Code:    "server.removable.protected",
 			Summary: "Domain protected",
@@ -337,7 +337,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 	case database.StatusPending:
 		fallthrough
 	case database.StatusPreloaded:
-		if state.Protected() {
+		if state.IsProtected() {
 			issue := hstspreload.Issue{
 				Code:    "server.remove.protected",
 				Summary: "Domain protected",
