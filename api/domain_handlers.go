@@ -381,3 +381,60 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 
 	writeJSONOrBust(w, issues)
 }
+
+// Example: GET /ineligible?
+func (api API) Ineligible(w http.ResponseWriter, r *http.Request) {
+
+	var ineligibleDomains []database.IneligibleDomainState
+	var deleteEligibleDomains []string
+
+	domains, err := database.ProdDatabase().AllDomainStates()
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+	// Store ineligible domains in slice
+	for _, d := range domains {
+		_, issues := hstspreload.EligibleDomain(d.Name, d.Policy)
+
+		if len(issues.Errors) > 0 {
+			ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
+				Name: d.Name,
+				Scans: []database.Scan{
+					{
+						ScanTime: time.Now(),
+						Issues:   []hstspreload.Issues{issues},
+					},
+				},
+				Policy: string(d.Policy),
+			})
+		} else {
+			states, err := database.ProdDatabase().GetIneligibleDomainStates([]string{d.Name})
+			if err != nil {
+				msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
+				http.Error(w, msg, http.StatusInternalServerError)
+				return
+			}
+			if states != nil {
+				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
+			}
+		}
+	}
+
+	// Delete eligible domains from the database
+	err = database.ProdDatabase().DeleteIneligibleDomainStates(deleteEligibleDomains)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not delete domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	// Add ineligible domains to the database
+	err = database.ProdDatabase().SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {})
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+}
