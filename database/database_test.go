@@ -29,7 +29,7 @@ func ExampleTempLocalDatabase() {
 func TestMain(m *testing.M) {
 	localDatabase, shutdown, err := TempLocalDatabase()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not initialize local backend")
+		fmt.Fprintf(os.Stderr, "could not initialize local backend %s", err)
 		os.Exit(1)
 	}
 
@@ -174,6 +174,27 @@ func TestStateForDomain(t *testing.T) {
 	}
 	if state.Status != StatusUnknown {
 		t.Errorf("Wrong status: %s", state.Status)
+	}
+}
+
+func TestStatesForDomains(t *testing.T) {
+	resetDB()
+
+	err := testDB.PutState(
+		DomainState{Name: "gmail.com", Status: StatusPreloaded},
+	)
+	if err != nil {
+		t.Errorf("cannot put state %s", err)
+		return
+	}
+
+	domainStates, err := testDB.StatesForDomains([]string{"gmail.com", "garron.net"})
+	sort.Slice(domainStates, func(i, j int) bool { return domainStates[i].Name < domainStates[j].Name })
+	if len(domainStates) != 2 {
+		t.Errorf("Inccorect count of states for test StatesForDomain")
+	}
+	if domainStates[0].Name != "garron.net" || domainStates[1].Name != "gmail.com" {
+		t.Errorf("domain states not populated correctly for test StatesForDomain")
 	}
 }
 

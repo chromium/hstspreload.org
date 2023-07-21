@@ -153,6 +153,44 @@ func (db DatastoreBacked) StateForDomain(domain string) (state DomainState, err 
 	return state, nil
 }
 
+// StatesForDomains returns the domains states for the given domains
+func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainState, err error) {
+	// Set up datastore context
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
+	if datastoreErr != nil {
+		return states, datastoreErr
+	}
+
+	domainStatesForKeys := func(keys []*datastore.Key) ([]DomainState, error) {
+		domainStates := make([]DomainState, len(keys))
+		err := client.GetMulti(c, keys, states)
+		if err != nil {
+			return nil, err
+		}
+		for i := range domainStates {
+			states[i].Name = keys[i].Name
+		}
+		return states, nil
+	}
+
+	var keys []*datastore.Key
+	for _, domain := range domains {
+		key := datastore.NameKey(domainStateKind, domain, nil)
+		keys = append(keys, key)
+		if len(keys) >= batchSize {
+			_, err := domainStatesForKeys(keys)
+			if err != nil {
+				return nil, err
+			}
+			keys = keys[:0]
+		}
+	}
+	return domainStatesForKeys(keys)
+}
+
 // AllDomainStates gets the states of all domains in the database.
 func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 	return db.statesForQuery(datastore.NewQuery("DomainState"))
