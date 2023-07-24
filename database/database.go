@@ -164,16 +164,15 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 		return states, datastoreErr
 	}
 
-	domainStatesForKeys := func(keys []*datastore.Key) ([]DomainState, error) {
+	getDomainStates := func(keys []*datastore.Key) ([]DomainState, error) {
 		domainStates := make([]DomainState, len(keys))
-		err := client.GetMulti(c, keys, states)
-		if err != nil {
+		if err := client.GetMulti(c, keys, domainStates); err != nil {
 			return nil, err
 		}
 		for i := range domainStates {
-			states[i].Name = keys[i].Name
+			domainStates[i].Name = keys[i].Name
 		}
-		return states, nil
+		return domainStates, nil
 	}
 
 	var keys []*datastore.Key
@@ -181,14 +180,64 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 		key := datastore.NameKey(domainStateKind, domain, nil)
 		keys = append(keys, key)
 		if len(keys) >= batchSize {
-			_, err := domainStatesForKeys(keys)
+			_, err := getDomainStates(keys)
 			if err != nil {
 				return nil, err
 			}
 			keys = keys[:0]
 		}
 	}
-	return domainStatesForKeys(keys)
+
+	return getDomainStates(keys)
+}
+
+// SetPendingAutomatedRemoval sets the statuses of list of domains to PendingAutoamtedRemoval
+func (db DatastoreBacked) SetPendingAutomatedRemoval(domains []string, logf func(fomat string, args ...interface{})) error {
+	// Set up the datastore context
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
+	if datastoreErr != nil {
+		return datastoreErr
+	}
+
+	setDomainStates := func(keys []*datastore.Key, values []DomainState) error {
+		logf("Updating %d entries...", len(keys))
+
+		if _, err := client.PutMulti(c, keys, values); err != nil {
+			logf(" faild.\n")
+			return err
+		}
+		logf(" done.\n")
+		return nil
+	}
+
+	updates, err := db.StatesForDomains(domains)
+	if err != nil {
+		return err
+	}
+	for i := range updates {
+		updates[i].Status = StatusPendingAutomatedRemoval
+	}
+
+	var keys []*datastore.Key
+	var values []DomainState
+	for _, state := range updates {
+		key := datastore.NameKey(domainStateKind, state.Name, nil)
+		keys = append(keys, key)
+		values = append(values, state)
+
+		if len(keys) >= batchSize {
+			if err := setDomainStates(keys, values); err != nil {
+				return err
+			}
+			keys = keys[:0]
+			values = values[:0]
+		}
+	}
+
+	return setDomainStates(keys, values)
 }
 
 // AllDomainStates gets the states of all domains in the database.
