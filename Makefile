@@ -14,16 +14,10 @@ lint:
 pre-commit: lint build test
 
 .PHONY: deploy
-deploy: bulk-preloaded-force-update version
+deploy: version
 	date
 	time gcloud app deploy app.yaml
 	date
-
-.PHONY: bulk-preloaded
-bulk-preloaded: static-data/bulk-preloaded.json
-
-static-data/bulk-preloaded.json:
-	make bulk-preloaded-force-update
 
 # Version file.
 
@@ -48,7 +42,7 @@ ${DATABASE_TESTING_FOLDER}/gcd/gcd.sh:
 # Testing
 
 .PHONY: serve
-serve: bulk-preloaded get-datastore-emulator version
+serve: get-datastore-emulator version
 	go run *.go -local
 
 .PHONY: test
