@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -15,7 +14,7 @@ func main() {
 	local := flag.Bool("local", false, "run the server using a local database")
 	flag.Parse()
 
-	a, shutdown := mustSetupAPI(*local, mustReadBulkPreloaded())
+	a, shutdown := mustSetupAPI(*local)
 	defer shutdown()
 
 	server := hstsServer{}
@@ -70,7 +69,7 @@ func origin(local bool) string {
 	return "https://hstspreload.org"
 }
 
-func mustSetupAPI(local bool, bulkPreloadedEntries map[string]bool) (a api.API, shutdown func() error) {
+func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 	var db database.Database
 
 	if local {
@@ -89,23 +88,12 @@ func mustSetupAPI(local bool, bulkPreloadedEntries map[string]bool) (a api.API, 
 
 	fmt.Printf(" checking database connection...")
 
-	a = api.New(db, bulkPreloadedEntries)
+	a = api.New(db)
 	err := a.CheckConnection()
 	exitIfNotNil(err)
 
 	fmt.Println(" done.")
 	return a, shutdown
-}
-
-func mustReadBulkPreloaded() api.DomainSet {
-	file, err := os.ReadFile("static-data/bulk-preloaded.json")
-	exitIfNotNil(err)
-
-	var bulkPreloaded api.DomainSet
-	err = json.Unmarshal(file, &bulkPreloaded)
-	exitIfNotNil(err)
-
-	return bulkPreloaded
 }
 
 func exitIfNotNil(err error) {
