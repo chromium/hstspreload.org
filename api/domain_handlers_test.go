@@ -38,44 +38,62 @@ func TestNormalizeDomain(t *testing.T) {
 
 // TestIneligible tests that IneligibleDomainState Database is populated when the Ineligible endpoint is called.
 func TestIneligible(t *testing.T) {
-	api, _, _, mockPreloadlist := mockAPI(0 * time.Second)
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	// database.Scan values for testing
-	formatIssues := database.Scan{
-		ScanTime: time.Date(2003, time.April, 11, 6, 30, 2, 143, time.UTC),
-		Issues: []hstspreload.Issues{{
-			Errors: []hstspreload.Issue{},
-		}},
+	timeNow := time.Date(2023,time.July, 25, 3, 35, 44, 11, time.UTC)
+
+	emptyScan := database.Scan{
+		ScanTime: mockTime.Now(mockTime{time: timeNow}),
+		Issues:   []hstspreload.Issues{emptyIssues},
 	}
 
-	WWWIssues := database.Scan{
-		ScanTime: time.Date(2023, time.July, 24, 1, 38, 25, 98, time.UTC),
-		Issues: []hstspreload.Issues{{
-			Errors: []hstspreload.Issue{},
-		}},
+	warningScan := database.Scan{
+		ScanTime: mockTime.Now(mockTime{time: timeNow}),
+		Issues:   []hstspreload.Issues{issuesWithWarnings},
 	}
 
+	errorScan := database.Scan{
+		ScanTime: mockTime.Now(mockTime{time: timeNow}),
+		Issues:   []hstspreload.Issues{issuesWithErrors},
+	}
+
+	TestEligibleResponses := map[string]hstspreload.Issues{
+		"garron.net":   emptyIssues,
+		"badssl.com":   issuesWithWarnings,
+		"chromium.org": emptyIssues,
+		"godoc.og":     issuesWithErrors,
+		"dev":          issuesWithWarnings,
+		"example.com":  issuesWithErrors,
+	}
 	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{Name: ".garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "www.chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
+		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
 		{Name: "godoc.og", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: ".dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "badssl.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "example.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 	}}
 
 	expectedScans := map[string]database.Scan{
-		".garron.net":  formatIssues,
-		"chromium.org": WWWIssues,
-		"www.godoc.og": WWWIssues,
-		".dev":         formatIssues,
+		"garron.net":   emptyScan,
+		"badssl.com":   warningScan,
+		"chromium.org": emptyScan,
+		"godoc.og":     errorScan,
+		"dev":          warningScan,
+		"example.com":  errorScan,
 	}
 
 	expectedPolicies := map[string]string{
-		".garron.net":  preloadlist.Bulk18Weeks,
+		"garron.net":   preloadlist.Bulk18Weeks,
 		"chromium.org": preloadlist.Bulk1Year,
-		"www.godoc.og": preloadlist.Bulk1Year,
-		".dev":         preloadlist.Bulk18Weeks,
+		"godoc.og":     preloadlist.Bulk18Weeks,
+		"dev":          preloadlist.Bulk1Year,
+		"badssl.com":   preloadlist.Bulk18Weeks,
+		"example.com":  preloadlist.Bulk1Year,
 	}
 
+	mockHstspreload.eligibleResponses = TestEligibleResponses
 	mockPreloadlist.list = TestPreloadlist
 
 	w := httptest.NewRecorder()
@@ -86,6 +104,7 @@ func TestIneligible(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 
+	api.Update(w,r)
 	api.Ineligible(w, r)
 
 	if w.Code != 200 {

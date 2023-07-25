@@ -410,13 +410,8 @@ func (api API) Ineligible(w http.ResponseWriter, r *http.Request) {
 				Policy: string(d.Policy),
 			})
 		} else {
-			states, err := api.database.GetIneligibleDomainStates([]string{d.Name})
-			if err != nil {
-				msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
-				http.Error(w, msg, http.StatusInternalServerError)
-				return
-			}
-			if states != nil {
+			_, err := api.database.GetIneligibleDomainStates([]string{d.Name})
+			if err == nil {
 				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
 			}
 		}
