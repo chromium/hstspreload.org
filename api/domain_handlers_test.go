@@ -113,7 +113,7 @@ func TestIneligible(t *testing.T) {
 
 	for _, state := range states {
 		if state.Scans[0].Issues[0].Match(expectedScans[state.Name].Issues[0]) {
-			t.Errorf("Scan field not accurately populated in the database for %s, %s,\n %s", state.Name, state.Scans[0].Issues, expectedScans[state.Name].Issues)
+			t.Errorf("Scan field not accurately populated in the database for %s", state.Name)
 		}
 		if state.Policy != expectedPolicies[state.Name] {
 			t.Errorf("Policy field not accurately populated in the database for %s with %s", state.Policy, expectedPolicies[state.Name])
