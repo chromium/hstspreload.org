@@ -56,7 +56,7 @@ func TestIneligible(t *testing.T) {
 	TestEligibleResponses := map[string]hstspreload.Issues{
 		"garron.net":   emptyIssues,
 		"badssl.com":   issuesWithWarnings,
-		"chromium.org": emptyIssues,
+		"chromium.org": issuesWithErrors,
 		"godoc.og":     issuesWithErrors,
 		"dev":          issuesWithWarnings,
 		"example.com":  issuesWithErrors,
@@ -68,6 +68,7 @@ func TestIneligible(t *testing.T) {
 		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 		{Name: "badssl.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "example.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "another.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
 	}}
 
 	expectedScans := map[string]database.Scan{
@@ -100,7 +101,7 @@ func TestIneligible(t *testing.T) {
 	}
 
 	api.Update(w, r)
-	api.Ineligible(w, r)
+	api.RemoveIneligibleDomains(w, r)
 
 	if w.Code != 200 {
 		t.Errorf("HTTP Response Invalid: Status code is not 200")
@@ -112,8 +113,10 @@ func TestIneligible(t *testing.T) {
 	}
 
 	for _, state := range states {
-		if state.Scans[0].Issues[0].Match(expectedScans[state.Name].Issues[0]) {
-			t.Errorf("Scan field not accurately populated in the database for %s", state.Name)
+		for _, scan := range state.Scans {
+			if scan.Match(expectedScans[state.Name].Issues[0]) {
+				t.Errorf("Scan field not accurately populated in the database for %s", state.Name)
+			}
 		}
 		if state.Policy != expectedPolicies[state.Name] {
 			t.Errorf("Policy field not accurately populated in the database for %s with %s", state.Policy, expectedPolicies[state.Name])

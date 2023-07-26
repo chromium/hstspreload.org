@@ -10,6 +10,7 @@ import (
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload.org/database"
+	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
 // DomainStateWithBulk is a DomainState that also includes information about the bulk status of the domain.
@@ -382,8 +383,12 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 	writeJSONOrBust(w, issues)
 }
 
-// Example: GET /ineligible?
-func (api API) Ineligible(w http.ResponseWriter, r *http.Request) {
+// RemoveIneligibleDomains runs eligibility checks on domains present in the
+// database and change the status to PendingAutomatedRemoval if the domain
+// does not follow the requirements for more than 2 crawls
+
+// Example: GET /removeineligibledomains?
+func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
 	var ineligibleDomains []database.IneligibleDomainState
 	var deleteEligibleDomains []string
@@ -396,23 +401,26 @@ func (api API) Ineligible(w http.ResponseWriter, r *http.Request) {
 	}
 	// Store ineligible domains in slice
 	for _, d := range domains {
-		_, issues := hstspreload.EligibleDomain(d.Name, d.Policy)
+		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
 
-		if len(issues.Errors) > 0 {
-			ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
-				Name: d.Name,
-				Scans: []database.Scan{
-					{
-						ScanTime: time.Now(),
-						Issues:   []hstspreload.Issues{issues},
+			_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
+
+			if len(issues.Errors) > 0 {
+				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
+					Name: d.Name,
+					Scans: []database.Scan{
+						{
+							ScanTime: time.Now(),
+							Issues:   []hstspreload.Issues{issues},
+						},
 					},
-				},
-				Policy: string(d.Policy),
-			})
-		} else {
-			_, err := api.database.GetIneligibleDomainStates([]string{d.Name})
-			if err == nil {
-				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
+					Policy: string(d.Policy),
+				})
+			} else {
+				_, err := api.database.GetIneligibleDomainStates([]string{d.Name})
+				if err == nil {
+					deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
+				}
 			}
 		}
 	}
