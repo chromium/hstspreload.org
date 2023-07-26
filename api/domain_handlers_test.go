@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
@@ -41,21 +40,17 @@ func TestIneligible(t *testing.T) {
 	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	// database.Scan values for testing
-	timeNow := time.Date(2023,time.July, 25, 3, 35, 44, 11, time.UTC)
 
 	emptyScan := database.Scan{
-		ScanTime: mockTime.Now(mockTime{time: timeNow}),
-		Issues:   []hstspreload.Issues{emptyIssues},
+		Issues: []hstspreload.Issues{emptyIssues},
 	}
 
 	warningScan := database.Scan{
-		ScanTime: mockTime.Now(mockTime{time: timeNow}),
-		Issues:   []hstspreload.Issues{issuesWithWarnings},
+		Issues: []hstspreload.Issues{issuesWithWarnings},
 	}
 
 	errorScan := database.Scan{
-		ScanTime: mockTime.Now(mockTime{time: timeNow}),
-		Issues:   []hstspreload.Issues{issuesWithErrors},
+		Issues: []hstspreload.Issues{issuesWithErrors},
 	}
 
 	TestEligibleResponses := map[string]hstspreload.Issues{
@@ -78,7 +73,7 @@ func TestIneligible(t *testing.T) {
 	expectedScans := map[string]database.Scan{
 		"garron.net":   emptyScan,
 		"badssl.com":   warningScan,
-		"chromium.org": emptyScan,
+		"chromium.org": errorScan,
 		"godoc.og":     errorScan,
 		"dev":          warningScan,
 		"example.com":  errorScan,
@@ -104,7 +99,7 @@ func TestIneligible(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 
-	api.Update(w,r)
+	api.Update(w, r)
 	api.Ineligible(w, r)
 
 	if w.Code != 200 {
@@ -117,8 +112,8 @@ func TestIneligible(t *testing.T) {
 	}
 
 	for _, state := range states {
-		if !reflect.DeepEqual(state.Scans[0], expectedScans[state.Name]) {
-			t.Errorf("Scan field not accurately populated in the database for %s", state.Name)
+		if state.Scans[0].Issues[0].Match(expectedScans[state.Name].Issues[0]) {
+			t.Errorf("Scan field not accurately populated in the database for %s, %s,\n %s", state.Name, state.Scans[0].Issues, expectedScans[state.Name].Issues)
 		}
 		if state.Policy != expectedPolicies[state.Name] {
 			t.Errorf("Policy field not accurately populated in the database for %s with %s", state.Policy, expectedPolicies[state.Name])

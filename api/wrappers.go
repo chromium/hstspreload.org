@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"time"
 
 	"github.com/chromium/hstspreload"
 	"github.com/chromium/hstspreload/chromium/preloadlist"
@@ -50,10 +49,6 @@ type mockPreloadlist struct {
 	failCalls bool
 }
 
-type mockTime struct {
-	time time.Time
-}
-
 func (h mockHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
 	return nil, h.preloadableResponses[domain]
 }
@@ -68,8 +63,4 @@ func (c mockPreloadlist) NewFromLatest() (preloadlist.PreloadList, error) {
 		return preloadlist.PreloadList{}, errors.New("forced failure")
 	}
 	return c.list, nil
-}
-
-func (t mockTime) Now() (time.Time) {
-	return t.time
 }
