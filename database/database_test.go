@@ -253,14 +253,13 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "youtube.test", Policy: "bulk-1-year", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "formatting error",
-									Summary: "missing end of page line",
-									Message: "add a line at the end of the page",
-								},
+					Issues: hstspreload.Issues{
+
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "formatting error",
+								Summary: "missing end of page line",
+								Message: "add a line at the end of the page",
 							},
 						},
 					},
@@ -273,14 +272,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "youtube.test", Policy: "bulk-1-year", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "formatting error",
-									Summary: "missing end of page line",
-									Message: "add a line at the end of the page",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "formatting error",
+								Summary: "missing end of page line",
+								Message: "add a line at the end of the page",
 							},
 						},
 					},
@@ -294,14 +291,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 			{
 				ScanTime: time.Unix(1234, 54324),
-				Issues: []hstspreload.Issues{
-					{
-						Errors: []hstspreload.Issue{
-							{
-								Code:    "invalid domain",
-								Summary: "domain does not exist",
-								Message: "domain name added does not exist",
-							},
+				Issues: hstspreload.Issues{
+					Errors: []hstspreload.Issue{
+						{
+							Code:    "invalid domain",
+							Summary: "domain does not exist",
+							Message: "domain name added does not exist",
 						},
 					},
 				},
@@ -312,14 +307,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "youtube.test", Policy: "bulk-1-year", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "formatting error",
-									Summary: "missing end of page line",
-									Message: "add a line at the end of the page",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "formatting error",
+								Summary: "missing end of page line",
+								Message: "add a line at the end of the page",
 							},
 						},
 					},
@@ -329,14 +322,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "invalid domain",
-									Summary: "domain does not exist",
-									Message: "domain name added does not exist",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "invalid domain",
+								Summary: "domain does not exist",
+								Message: "domain name added does not exist",
 							},
 						},
 					},
@@ -352,14 +343,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "youtube.test", Policy: "bulk-1-year", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "formatting error",
-									Summary: "missing end of page line",
-									Message: "add a line at the end of the page",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "formatting error",
+								Summary: "missing end of page line",
+								Message: "add a line at the end of the page",
 							},
 						},
 					},
@@ -369,14 +358,12 @@ var setAndGetAllIneligibleDomainTests = []struct {
 			{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "invalid domain",
-									Summary: "domain does not exist",
-									Message: "domain name added does not exist",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "invalid domain",
+								Summary: "domain does not exist",
+								Message: "domain name added does not exist",
 							},
 						},
 					},
@@ -440,14 +427,12 @@ var getAndDeleteTests = []struct {
 			{Name: "a.test", Policy: "bulk-1-year", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "formatting error",
-									Summary: "missing end of page line",
-									Message: "add a line at the end of the page",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "formatting error",
+								Summary: "missing end of page line",
+								Message: "add a line at the end of the page",
 							},
 						},
 					},
@@ -461,14 +446,12 @@ var getAndDeleteTests = []struct {
 		[]IneligibleDomainState{{Name: "b.test", Policy: "bulk-18-week", Scans: []Scan{
 			{
 				ScanTime: time.Unix(1234, 54324),
-				Issues: []hstspreload.Issues{
-					{
-						Errors: []hstspreload.Issue{
-							{
-								Code:    "formatting error",
-								Summary: "missing end of page line",
-								Message: "add a line at the end of the page",
-							},
+				Issues: hstspreload.Issues{
+					Errors: []hstspreload.Issue{
+						{
+							Code:    "formatting error",
+							Summary: "missing end of page line",
+							Message: "add a line at the end of the page",
 						},
 					},
 				},
@@ -477,14 +460,12 @@ var getAndDeleteTests = []struct {
 			{Name: "c.test", Policy: "bulk-18-week", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "example error",
-									Summary: "missing example",
-									Message: "add example to code",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "example error",
+								Summary: "missing example",
+								Message: "add example to code",
 							},
 						},
 					},
@@ -613,14 +594,12 @@ func TestSetDuplicateIneligibleDomainStates(t *testing.T) {
 		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 			{
 				ScanTime: time.Unix(1234, 54324),
-				Issues: []hstspreload.Issues{
-					{
-						Errors: []hstspreload.Issue{
-							{
-								Code:    "format_error",
-								Summary: "Formatting error",
-								Message: "Please fix the format in your code",
-							},
+				Issues: hstspreload.Issues{
+					Errors: []hstspreload.Issue{
+						{
+							Code:    "format_error",
+							Summary: "Formatting error",
+							Message: "Please fix the format in your code",
 						},
 					},
 				},
@@ -629,14 +608,12 @@ func TestSetDuplicateIneligibleDomainStates(t *testing.T) {
 			{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 				{
 					ScanTime: time.Unix(1234, 54324),
-					Issues: []hstspreload.Issues{
-						{
-							Errors: []hstspreload.Issue{
-								{
-									Code:    "format_error",
-									Summary: "Formatting error",
-									Message: "Please fix the format in your code",
-								},
+					Issues: hstspreload.Issues{
+						Errors: []hstspreload.Issue{
+							{
+								Code:    "format_error",
+								Summary: "Formatting error",
+								Message: "Please fix the format in your code",
 							},
 						},
 					},
@@ -666,14 +643,12 @@ func TestGetDuplicateIneligibleDomainStates(t *testing.T) {
 		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 			{
 				ScanTime: time.Unix(1234, 54324),
-				Issues: []hstspreload.Issues{
-					{
-						Errors: []hstspreload.Issue{
-							{
-								Code:    "invalid domain",
-								Summary: "domain does not exist",
-								Message: "domain name added does not exist",
-							},
+				Issues: hstspreload.Issues{
+					Errors: []hstspreload.Issue{
+						{
+							Code:    "invalid domain",
+							Summary: "domain does not exist",
+							Message: "domain name added does not exist",
 						},
 					},
 				},
@@ -720,14 +695,12 @@ func TestDeleteDuplicateIneligibleDomainStates(t *testing.T) {
 		[]IneligibleDomainState{{Name: "gmail.test", Policy: "bulk-18-week", Scans: []Scan{
 			{
 				ScanTime: time.Unix(1234, 54324),
-				Issues: []hstspreload.Issues{
-					{
-						Errors: []hstspreload.Issue{
-							{
-								Code:    "invalid domain",
-								Summary: "domain does not exist",
-								Message: "domain name added does not exist",
-							},
+				Issues: hstspreload.Issues{
+					Errors: []hstspreload.Issue{
+						{
+							Code:    "invalid domain",
+							Summary: "domain does not exist",
+							Message: "domain name added does not exist",
 						},
 					},
 				},
