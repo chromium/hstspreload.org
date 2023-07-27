@@ -161,13 +161,14 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 
 	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
-		return states, datastoreErr
+		return nil, datastoreErr
 	}
 
 	getDomainStates := func(keys []*datastore.Key) ([]DomainState, error) {
 		domainStates := make([]DomainState, len(keys))
-		if err := client.GetMulti(c, keys, domainStates); err != nil {
-			return nil, err
+		getErr := client.GetMulti(c, keys, domainStates)
+		if getErr != nil {
+			return nil, getErr
 		}
 		for i := range domainStates {
 			domainStates[i].Name = keys[i].Name
@@ -176,19 +177,22 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 	}
 
 	var keys []*datastore.Key
+	var res []DomainState
+	var getErr error
 	for _, domain := range domains {
 		key := datastore.NameKey(domainStateKind, domain, nil)
 		keys = append(keys, key)
 		if len(keys) >= batchSize {
-			_, err := getDomainStates(keys)
-			if err != nil {
-				return nil, err
+			res, getErr = getDomainStates(keys)
+			if getErr != nil {
+				return nil, getErr
 			}
 			keys = keys[:0]
 		}
 	}
 
-	return getDomainStates(keys)
+	getStates, getErr := getDomainStates(keys)
+	return append(res, getStates...), getErr
 }
 
 // SetPendingAutomatedRemoval sets the statuses of list of domains to PendingAutoamtedRemoval

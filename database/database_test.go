@@ -5,7 +5,6 @@ import (
 	"os"
 	"reflect"
 	"sort"
-	"strconv"
 	"testing"
 	"time"
 
@@ -182,11 +181,11 @@ func TestStatesForDomains(t *testing.T) {
 	resetDB()
 
 	if err := testDB.PutState(DomainState{Name: "a.test", Status: StatusPreloaded}); err != nil {
-		t.Errorf("cannot put state %s for test StatatesForDomains", err)
+		t.Fatalf("Cannot put state a.test for test StatatesForDomains")
 		return
 	}
 	if err := testDB.PutState(DomainState{Name: "b.test", Status: StatusPending}); err != nil {
-		t.Errorf("cannot put state %s for test StatesForDomains", err)
+		t.Fatalf("Cannot put state b.test for test StatesForDomains")
 		return
 	}
 
@@ -197,19 +196,21 @@ func TestStatesForDomains(t *testing.T) {
 	}
 
 	sort.Slice(domainStates, func(i, j int) bool { return domainStates[i].Name < domainStates[j].Name })
-	if len(domainStates) != 2 {
-		count := strconv.Itoa(len(domainStates))
-		t.Errorf("Inccorect count of states for test StatesForDomains %s", count)
+	wantLength := 2
+	statesLength := len(domainStates)
+	if statesLength != wantLength {
+		t.Errorf("Inccorect count of states for test StatesForDomains. Got %d, but wanted %d", statesLength, wantLength)
 	}
+
 	if domainStates[0].Name != "a.test" || domainStates[1].Name != "b.test" {
-		t.Errorf("Domain states not populated correctly for test StatesForDomains")
+		t.Errorf("Domain states not populated correctly for test StatesForDomains. Got the names %s and %s, but wanted a.test and b.test", domainStates[0].Name, domainStates[1].Name)
 	}
 
 	// tests domain not in database
-	domainStates, err = testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
+	domainStates, getErr := testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
 	wantError := "datastore: no such entity"
-	if err.Error() != wantError {
-		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains %s", err)
+	if getErr.Error() != wantError {
+		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains. Got %s, but wanted %s", err, wantError)
 	}
 }
 
@@ -275,7 +276,7 @@ func TestStatesWithStatus(t *testing.T) {
 	}
 }
 
-func TestSetAutomatedPendingRemoval(t *testing.T) {
+func TestSetPendingAutomatedRemoval(t *testing.T) {
 	resetDB()
 
 	testStates := []DomainState{
@@ -289,7 +290,7 @@ func TestSetAutomatedPendingRemoval(t *testing.T) {
 
 	for _, state := range testStates {
 		if err := testDB.PutState(state); err != nil {
-			t.Errorf("cannot put state %s", err)
+			t.Fatalf("cannot put state for test SetPendingAutomatedRemoval: %s", err)
 			return
 		}
 	}
@@ -303,7 +304,7 @@ func TestSetAutomatedPendingRemoval(t *testing.T) {
 
 	err := testDB.SetPendingAutomatedRemoval(testDomains, statusReport)
 	if err != nil {
-		t.Errorf("Error for test SetAutoamtedPendingRemoval: %s", err)
+		t.Errorf("Unexpected error for test SetAutoamtedPendingRemoval: %s", err)
 	}
 
 	domainStates, allDomainStatesErr := testDB.AllDomainStates()
