@@ -404,20 +404,28 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
 
 			_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
-
+			state, err := api.database.GetIneligibleDomainStates([]string{d.Name})
 			if len(issues.Errors) > 0 {
-				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
-					Name: d.Name,
-					Scans: []database.Scan{
-						{
-							ScanTime: time.Now(),
-							Issues:   []hstspreload.Issues{issues},
+				if len(state) > 0 {
+					state[0].Scans = append(state[0].Scans, database.Scan{
+						ScanTime: time.Now(),
+						Issues:   issues,
+					})
+					ineligibleDomains = append(ineligibleDomains, state[0])
+				} else {
+					ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
+						Name: d.Name,
+						Scans: []database.Scan{
+							{
+								ScanTime: time.Now(),
+								Issues:   issues,
+							},
 						},
-					},
-					Policy: string(d.Policy),
-				})
+						Policy: string(d.Policy),
+					})
+				}
+
 			} else {
-				_, err := api.database.GetIneligibleDomainStates([]string{d.Name})
 				if err == nil {
 					deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
 				}

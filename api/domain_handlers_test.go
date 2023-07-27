@@ -35,62 +35,62 @@ func TestNormalizeDomain(t *testing.T) {
 	}
 }
 
-// TestIneligible tests that IneligibleDomainState Database is populated when the Ineligible endpoint is called.
-func TestIneligible(t *testing.T) {
+// TestAddIneligibleDomain tests that IneligibleDomainState Database is populated when the Ineligible endpoint is called.
+func TestAddIneligibleDomain(t *testing.T) {
 	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	// database.Scan values for testing
 
-	emptyScan := database.Scan{
-		Issues: []hstspreload.Issues{emptyIssues},
-	}
-
-	warningScan := database.Scan{
-		Issues: []hstspreload.Issues{issuesWithWarnings},
-	}
-
 	errorScan := database.Scan{
-		Issues: []hstspreload.Issues{issuesWithErrors},
+		Issues: issuesWithErrors,
 	}
 
 	TestEligibleResponses := map[string]hstspreload.Issues{
-		"garron.net":   emptyIssues,
-		"badssl.com":   issuesWithWarnings,
-		"chromium.org": issuesWithErrors,
-		"godoc.og":     issuesWithErrors,
-		"dev":          issuesWithWarnings,
-		"example.com":  issuesWithErrors,
+		"preloaded-bulk-18-weeks-no-issues.test":   emptyIssues,
+		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
+		"preloaded-bulk-1-year-errors.test": issuesWithErrors,
+		"not-preloaded-bulk-18-weeks-errors.test":     issuesWithErrors,
+		"preloaded-bulk-1-year-warnings":          issuesWithWarnings,
+		"preloaded-bulk-18-weeks-errors.test":  issuesWithErrors,
+		"preloaded-public-suffix-no-issues": emptyIssues,
 	}
 	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
-		{Name: "godoc.og", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
-		{Name: "badssl.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "example.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
-		{Name: "another.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
+		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
+		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-warnings", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "preloaded-bulk-18-weeks-warnings.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-18-weeks-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
 	}}
 
-	expectedScans := map[string]database.Scan{
-		"garron.net":   emptyScan,
-		"badssl.com":   warningScan,
-		"chromium.org": errorScan,
-		"godoc.og":     errorScan,
-		"dev":          warningScan,
-		"example.com":  errorScan,
+	// only these domains end up being populated
+	expectedScans := map[string][]database.Scan{
+		"preloaded-bulk-1-year-errors.test": {errorScan, errorScan},
+		"preloaded-bulk-18-weeks-errors.test":  {errorScan},
 	}
 
 	expectedPolicies := map[string]string{
-		"garron.net":   preloadlist.Bulk18Weeks,
-		"chromium.org": preloadlist.Bulk1Year,
-		"godoc.og":     preloadlist.Bulk18Weeks,
-		"dev":          preloadlist.Bulk1Year,
-		"badssl.com":   preloadlist.Bulk18Weeks,
-		"example.com":  preloadlist.Bulk1Year,
+		"preloaded-bulk-1-year-errors.test": preloadlist.Bulk1Year,
+		"preloaded-bulk-18-weeks-errors.test":  preloadlist.Bulk18Weeks,
 	}
 
 	mockHstspreload.eligibleResponses = TestEligibleResponses
 	mockPreloadlist.list = TestPreloadlist
+
+
+    // tests that Scan field is appended to if domain is already present in the database
+	err := api.database.SetIneligibleDomainStates([]database.IneligibleDomainState{
+		{
+            Name: "preloaded-bulk-1-year-errors.test",
+			Scans: []database.Scan{{Issues: issuesWithErrors}},
+			Policy: preloadlist.Bulk1Year,
+		},
+	},  func(format string, args ...interface{}) {})
+
+	if err != nil {
+		t.Errorf("Could not Set IneligibleDomain")
+	}
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
@@ -113,8 +113,10 @@ func TestIneligible(t *testing.T) {
 	}
 
 	for _, state := range states {
-		for _, scan := range state.Scans {
-			if scan.Match(expectedScans[state.Name].Issues[0]) {
+		println(state.Name, ": ", len(state.Scans))
+		for i, scan := range state.Scans {
+			println(i)
+			if !scan.Issues.Match(expectedScans[state.Name][i].Issues) {
 				t.Errorf("Scan field not accurately populated in the database for %s", state.Name)
 			}
 		}
