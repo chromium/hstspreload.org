@@ -197,6 +197,17 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 	return append(res, getStates...), getErr
 }
 
+// AllDomainStates gets the states of all domains in the database.
+func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
+	return db.statesForQuery(datastore.NewQuery("DomainState"))
+}
+
+// StatesWithStatus returns the states of domains with the given status in the database.
+func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
+	return db.statesForQuery(
+		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
+}
+
 // SetIneligibleDomainStates updates the given domains updates in batches.
 // Writes updates to logf in real-time.
 func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
@@ -268,17 +279,6 @@ func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err er
 		}
 	}
 	return delete(keys)
-}
-
-// AllDomainStates gets the states of all domains in the database.
-func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
-	return db.statesForQuery(datastore.NewQuery("DomainState"))
-}
-
-// StatesWithStatus returns the states of domains with the given status in the database.
-func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
-	return db.statesForQuery(
-		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
 }
 
 // GetIneligibleDomainStates returns the state for the given domain.
