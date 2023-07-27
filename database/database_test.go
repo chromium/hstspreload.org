@@ -29,7 +29,7 @@ func ExampleTempLocalDatabase() {
 func TestMain(m *testing.M) {
 	localDatabase, shutdown, err := TempLocalDatabase()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not initialize local backend %s", err)
+		fmt.Fprintf(os.Stderr, "could not initialize local backend because %s", err)
 		os.Exit(1)
 	}
 
