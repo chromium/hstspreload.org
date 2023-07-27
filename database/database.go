@@ -26,6 +26,7 @@ type Database interface {
 	PutStates([]DomainState, func(string, ...interface{})) error
 	PutState(DomainState) error
 	StateForDomain(string) (DomainState, error)
+	StatesForDomains([]string) ([]DomainState, error)
 	AllDomainStates() ([]DomainState, error)
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
 }
@@ -183,7 +184,8 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 		key := datastore.NameKey(domainStateKind, domain, nil)
 		keys = append(keys, key)
 		if len(keys) >= batchSize {
-			res, getErr = getDomainStates(keys)
+			tempStates, getErr := getDomainStates(keys)
+			res = append(res, tempStates...)
 			if getErr != nil {
 				return nil, getErr
 			}
@@ -193,102 +195,6 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 
 	getStates, getErr := getDomainStates(keys)
 	return append(res, getStates...), getErr
-}
-
-// SetPendingAutomatedRemoval sets the statuses of list of domains to PendingAutoamtedRemoval
-func (db DatastoreBacked) SetPendingAutomatedRemoval(domains []string, logf func(fomat string, args ...interface{})) error {
-	// Set up the datastore context
-	c, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	client, datastoreErr := db.backend.NewClient(c, db.projectID)
-	if datastoreErr != nil {
-		return datastoreErr
-	}
-
-	setDomainStates := func(keys []*datastore.Key, values []DomainState) error {
-		logf("Updating %d entries...", len(keys))
-
-		if _, err := client.PutMulti(c, keys, values); err != nil {
-			logf(" faild.\n")
-			return err
-		}
-		logf(" done.\n")
-		return nil
-	}
-
-	updates, err := db.StatesForDomains(domains)
-	if err != nil {
-		return err
-	}
-	for i := range updates {
-		updates[i].Status = StatusPendingAutomatedRemoval
-	}
-
-	var keys []*datastore.Key
-	var values []DomainState
-	for _, state := range updates {
-		key := datastore.NameKey(domainStateKind, state.Name, nil)
-		keys = append(keys, key)
-		values = append(values, state)
-
-		if len(keys) >= batchSize {
-			if err := setDomainStates(keys, values); err != nil {
-				return err
-			}
-			keys = keys[:0]
-			values = values[:0]
-		}
-	}
-
-	return setDomainStates(keys, values)
-}
-
-// AllDomainStates gets the states of all domains in the database.
-func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
-	return db.statesForQuery(datastore.NewQuery("DomainState"))
-}
-
-// StatesWithStatus returns the states of domains with the given status in the database.
-func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
-	return db.statesForQuery(
-		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
-}
-
-// GetIneligibleDomainStates returns the state for the given domain.
-func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
-	// Set up the datastore context.
-	c, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	client, datastoreErr := db.backend.NewClient(c, db.projectID)
-	if datastoreErr != nil {
-		return nil, datastoreErr
-	}
-
-	get := func(keys []*datastore.Key) ([]IneligibleDomainState, error) {
-		state := make([]IneligibleDomainState, len(keys))
-		if err := client.GetMulti(c, keys, state); err != nil {
-			return nil, err
-		}
-		for i := range state {
-			state[i].Name = keys[i].Name
-		}
-		return state, nil
-	}
-
-	var keys []*datastore.Key
-	for _, domain := range domains {
-		key := datastore.NameKey(ineligibleDomainStateKind, domain, nil)
-		keys = append(keys, key)
-		if len(keys) >= batchSize {
-			if _, err := get(keys); err != nil {
-				return nil, err
-			}
-			keys = keys[:0]
-		}
-	}
-	return get(keys)
 }
 
 // SetIneligibleDomainStates updates the given domains updates in batches.
@@ -362,4 +268,75 @@ func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err er
 		}
 	}
 	return delete(keys)
+}
+
+// AllDomainStates gets the states of all domains in the database.
+func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
+	return db.statesForQuery(datastore.NewQuery("DomainState"))
+}
+
+// StatesWithStatus returns the states of domains with the given status in the database.
+func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
+	return db.statesForQuery(
+		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
+}
+
+// GetIneligibleDomainStates returns the state for the given domain.
+func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
+	// Set up the datastore context.
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
+	if datastoreErr != nil {
+		return nil, datastoreErr
+	}
+
+	get := func(keys []*datastore.Key) ([]IneligibleDomainState, error) {
+		state := make([]IneligibleDomainState, len(keys))
+		if err := client.GetMulti(c, keys, state); err != nil {
+			return nil, err
+		}
+		for i := range state {
+			state[i].Name = keys[i].Name
+		}
+		return state, nil
+	}
+
+	var keys []*datastore.Key
+	for _, domain := range domains {
+		key := datastore.NameKey(ineligibleDomainStateKind, domain, nil)
+		keys = append(keys, key)
+		if len(keys) >= batchSize {
+			if _, err := get(keys); err != nil {
+				return nil, err
+			}
+			keys = keys[:0]
+		}
+	}
+	return get(keys)
+}
+
+// SetPendingAutomatedRemoval sets the status of a list of domains to StatusPendingAutoamtedRemoval
+func SetPendingAutomatedRemoval(db Database, domains []string, logf func(fomat string, args ...interface{})) error {
+	setDomainStates := func(domainStates []DomainState) error {
+		logf("Updating %d entries...", len(domainStates))
+
+		if err := db.PutStates(domainStates, blackholeLogf); err != nil {
+			logf(" faild.\n")
+			return err
+		}
+		logf(" done.\n")
+		return nil
+	}
+
+	updates, err := db.StatesForDomains(domains)
+	if err != nil {
+		return err
+	}
+	for i := range updates {
+		updates[i].Status = StatusPendingAutomatedRemoval
+	}
+
+	return setDomainStates(updates)
 }

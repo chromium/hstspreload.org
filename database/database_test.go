@@ -302,7 +302,7 @@ func TestSetPendingAutomatedRemoval(t *testing.T) {
 		statuses = append(statuses, formatted)
 	}
 
-	err := testDB.SetPendingAutomatedRemoval(testDomains, statusReport)
+	err := SetPendingAutomatedRemoval(testDB, testDomains, statusReport)
 	if err != nil {
 		t.Errorf("Unexpected error for test SetAutoamtedPendingRemoval: %s", err)
 	}
