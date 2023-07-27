@@ -208,6 +208,42 @@ func (db DatastoreBacked) StatesWithStatus(status PreloadStatus) (domains []Doma
 		datastore.NewQuery("DomainState").FilterField("Status", "=", string(status)))
 }
 
+// GetIneligibleDomainStates returns the state for the given domain.
+func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
+	// Set up the datastore context.
+	c, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client, datastoreErr := db.backend.NewClient(c, db.projectID)
+	if datastoreErr != nil {
+		return nil, datastoreErr
+	}
+
+	get := func(keys []*datastore.Key) ([]IneligibleDomainState, error) {
+		state := make([]IneligibleDomainState, len(keys))
+		if err := client.GetMulti(c, keys, state); err != nil {
+			return nil, err
+		}
+		for i := range state {
+			state[i].Name = keys[i].Name
+		}
+		return state, nil
+	}
+
+	var keys []*datastore.Key
+	for _, domain := range domains {
+		key := datastore.NameKey(ineligibleDomainStateKind, domain, nil)
+		keys = append(keys, key)
+		if len(keys) >= batchSize {
+			if _, err := get(keys); err != nil {
+				return nil, err
+			}
+			keys = keys[:0]
+		}
+	}
+	return get(keys)
+}
+
 // SetIneligibleDomainStates updates the given domains updates in batches.
 // Writes updates to logf in real-time.
 func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error {
@@ -281,40 +317,29 @@ func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err er
 	return delete(keys)
 }
 
-// GetIneligibleDomainStates returns the state for the given domain.
-func (db DatastoreBacked) GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error) {
+// GetAllIneligibleDomainStates returns all the ineligible domains in the database
+func (db DatastoreBacked) GetAllIneligibleDomainStates() (states []IneligibleDomainState, err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	client, datastoreErr := db.backend.NewClient(c, db.projectID)
 	if datastoreErr != nil {
-		return nil, datastoreErr
+		return states, datastoreErr
 	}
 
-	get := func(keys []*datastore.Key) ([]IneligibleDomainState, error) {
-		state := make([]IneligibleDomainState, len(keys))
-		if err := client.GetMulti(c, keys, state); err != nil {
-			return nil, err
-		}
-		for i := range state {
-			state[i].Name = keys[i].Name
-		}
-		return state, nil
+	keys, err := client.GetAll(c, datastore.NewQuery("IneligibleDomainState"), &states)
+	if err != nil {
+		return states, err
 	}
 
-	var keys []*datastore.Key
-	for _, domain := range domains {
-		key := datastore.NameKey(ineligibleDomainStateKind, domain, nil)
-		keys = append(keys, key)
-		if len(keys) >= batchSize {
-			if _, err := get(keys); err != nil {
-				return nil, err
-			}
-			keys = keys[:0]
-		}
+	for i, key := range keys {
+		state := states[i]
+		state.Name = key.Name
+		states[i] = state
 	}
-	return get(keys)
+
+	return states, nil
 }
 
 // SetPendingAutomatedRemoval sets the status of a list of domains to StatusPendingAutoamtedRemoval
