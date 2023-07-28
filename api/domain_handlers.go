@@ -390,8 +390,14 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 // Example: GET /removeineligibledomains?
 func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
+	// all domains that need to be added to the ineligible
+	// domain database
 	var ineligibleDomains []database.IneligibleDomainState
+	// all domains that need to be deleted from the
+	// ineligible domain database
 	var deleteEligibleDomains []string
+	// all domains that have Bulk18Week and Bulk1Year policies
+	var policyDomains []string
 
 	domains, err := api.database.AllDomainStates()
 	if err != nil {
@@ -399,47 +405,71 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	// Store ineligible domains in slice
+
+	var states map[string]database.IneligibleDomainState
+
+	// Filter domains
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
+			policyDomains = append(policyDomains, d.Name)
+		}
+	}
 
-			_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
-			state, err := api.database.GetIneligibleDomainStates([]string{d.Name})
-			if len(issues.Errors) > 0 {
-				if len(state) > 0 {
-					state[0].Scans = append(state[0].Scans, database.Scan{
-						ScanTime: time.Now(),
-						Issues:   issues,
-					})
-					ineligibleDomains = append(ineligibleDomains, state[0])
-				} else {
-					ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
-						Name: d.Name,
-						Scans: []database.Scan{
-							{
-								ScanTime: time.Now(),
-								Issues:   issues,
-							},
-						},
-						Policy: string(d.Policy),
-					})
-				}
+	// Map domainName to IneligibleDomainState if it exists
+	state, err := api.database.GetIneligibleDomainStates(policyDomains)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+	for _, s := range state {
+		states[s.Name] = s
+	}
 
+	// Store ineligible domains in slice
+	for _, d := range states {
+
+		_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
+		if len(issues.Errors) > 0 {
+			if len(state) > 0 {
+				state[0].Scans = append(state[0].Scans, database.Scan{
+					ScanTime: time.Now(),
+					Issues:   issues,
+				})
+				ineligibleDomains = append(ineligibleDomains, state[0])
 			} else {
-				if err == nil {
-					deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
-				}
+				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
+					Name: d.Name,
+					Scans: []database.Scan{
+						{
+							ScanTime: time.Now(),
+							Issues:   issues,
+						},
+					},
+					Policy: string(d.Policy),
+				})
+			}
+
+		} else {
+			if err == nil {
+				deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
 			}
 		}
 	}
 
 	// Delete eligible domains from the database
 	err = api.database.DeleteIneligibleDomainStates(deleteEligibleDomains)
+
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not delete domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+
+	// states, _ := api.database.GetAllIneligibleDomainStates()
+	// for _, i := range states{
+	// 	println(i.Name)
+	// }
 
 	// Add ineligible domains to the database
 	err = api.database.SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {})
