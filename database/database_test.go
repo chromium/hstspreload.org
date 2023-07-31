@@ -29,7 +29,7 @@ func ExampleTempLocalDatabase() {
 func TestMain(m *testing.M) {
 	localDatabase, shutdown, err := TempLocalDatabase()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not initialize local backend")
+		fmt.Fprintf(os.Stderr, "could not initialize local backend: %s", err)
 		os.Exit(1)
 	}
 
@@ -177,6 +177,43 @@ func TestStateForDomain(t *testing.T) {
 	}
 }
 
+func TestStatesForDomains(t *testing.T) {
+	resetDB()
+
+	if err := testDB.PutState(DomainState{Name: "a.test", Status: StatusPreloaded}); err != nil {
+		t.Fatalf("Cannot put state a.test for test StatatesForDomains: %s", err)
+		return
+	}
+	if err := testDB.PutState(DomainState{Name: "b.test", Status: StatusPending}); err != nil {
+		t.Fatalf("Cannot put state b.test for test StatesForDomains: %s", err)
+		return
+	}
+
+	domainStates, err := testDB.StatesForDomains([]string{"a.test", "b.test"})
+	if err != nil {
+		t.Errorf("Cannot get states for test StatesForDomains: %s", err)
+		return
+	}
+
+	sort.Slice(domainStates, func(i, j int) bool { return domainStates[i].Name < domainStates[j].Name })
+	wantLength := 2
+	statesLength := len(domainStates)
+	if statesLength != wantLength {
+		t.Errorf("Inccorect count of states for test StatesForDomains. Got %d, but wanted %d", statesLength, wantLength)
+	}
+
+	if domainStates[0].Name != "a.test" || domainStates[1].Name != "b.test" {
+		t.Errorf("Domain states not populated correctly for test StatesForDomains: got names %s and %s, wanted a.test and b.test", domainStates[0].Name, domainStates[1].Name)
+	}
+
+	// tests domain not in database
+	domainStates, gotErr := testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
+	wantError := "datastore: no such entity"
+	if gotErr.Error() != wantError {
+		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains: got %s, wanted %s", err, wantError)
+	}
+}
+
 // Test PutStates and AllDomainStates.
 func TestStatesWithStatus(t *testing.T) {
 	domainA := DomainState{Name: "a.com", Status: StatusPending, IncludeSubDomains: true, Policy: preloadlist.Test}
@@ -235,6 +272,49 @@ func TestStatesWithStatus(t *testing.T) {
 			if !domainState.Equal(tt.domains[i]) {
 				t.Errorf("unexpected domain at position %d for status %s: %#v", i, tt.status, domainState)
 			}
+		}
+	}
+}
+
+func TestSetPendingAutomatedRemoval(t *testing.T) {
+	resetDB()
+
+	testStates := []DomainState{
+		{Name: "preloaded.test", Status: StatusPreloaded},
+		{Name: "pending.test", Status: StatusPending},
+		{Name: "pendingremoval.test", Status: StatusPendingRemoval},
+		{Name: "rejected.test", Status: StatusRejected},
+		{Name: "removed.test", Status: StatusRemoved},
+		{Name: "unknown.test", Status: StatusUnknown},
+		{Name: "pendingautomatedremoval.test", Status: StatusPendingAutomatedRemoval}}
+
+	for _, state := range testStates {
+		if err := testDB.PutState(state); err != nil {
+			t.Fatalf("cannot put state for test SetPendingAutomatedRemoval: %s", err)
+			return
+		}
+	}
+
+	testDomains := []string{"preloaded.test", "pending.test", "pendingremoval.test", "rejected.test", "removed.test", "unknown.test", "pendingautomatedremoval.test"}
+	var statuses []string
+	statusReport := func(format string, args ...interface{}) {
+		formatted := fmt.Sprintf(format, args...)
+		statuses = append(statuses, formatted)
+	}
+
+	err := SetPendingAutomatedRemoval(testDB, testDomains, statusReport)
+	if err != nil {
+		t.Errorf("Unexpected error for test SetAutomatedPendingRemoval: %s", err)
+	}
+
+	domainStates, allDomainStatesErr := testDB.AllDomainStates()
+	if allDomainStatesErr != nil {
+		t.Errorf("Can't fetch all domain states: %s", allDomainStatesErr)
+	}
+
+	for i := range domainStates {
+		if domainStates[i].Status != StatusPendingAutomatedRemoval {
+			t.Errorf("Unexpected status for %s domain state: wanted StatusPendingAutomatedRemoval, got %s", domainStates[i].Name, domainStates[i].Status)
 		}
 	}
 }
