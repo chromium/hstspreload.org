@@ -410,16 +410,15 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Filter Domains
-	// #TODO: parallelize this for loop
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
 			policyDomains = append(policyDomains, d.Name)
 			policyStates = append(policyStates, d)
 		}
 	}
-
+	
 	// call GetIneligibleDomainStates, add to map
-	var states map[string]database.IneligibleDomainState
+	states := make(map[string]database.IneligibleDomainState)
 	state, err := api.database.GetIneligibleDomainStates(policyDomains)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)

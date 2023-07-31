@@ -93,14 +93,11 @@ func (m Mock) GetIneligibleDomainStates(domains []string) (states []IneligibleDo
 	if m.state.FailCalls {
 		return states, errors.New("forced failure")
 	}
-
 	for _, domain := range domains {
 		s, found := m.ids[domain]
 		if found {
 			states = append(states, s)
-		} else {
-			return states, errors.New("could not find domain")
-		}
+		} 
 	}
 	return states, nil
 }

@@ -125,7 +125,7 @@ func TestAddIneligibleDomain(t *testing.T) {
 
 // TestDeleteIneligibleDomain tests that eligible domains from the IneligibleDomainState database are removed
 func TestDeleteIneligibleDomain(t *testing.T) {
-	api, _, mockHstspreload, _ := mockAPI(0 * time.Second)
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	ineligibleDomains := []database.IneligibleDomainState{
 		{
@@ -146,7 +146,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not Set IneligibleDomains")
 	}
-
+	
+	
 	TestEligibleResponses := map[string]hstspreload.Issues{
 		"preloaded-bulk-18-weeks-no-issues.test":  emptyIssues,
 		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
@@ -157,7 +158,18 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		"preloaded-public-suffix-no-issues":       emptyIssues,
 	}
 
+	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-warnings", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "preloaded-bulk-18-weeks-warnings.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-18-weeks-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
+	}}
+
 	mockHstspreload.eligibleResponses = TestEligibleResponses
+	mockPreloadlist.list = TestPreloadlist
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
@@ -167,6 +179,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 
+
+	api.Update(w,r)
 	api.RemoveIneligibleDomains(w, r)
 
 	states, err := api.database.GetAllIneligibleDomainStates()
