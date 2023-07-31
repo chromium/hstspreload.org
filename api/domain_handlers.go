@@ -416,7 +416,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			policyStates = append(policyStates, d)
 		}
 	}
-	
+
 	// call GetIneligibleDomainStates, add to map
 	states := make(map[string]database.IneligibleDomainState)
 	state, err := api.database.GetIneligibleDomainStates(policyDomains)
@@ -427,10 +427,23 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, s := range state {
 		states[s.Name] = s
+		contains := func() (c bool) {
+			for _, p := range policyDomains {
+				if p == s.Name {
+					c = true
+					return c
+				}
+			}
+			return c
+		}
+		if !contains() {
+			deleteEligibleDomains = append(deleteEligibleDomains, s.Name)
+		}
 	}
 
 	// Store ineligible domains in slice
 	for _, d := range policyStates {
+		//#TODO: parallelize with filtering domains
 		_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
 
 		scan := database.Scan{
