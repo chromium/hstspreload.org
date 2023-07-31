@@ -167,8 +167,8 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 
 	getDomainStates := func(keys []*datastore.Key) ([]DomainState, error) {
 		domainStates := make([]DomainState, len(keys))
-		if dsErr := client.GetMulti(c, keys, domainStates); dsErr != nil {
-			return nil, dsErr
+		if err := client.GetMulti(c, keys, domainStates); err != nil {
+			return nil, err
 		}
 		for i := range domainStates {
 			domainStates[i].Name = keys[i].Name
@@ -182,20 +182,22 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 		key := datastore.NameKey(domainStateKind, domain, nil)
 		keys = append(keys, key)
 		if len(keys) >= batchSize {
-			if tempStates, err := getDomainStates(keys); err != nil {
+			var tempStates []DomainState
+			if tempStates, err = getDomainStates(keys); err != nil {
 				return nil, err
-			} else {
-				res = append(res, tempStates...)
-				keys = keys[:0]
 			}
+			res = append(res, tempStates...)
+			keys = keys[:0]
+
 		}
 	}
 
-	if getStates, err := getDomainStates(keys); err != nil {
+	var getStates []DomainState
+	if getStates, err = getDomainStates(keys); err != nil {
 		return nil, err
-	} else {
-		return append(res, getStates...), err
 	}
+	return append(res, getStates...), err
+
 }
 
 // AllDomainStates gets the states of all domains in the database.
