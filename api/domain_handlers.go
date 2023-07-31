@@ -410,6 +410,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Filter Domains
+	// #TODO: parallelize this for loop
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
 			policyDomains = append(policyDomains, d.Name)
@@ -432,27 +433,25 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// Store ineligible domains in slice
 	for _, d := range policyStates {
 		_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
+
+		scan := database.Scan{
+			ScanTime: time.Now(),
+			Issues:   issues,
+		}
+
 		val, ok := states[d.Name]
 		if len(issues.Errors) > 0 {
 			if ok {
-				val.Scans = append(val.Scans, database.Scan{
-					ScanTime: time.Now(),
-					Issues:   issues,
-				})
+				val.Scans = append(val.Scans, scan)
 				ineligibleDomains = append(ineligibleDomains, val)
 			} else {
 				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
-					Name: d.Name,
-					Scans: []database.Scan{
-						{
-							ScanTime: time.Now(),
-							Issues:   issues,
-						},
-					},
+					Name:   d.Name,
+					Scans:  []database.Scan{scan},
 					Policy: string(d.Policy),
 				})
 			}
-		} else if (ok) {
+		} else if ok {
 			deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
 		}
 	}
