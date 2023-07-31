@@ -61,6 +61,18 @@ func (m Mock) StateForDomain(domain string) (state DomainState, err error) {
 	return DomainState{Status: StatusUnknown}, nil
 }
 
+// StatesForDomain mock method
+func (m Mock) StatesForDomains(domains []string) (states []DomainState, err error) {
+	if m.state.FailCalls {
+		return states, errors.New("forced failure")
+	}
+
+	for _, domain := range domains {
+		states = append(states, m.ds[domain])
+	}
+	return states, nil
+}
+
 // AllDomainStates mock method
 func (m Mock) AllDomainStates() (states []DomainState, err error) {
 	if m.state.FailCalls {
