@@ -167,9 +167,8 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 
 	getDomainStates := func(keys []*datastore.Key) ([]DomainState, error) {
 		domainStates := make([]DomainState, len(keys))
-		getErr := client.GetMulti(c, keys, domainStates)
-		if getErr != nil {
-			return nil, getErr
+		if dsErr := client.GetMulti(c, keys, domainStates); dsErr != nil {
+			return nil, dsErr
 		}
 		for i := range domainStates {
 			domainStates[i].Name = keys[i].Name
@@ -179,22 +178,24 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 
 	var keys []*datastore.Key
 	var res []DomainState
-	var getErr error
 	for _, domain := range domains {
 		key := datastore.NameKey(domainStateKind, domain, nil)
 		keys = append(keys, key)
 		if len(keys) >= batchSize {
-			tempStates, getErr := getDomainStates(keys)
-			res = append(res, tempStates...)
-			if getErr != nil {
-				return nil, getErr
+			if tempStates, err := getDomainStates(keys); err != nil {
+				return nil, err
+			} else {
+				res = append(res, tempStates...)
+				keys = keys[:0]
 			}
-			keys = keys[:0]
 		}
 	}
 
-	getStates, getErr := getDomainStates(keys)
-	return append(res, getStates...), getErr
+	if getStates, err := getDomainStates(keys); err != nil {
+		return nil, err
+	} else {
+		return append(res, getStates...), err
+	}
 }
 
 // AllDomainStates gets the states of all domains in the database.
@@ -347,8 +348,8 @@ func SetPendingAutomatedRemoval(db Database, domains []string, logf func(fomat s
 	setDomainStates := func(domainStates []DomainState) error {
 		logf("Updating %d entries...", len(domainStates))
 
-		if err := db.PutStates(domainStates, blackholeLogf); err != nil {
-			logf(" faild.\n")
+		if err := db.PutStates(domainStates, logf); err != nil {
+			logf(" failed.\n")
 			return err
 		}
 		logf(" done.\n")

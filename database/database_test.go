@@ -29,7 +29,7 @@ func ExampleTempLocalDatabase() {
 func TestMain(m *testing.M) {
 	localDatabase, shutdown, err := TempLocalDatabase()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not initialize local backend because %s", err)
+		fmt.Fprintf(os.Stderr, "could not initialize local backend: %s", err)
 		os.Exit(1)
 	}
 
@@ -181,11 +181,11 @@ func TestStatesForDomains(t *testing.T) {
 	resetDB()
 
 	if err := testDB.PutState(DomainState{Name: "a.test", Status: StatusPreloaded}); err != nil {
-		t.Fatalf("Cannot put state a.test for test StatatesForDomains")
+		t.Fatalf("Cannot put state a.test for test StatatesForDomains: %s", err)
 		return
 	}
 	if err := testDB.PutState(DomainState{Name: "b.test", Status: StatusPending}); err != nil {
-		t.Fatalf("Cannot put state b.test for test StatesForDomains")
+		t.Fatalf("Cannot put state b.test for test StatesForDomains: %s", err)
 		return
 	}
 
@@ -207,9 +207,9 @@ func TestStatesForDomains(t *testing.T) {
 	}
 
 	// tests domain not in database
-	domainStates, getErr := testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
+	domainStates, gotErr := testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
 	wantError := "datastore: no such entity"
-	if getErr.Error() != wantError {
+	if gotErr.Error() != wantError {
 		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains. Got %s, but wanted %s", err, wantError)
 	}
 }
@@ -304,7 +304,7 @@ func TestSetPendingAutomatedRemoval(t *testing.T) {
 
 	err := SetPendingAutomatedRemoval(testDB, testDomains, statusReport)
 	if err != nil {
-		t.Errorf("Unexpected error for test SetAutoamtedPendingRemoval: %s", err)
+		t.Errorf("Unexpected error for test SetAutomatedPendingRemoval: %s", err)
 	}
 
 	domainStates, allDomainStatesErr := testDB.AllDomainStates()
