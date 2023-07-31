@@ -203,14 +203,14 @@ func TestStatesForDomains(t *testing.T) {
 	}
 
 	if domainStates[0].Name != "a.test" || domainStates[1].Name != "b.test" {
-		t.Errorf("Domain states not populated correctly for test StatesForDomains. Got the names %s and %s, but wanted a.test and b.test", domainStates[0].Name, domainStates[1].Name)
+		t.Errorf("Domain states not populated correctly for test StatesForDomains: got names %s and %s, wanted a.test and b.test", domainStates[0].Name, domainStates[1].Name)
 	}
 
 	// tests domain not in database
 	domainStates, gotErr := testDB.StatesForDomains([]string{"a.test", "b.test", "c.test"})
 	wantError := "datastore: no such entity"
 	if gotErr.Error() != wantError {
-		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains. Got %s, but wanted %s", err, wantError)
+		t.Errorf("Non-preloaded domain treated incorrectly for test StatesForDomains: got %s, wanted %s", err, wantError)
 	}
 }
 
@@ -314,7 +314,7 @@ func TestSetPendingAutomatedRemoval(t *testing.T) {
 
 	for i := range domainStates {
 		if domainStates[i].Status != StatusPendingAutomatedRemoval {
-			t.Errorf("Status isn't set to StatusPendingAutomatedRemoval for %s domain state. It's set to %s", domainStates[i].Name, domainStates[i].Status)
+			t.Errorf("Unexpected status for %s domain state: wanted StatusPendingAutomatedRemoval, got %s", domainStates[i].Name, domainStates[i].Status)
 		}
 	}
 }
