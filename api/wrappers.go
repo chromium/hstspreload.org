@@ -9,6 +9,7 @@ import (
 
 type hstspreloadWrapper interface {
 	PreloadableDomain(string) (*string, hstspreload.Issues)
+	EligibleDomain(domain string, policy preloadlist.PolicyType) (*string, hstspreload.Issues)
 	RemovableDomain(string) (*string, hstspreload.Issues)
 }
 
@@ -27,6 +28,9 @@ func (actualHstspreload) PreloadableDomain(domain string) (*string, hstspreload.
 func (actualHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return hstspreload.RemovableDomain(domain)
 }
+func (actualHstspreload) EligibleDomain(domain string, policy preloadlist.PolicyType) (*string, hstspreload.Issues) {
+	return hstspreload.EligibleDomain(domain, policy)
+}
 func (actualPreloadlist) NewFromLatest() (preloadlist.PreloadList, error) {
 	return preloadlist.NewFromLatest()
 }
@@ -37,6 +41,7 @@ type mockHstspreload struct {
 	// The mock will return verdicts based on these maps.
 	// Remember that you must `make` a map before adding values:  https://blog.golang.org/go-maps-in-action#TOC_2.
 	preloadableResponses map[string]hstspreload.Issues
+	eligibleResponses    map[string]hstspreload.Issues
 	removableResponses   map[string]hstspreload.Issues
 }
 type mockPreloadlist struct {
@@ -46,6 +51,9 @@ type mockPreloadlist struct {
 
 func (h mockHstspreload) PreloadableDomain(domain string) (*string, hstspreload.Issues) {
 	return nil, h.preloadableResponses[domain]
+}
+func (h mockHstspreload) EligibleDomain(domain string, policy preloadlist.PolicyType) (*string, hstspreload.Issues) {
+	return nil, h.eligibleResponses[domain]
 }
 func (h mockHstspreload) RemovableDomain(domain string) (*string, hstspreload.Issues) {
 	return nil, h.removableResponses[domain]

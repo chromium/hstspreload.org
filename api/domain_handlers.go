@@ -50,22 +50,6 @@ func getASCIIDomain(wantMethod string, w http.ResponseWriter, r *http.Request) (
 	return normalized, true
 }
 
-// protected tells whether a domain is protected from automated removal.
-func (api API) protected(domain string, state database.PreloadStatus) bool {
-	// Pending entries are not protected
-	if state == database.StatusPending {
-		return false
-	}
-
-	// Bulk preloaded entries are not protected
-	if api.bulkPreloaded[domain] {
-		return false
-	}
-
-	// All other entries are protected.
-	return true
-}
-
 // Preloadable takes a single domain and returns if it is preloadable.
 //
 // Example: GET /preloadable?domain=garron.net
@@ -125,7 +109,7 @@ func (api API) Removable(w http.ResponseWriter, r *http.Request) {
 
 	_, issues := api.hstspreload.RemovableDomain(domain)
 
-	if api.protected(domain, bulkState.Status) {
+	if bulkState.DomainState.IsProtected() {
 		issue := hstspreload.Issue{
 			Code:    "server.removable.protected",
 			Summary: "Domain protected",
@@ -187,7 +171,7 @@ func (api API) statusForDomain(domain string) (*DomainStateWithBulk, error) {
 	state.Name = domain
 	bulkState := &DomainStateWithBulk{
 		DomainState: &state,
-		Bulk:        api.bulkPreloaded[domain],
+		Bulk:        state.IsBulk(),
 	}
 	if state.Status == database.StatusPreloaded {
 		bulkState.PreloadedDomain = preloadedDomain
@@ -353,7 +337,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 	case database.StatusPending:
 		fallthrough
 	case database.StatusPreloaded:
-		if api.protected(domain, state.Status) {
+		if state.IsProtected() {
 			issue := hstspreload.Issue{
 				Code:    "server.remove.protected",
 				Summary: "Domain protected",

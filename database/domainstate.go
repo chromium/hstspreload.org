@@ -134,3 +134,25 @@ func MatchWanted(actual []DomainState, wanted []DomainState) bool {
 
 	return true
 }
+
+func (s DomainState) IsBulk() bool {
+	switch s.Policy {
+	case preloadlist.Bulk18Weeks:
+		return true
+	case preloadlist.Bulk1Year:
+		return true
+	case preloadlist.BulkLegacy:
+		return true
+	default:
+		return false
+	}
+}
+
+// Protected tells whether a domain is protected from automated removal
+func (s DomainState) IsProtected() bool {
+	// Pending entries or Bulk preloaded entries are not protected
+	if s.Status == StatusPending || s.IsBulk() {
+		return false
+	}
+	return true
+}
