@@ -430,8 +430,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// on the preload list
 	for _, s := range state {
 		states[s.Name] = s
-		_, ok := policyStates[s.Name]
-		if !ok {
+		if _, ok := policyStates[s.Name]; !ok {
 			deleteEligibleDomains = append(deleteEligibleDomains, s.Name)
 		}
 	}
