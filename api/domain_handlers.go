@@ -478,4 +478,56 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+
+	// Set domain status to StatusPendingAutomatedRemoval
+
+	scans := func(state database.IneligibleDomainState) bool {
+		if len(state.Scans) < 2 {
+			return false
+			// duration between scans should be greater than 30 days
+		} else if (state.Scans[len(state.Scans) - 1].ScanTime.Sub(state.Scans[0].ScanTime) > time.Duration(2592000)) {
+			return true
+		}
+		return false
+	}
+	// Get list of names of all domains that need their status changed
+	var pendingRemoval []string
+	allStates, err := api.database.GetAllIneligibleDomainStates()
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get all ineligible domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}                                                                                                                                                                                                                                                                                                                                 
+	for _, id := range allStates {
+		if scans(id){
+			pendingRemoval = append(pendingRemoval, id.Name)
+		}
+	}
+
+	// Change status of the domain
+	domainStates, err := api.database.StatesForDomains(pendingRemoval)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+	}
+	for _, state := range domainStates {
+		state.Status = database.StatusPendingAutomatedRemoval
+	}
+
+	// Update state in database
+	err = api.database.PutStates(domainStates, func(format string, args ...interface{}) {})
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not put domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
+	// Remove domains from IneligibleDomain database
+	err = database.ProdDatabase().DeleteIneligibleDomainStates(pendingRemoval)
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not delete domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
 }
