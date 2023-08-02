@@ -390,9 +390,9 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 // Example: GET /removeineligibledomains?
 func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
-	// domain states of domains with valid policyTypes
-	var policyStates []database.DomainState
-	// names of all the domains with valid policyTypes
+	// map with domain domain names and their states of domains with valid policyTypes
+	policyStates := make(map[string]database.DomainState)
+	// map with the names of all the domains with valid policyTypes
 	var policyDomains []string
 	// all domains that need to be added to the ineligible
 	// domain database
@@ -413,7 +413,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
 			policyDomains = append(policyDomains, d.Name)
-			policyStates = append(policyStates, d)
+			policyStates[d.Name] = d
 		}
 	}
 
@@ -425,25 +425,20 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+	
+	// delete domains that exist in the ineligible database but not
+	// on the preload list
 	for _, s := range state {
 		states[s.Name] = s
-		contains := func() (c bool) {
-			for _, p := range policyDomains {
-				if p == s.Name {
-					c = true
-					return c
-				}
-			}
-			return c
-		}
-		if !contains() {
+		_, ok := policyStates[s.Name]
+		if !ok {
 			deleteEligibleDomains = append(deleteEligibleDomains, s.Name)
 		}
 	}
 
 	// Store ineligible domains in slice
 	for _, d := range policyStates {
-		//#TODO: parallelize with filtering domains
+		//#TODO: parallelize all the calls to EligibleDomains
 		_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
 
 		scan := database.Scan{
