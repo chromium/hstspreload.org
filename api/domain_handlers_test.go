@@ -147,19 +147,25 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Errorf("Could not Set IneligibleDomains")
 	}
 
-	k , err := api.database.GetAllIneligibleDomainStates()
-	if err != nil {
-		t.Errorf("Could not get all IneligibleDomains")
-	}
-	println("is it there: ", len(k))
-	
-	
 	TestEligibleResponses := map[string]hstspreload.Issues{
+		"preloaded-bulk-18-weeks-no-issues.test":  emptyIssues,
+		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
 		"preloaded-bulk-1-year-errors.test":       emptyIssues,
+		"not-preloaded-bulk-18-weeks-errors.test": issuesWithErrors,
+		"preloaded-bulk-1-year-warnings":          issuesWithWarnings,
 		"preloaded-bulk-18-weeks-errors.test":     emptyIssues,
+		"preloaded-public-suffix-no-issues":       emptyIssues,
 	}
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{}}
+	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-1-year-warnings", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "preloaded-bulk-18-weeks-warnings.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-bulk-18-weeks-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
+	}}
 
 	mockHstspreload.eligibleResponses = TestEligibleResponses
 	mockPreloadlist.list = TestPreloadlist
@@ -172,12 +178,10 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 
-
-	api.Update(w,r)
+	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
 
 	states, err := api.database.GetAllIneligibleDomainStates()
-	println("length: ", len(states))
 	if err != nil {
 		t.Errorf("Could not get all IneligibleDomains")
 	}
@@ -228,7 +232,6 @@ func TestStatusChange(t *testing.T) {
 		t.Fatalf("Couldn't set the states of ineligible domains in the database.")
 	}
 
-
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
 
@@ -241,12 +244,11 @@ func TestStatusChange(t *testing.T) {
 
 	api.RemoveIneligibleDomains(w, r)
 
-
 	state, err := api.database.StateForDomain("garron.net")
 	if err != nil {
-		t.Fatalf("Couldn't get the state of garron.net from the database.")
+		t.Errorf("Couldn't get the state of garron.net from the database.")
 	}
 	if state.Status != database.StatusPendingAutomatedRemoval {
-		t.Fatalf("Status has not been changed")
+		t.Errorf("Status has not been changed")
 	}
 }
