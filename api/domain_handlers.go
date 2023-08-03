@@ -392,8 +392,6 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
 	// map with domain domain names and their states of domains with valid policyTypes
 	policyStates := make(map[string]database.DomainState)
-	// map with the names of all the domains with valid policyTypes
-	var policyDomains []string
 	// all domains that need to be added to the ineligible
 	// domain database
 	var ineligibleDomains []database.IneligibleDomainState
@@ -412,14 +410,13 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// Filter Domains
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
-			policyDomains = append(policyDomains, d.Name)
 			policyStates[d.Name] = d
 		}
 	}
 
 	// call GetIneligibleDomainStates, add to map
 	states := make(map[string]database.IneligibleDomainState)
-	state, err := api.database.GetIneligibleDomainStates(policyDomains)
+	state, err := api.database.GetAllIneligibleDomainStates()
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)

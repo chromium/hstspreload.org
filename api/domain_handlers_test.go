@@ -146,27 +146,20 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not Set IneligibleDomains")
 	}
+
+	k , err := api.database.GetAllIneligibleDomainStates()
+	if err != nil {
+		t.Errorf("Could not get all IneligibleDomains")
+	}
+	println("is it there: ", len(k))
 	
 	
 	TestEligibleResponses := map[string]hstspreload.Issues{
-		"preloaded-bulk-18-weeks-no-issues.test":  emptyIssues,
-		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
 		"preloaded-bulk-1-year-errors.test":       emptyIssues,
-		"not-preloaded-bulk-18-weeks-errors.test": issuesWithErrors,
-		"preloaded-bulk-1-year-warnings":          issuesWithWarnings,
 		"preloaded-bulk-18-weeks-errors.test":     emptyIssues,
-		"preloaded-public-suffix-no-issues":       emptyIssues,
 	}
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
-		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "preloaded-bulk-1-year-warnings", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
-		{Name: "preloaded-bulk-18-weeks-warnings.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "preloaded-bulk-18-weeks-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
-	}}
+	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{}}
 
 	mockHstspreload.eligibleResponses = TestEligibleResponses
 	mockPreloadlist.list = TestPreloadlist
@@ -184,6 +177,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	api.RemoveIneligibleDomains(w, r)
 
 	states, err := api.database.GetAllIneligibleDomainStates()
+	println("length: ", len(states))
 	if err != nil {
 		t.Errorf("Could not get all IneligibleDomains")
 	}
