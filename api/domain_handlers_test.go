@@ -191,3 +191,68 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Errorf("IneligibleDomain database is not empty")
 	}
 }
+
+func TestStatusChange(t *testing.T) {
+	api, _, _, mockPreloadlist := mockAPI(0 * time.Second)
+
+	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
+		{Name: "example.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+	}}
+
+	mockPreloadlist.list = TestPreloadlist
+
+	testIneligibleDomainList := []database.IneligibleDomainState{
+		{
+			Name: "garron.net",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+				{ScanTime: time.Date(2022, time.August, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+		{
+			Name: "example.com",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+				{ScanTime: time.Date(2022, time.July, 27, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+		{
+			Name: "chromium.org",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+	}
+
+	err := api.database.SetIneligibleDomainStates(testIneligibleDomainList, func(format string, args ...interface{}) {})
+	if err != nil {
+		t.Fatalf("Couldn't set the states of ineligible domains in the database.")
+	}
+
+
+	w := httptest.NewRecorder()
+	w.Body = &bytes.Buffer{}
+
+	r, err := http.NewRequest("GET", "", nil)
+	if err != nil {
+		t.Fatalf("[%s] %s", "NewRequest Failed", err)
+	}
+
+	api.Update(w, r)
+
+	api.RemoveIneligibleDomains(w, r)
+
+
+	state, err := api.database.StateForDomain("garron.net")
+	if err != nil {
+		t.Fatalf("Couldn't get the state of garron.net from the database.")
+	}
+	if state.Status != database.StatusPendingAutomatedRemoval {
+		t.Fatalf("Status has not been changed")
+	}
+}
