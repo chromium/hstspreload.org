@@ -317,7 +317,7 @@ func TestDeletionAndStatusChange(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't get all ineligible states from the database.")
 	}
-	if len(states) != 1 && states[0].Name != "preloaded-errors-ineligible" {
+	if len(states) != 1 || states[0].Name != "preloaded-errors-ineligible" {
 		t.Errorf("Eligible domain has not been deleted")
 	}
 
