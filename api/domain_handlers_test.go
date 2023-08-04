@@ -146,9 +146,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not Set IneligibleDomains")
 	}
-	
-	
-	TestEligibleResponses := map[string]hstspreload.Issues{
+
+	testEligibleResponses := map[string]hstspreload.Issues{
 		"preloaded-bulk-18-weeks-no-issues.test":  emptyIssues,
 		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
 		"preloaded-bulk-1-year-errors.test":       emptyIssues,
@@ -158,7 +157,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		"preloaded-public-suffix-no-issues":       emptyIssues,
 	}
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
@@ -168,8 +167,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
 	}}
 
-	mockHstspreload.eligibleResponses = TestEligibleResponses
-	mockPreloadlist.list = TestPreloadlist
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
@@ -179,8 +178,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 
-
-	api.Update(w,r)
+	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
 
 	states, err := api.database.GetAllIneligibleDomainStates()
@@ -189,5 +187,163 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	}
 	if len(states) != 0 {
 		t.Errorf("IneligibleDomain database is not empty")
+	}
+}
+
+func TestStatusChange(t *testing.T) {
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
+
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "preloaded-errors-ineligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-errors-eligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-no-errors", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+	}}
+
+	testEligibleResponses := map[string]hstspreload.Issues{
+		"preloaded-errors-ineligible": issuesWithErrors,
+		"preloaded-errors-eligible":   issuesWithErrors,
+		"preloaded-no-errors":         emptyIssues,
+	}
+
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
+
+	testIneligibleDomainList := []database.IneligibleDomainState{
+		{
+			Name: "preloaded-errors-ineligible",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+		{
+			Name: "preloaded-errors-eligible",
+			Scans: []database.Scan{
+				{ScanTime: time.Now().Add(-time.Hour * 24 * 7)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+		{
+			Name: "preloaded-no-errors",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+	}
+
+	err := api.database.SetIneligibleDomainStates(testIneligibleDomainList, func(format string, args ...interface{}) {})
+	if err != nil {
+		t.Fatalf("Couldn't set the states of ineligible domains in the database.")
+	}
+
+	w := httptest.NewRecorder()
+	w.Body = &bytes.Buffer{}
+
+	r, err := http.NewRequest("GET", "", nil)
+	if err != nil {
+		t.Fatalf("[%s] %s", "NewRequest Failed", err)
+	}
+
+	api.Update(w, r)
+	api.RemoveIneligibleDomains(w, r)
+
+	state, err := api.database.AllDomainStates()
+	if err != nil {
+		t.Errorf("Couldn't get the state of preloaded-errors-ineligible from the database.")
+	}
+	for _, s := range state {
+		if s.Name != "preloaded-errors-ineligible" && s.Status == database.StatusPendingAutomatedRemoval {
+			t.Errorf("Status of %s has been changed", s.Name)
+		}
+		if s.Name == "preloaded-errors-ineligible" && s.Status != database.StatusPendingAutomatedRemoval {
+			t.Errorf("Status has not been changed")
+		}
+	}
+}
+
+// TestDeletionAndStatusChange tests whether the correct domains
+// are being deleted and are having their status changed
+func TestDeletionAndStatusChange(t *testing.T) {
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
+
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "preloaded-errors-ineligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-no-errors", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+	}}
+
+	testEligibleResponses := map[string]hstspreload.Issues{
+		"preloaded-errors-ineligible": issuesWithErrors,
+		"preloaded-no-errors":         emptyIssues,
+	}
+
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
+
+	testIneligibleDomainList := []database.IneligibleDomainState{
+		{
+			Name: "preloaded-errors-ineligible",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+		{
+			Name: "preloaded-no-errors",
+			Scans: []database.Scan{
+				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
+			},
+			Policy: "Bulk-18-weeks",
+		},
+	}
+
+	err := api.database.SetIneligibleDomainStates(testIneligibleDomainList, func(format string, args ...interface{}) {})
+	if err != nil {
+		t.Fatalf("Couldn't set the states of ineligible domains in the database.")
+	}
+
+	w := httptest.NewRecorder()
+	w.Body = &bytes.Buffer{}
+
+	r, err := http.NewRequest("GET", "", nil)
+	if err != nil {
+		t.Fatalf("[%s] %s", "NewRequest Failed", err)
+	}
+
+	api.Update(w, r)
+	api.RemoveIneligibleDomains(w, r)
+
+	states, err := api.database.GetAllIneligibleDomainStates()
+	if err != nil {
+		t.Errorf("Couldn't get all ineligible states from the database.")
+	}
+	if len(states) != 1 || states[0].Name != "preloaded-errors-ineligible" {
+		t.Errorf("Eligible domain has not been deleted")
+	}
+
+	// second run
+	testEligibleResponses = map[string]hstspreload.Issues{
+		"preloaded-errors-ineligible": issuesWithErrors,
+		"preloaded-no-errors":         issuesWithErrors,
+	}
+
+	mockHstspreload.eligibleResponses = testEligibleResponses
+
+	api.RemoveIneligibleDomains(w, r)
+
+	errState, err := api.database.StateForDomain("preloaded-errors-ineligible")
+	if err != nil {
+		t.Errorf("Couldn't get the state of preloaded-errors-ineligible from the database.")
+	}
+	if errState.Status != database.StatusPendingAutomatedRemoval {
+		t.Errorf("Status has not been changed")
+	}
+
+	state, err := api.database.StateForDomain("preloaded-no-errors")
+	if err != nil {
+		t.Errorf("Couldn't get the state of preloaded-no-errors from the database.")
+	}
+	if state.Status == database.StatusPendingAutomatedRemoval {
+		t.Errorf("Status changed")
 	}
 }

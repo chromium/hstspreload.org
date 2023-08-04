@@ -392,8 +392,6 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
 	// map with domain domain names and their states of domains with valid policyTypes
 	policyStates := make(map[string]database.DomainState)
-	// map with the names of all the domains with valid policyTypes
-	var policyDomains []string
 	// all domains that need to be added to the ineligible
 	// domain database
 	var ineligibleDomains []database.IneligibleDomainState
@@ -412,20 +410,19 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// Filter Domains
 	for _, d := range domains {
 		if d.Policy == preloadlist.Bulk18Weeks || d.Policy == preloadlist.Bulk1Year {
-			policyDomains = append(policyDomains, d.Name)
 			policyStates[d.Name] = d
 		}
 	}
 
 	// call GetIneligibleDomainStates, add to map
 	states := make(map[string]database.IneligibleDomainState)
-	state, err := api.database.GetIneligibleDomainStates(policyDomains)
+	state, err := api.database.GetAllIneligibleDomainStates()
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not get domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	
+
 	// delete domains that exist in the ineligible database but not
 	// on the preload list
 	for _, s := range state {
@@ -478,4 +475,35 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+
+	// Set domain status to StatusPendingAutomatedRemoval
+
+	// Anonymous function that checks if a domain's
+	// status should be changed to StatusPendingAutomatedRemoval
+	shouldRemove := func(state database.IneligibleDomainState) bool {
+		if len(state.Scans) < 2 {
+			return false
+		}
+		// duration between scans should be greater than 30 days
+		firstScanTime := state.Scans[0].ScanTime
+		lastScanTime := state.Scans[len(state.Scans)-1].ScanTime
+		return lastScanTime.Sub(firstScanTime) > time.Hour*24*30
+	}
+
+	// Get list of names of all domains that need their status changed
+	var pendingRemoval []string
+	allStates, err := api.database.GetAllIneligibleDomainStates()
+	if err != nil {
+		msg := fmt.Sprintf("Internal error: could not get all ineligible domains. (%s)\n", err)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+	for _, id := range allStates {
+		if shouldRemove(id) {
+			pendingRemoval = append(pendingRemoval, id.Name)
+		}
+	}
+
+	// Change status of the domain
+	database.SetPendingAutomatedRemoval(api.database, pendingRemoval, func(fomat string, args ...interface{}) {})
 }
