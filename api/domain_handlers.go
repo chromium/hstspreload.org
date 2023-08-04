@@ -480,15 +480,14 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
 	// Anonymous function that checks if a domain's
 	// status should be changed to StatusPendingAutomatedRemoval
-	scans := func(state database.IneligibleDomainState) bool {
+	shouldRemove := func(state database.IneligibleDomainState) bool {
 		if len(state.Scans) < 2 {
 			return false
 		}
 		// duration between scans should be greater than 30 days
-		if state.Scans[len(state.Scans)-1].ScanTime.Sub(state.Scans[0].ScanTime) > time.Duration(time.Hour)*24*30 {
-			return true
-		}
-		return false
+		firstScanTime := state.Scans[0].ScanTime
+		lastScanTime := state.Scans[len(state.Scans)-1].ScanTime
+		return lastScanTime.Sub(firstScanTime) > time.Hour*24*30
 	}
 
 	// Get list of names of all domains that need their status changed
@@ -500,7 +499,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, id := range allStates {
-		if scans(id) {
+		if shouldRemove(id) {
 			pendingRemoval = append(pendingRemoval, id.Name)
 		}
 	}

@@ -147,7 +147,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		t.Errorf("Could not Set IneligibleDomains")
 	}
 
-	TestEligibleResponses := map[string]hstspreload.Issues{
+	testEligibleResponses := map[string]hstspreload.Issues{
 		"preloaded-bulk-18-weeks-no-issues.test":  emptyIssues,
 		"preloaded-bulk-18-weeks-warnings.test":   issuesWithWarnings,
 		"preloaded-bulk-1-year-errors.test":       emptyIssues,
@@ -157,7 +157,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		"preloaded-public-suffix-no-issues":       emptyIssues,
 	}
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "preloaded-bulk-18-weeks-no-issues.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "preloaded-bulk-1-year-errors.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 		{Name: "not-preloaded-bulk-18-weeks-errors.test", Mode: "", IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
@@ -167,8 +167,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 		{Name: "preloaded-public-suffix-no-issues", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.PublicSuffix},
 	}}
 
-	mockHstspreload.eligibleResponses = TestEligibleResponses
-	mockPreloadlist.list = TestPreloadlist
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
 
 	w := httptest.NewRecorder()
 	w.Body = &bytes.Buffer{}
@@ -193,20 +193,20 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 func TestStatusChange(t *testing.T) {
 	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "preloaded-errors-ineligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "preloaded-errors-eligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "preloaded-no-errors", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 	}}
 
-	TestEligibleResponses := map[string]hstspreload.Issues{
+	testEligibleResponses := map[string]hstspreload.Issues{
 		"preloaded-errors-ineligible": issuesWithErrors,
 		"preloaded-errors-eligible":   issuesWithErrors,
 		"preloaded-no-errors":         emptyIssues,
 	}
 
-	mockHstspreload.eligibleResponses = TestEligibleResponses
-	mockPreloadlist.list = TestPreloadlist
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
 
 	testIneligibleDomainList := []database.IneligibleDomainState{
 		{
@@ -219,7 +219,7 @@ func TestStatusChange(t *testing.T) {
 		{
 			Name: "preloaded-errors-eligible",
 			Scans: []database.Scan{
-				{ScanTime: time.Date(time.Now().Year(), time.July, 26, 1, 37, 51, 15, time.UTC)},
+				{ScanTime: time.Now().Add(-time.Hour * 24 * 7)},
 			},
 			Policy: "Bulk-18-weeks",
 		},
@@ -267,18 +267,18 @@ func TestStatusChange(t *testing.T) {
 func TestDeletionAndStatusChange(t *testing.T) {
 	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
-	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
 		{Name: "preloaded-errors-ineligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "preloaded-no-errors", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 	}}
 
-	TestEligibleResponses := map[string]hstspreload.Issues{
+	testEligibleResponses := map[string]hstspreload.Issues{
 		"preloaded-errors-ineligible": issuesWithErrors,
 		"preloaded-no-errors":         emptyIssues,
 	}
 
-	mockHstspreload.eligibleResponses = TestEligibleResponses
-	mockPreloadlist.list = TestPreloadlist
+	mockHstspreload.eligibleResponses = testEligibleResponses
+	mockPreloadlist.list = testPreloadlist
 
 	testIneligibleDomainList := []database.IneligibleDomainState{
 		{
@@ -317,17 +317,17 @@ func TestDeletionAndStatusChange(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't get all ineligible states from the database.")
 	}
-	if len(states) != 1 {
+	if len(states) != 1 && states[0].Name != "preloaded-errors-ineligible" {
 		t.Errorf("Eligible domain has not been deleted")
 	}
 
 	// second run
-	TestEligibleResponses = map[string]hstspreload.Issues{
+	testEligibleResponses = map[string]hstspreload.Issues{
 		"preloaded-errors-ineligible": issuesWithErrors,
 		"preloaded-no-errors":         issuesWithErrors,
 	}
 
-	mockHstspreload.eligibleResponses = TestEligibleResponses
+	mockHstspreload.eligibleResponses = testEligibleResponses
 
 	api.RemoveIneligibleDomains(w, r)
 
