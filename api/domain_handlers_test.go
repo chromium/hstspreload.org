@@ -191,35 +191,39 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 }
 
 func TestStatusChange(t *testing.T) {
-	api, _, _, mockPreloadlist := mockAPI(0 * time.Second)
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
 
 	TestPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
-		{Name: "garron.net", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
-		{Name: "chromium.org", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: false, Policy: preloadlist.Bulk1Year},
-		{Name: "example.com", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "preloaded-errors-ineligible", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
+		{Name: "preloaded-no-errors", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
 	}}
 
+	TestEligibleResponses := map[string]hstspreload.Issues{
+		"preloaded-errors-ineligible": issuesWithErrors,
+		"preloaded-errors-eligible":   issuesWithErrors,
+		"preloaded-no-errors":         emptyIssues,
+	}
+
+	mockHstspreload.eligibleResponses = TestEligibleResponses
 	mockPreloadlist.list = TestPreloadlist
 
 	testIneligibleDomainList := []database.IneligibleDomainState{
 		{
-			Name: "garron.net",
+			Name: "preloaded-errors-ineligible",
 			Scans: []database.Scan{
 				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
-				{ScanTime: time.Date(2022, time.August, 26, 1, 37, 51, 15, time.UTC)},
 			},
 			Policy: "Bulk-18-weeks",
 		},
 		{
-			Name: "example.com",
+			Name: "preloaded-errors-eligible",
 			Scans: []database.Scan{
-				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
-				{ScanTime: time.Date(2022, time.July, 27, 1, 37, 51, 15, time.UTC)},
+				{ScanTime: time.Date(time.Now().Year(), time.July, 26, 1, 37, 51, 15, time.UTC)},
 			},
 			Policy: "Bulk-18-weeks",
 		},
 		{
-			Name: "chromium.org",
+			Name: "preloaded-no-errors",
 			Scans: []database.Scan{
 				{ScanTime: time.Date(2022, time.July, 26, 1, 37, 51, 15, time.UTC)},
 			},
@@ -244,11 +248,16 @@ func TestStatusChange(t *testing.T) {
 
 	api.RemoveIneligibleDomains(w, r)
 
-	state, err := api.database.StateForDomain("garron.net")
+	state, err := api.database.AllDomainStates()
 	if err != nil {
-		t.Errorf("Couldn't get the state of garron.net from the database.")
+		t.Errorf("Couldn't get the state of preloaded-errors-ineligible from the database.")
 	}
-	if state.Status != database.StatusPendingAutomatedRemoval {
-		t.Errorf("Status has not been changed")
+	for _, s := range state {
+		if s.Name != "preloaded-errors-ineligible" && s.Status == database.StatusPendingAutomatedRemoval {
+			t.Errorf("Status of %s has been changed", s.Name)
+		}
+		if s.Name == "preloaded-errors-ineligible" && s.Status != database.StatusPendingAutomatedRemoval {
+			t.Errorf("Status has not been changed")
+		}
 	}
 }
