@@ -387,7 +387,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 // database and change the status to PendingAutomatedRemoval if the domain
 // does not follow the requirements for more than 2 crawls
 
-// Example: GET /removeineligibledomains?
+// Example: GET /remove-ineligible-domains
 func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 
 	// map with domain domain names and their states of domains with valid policyTypes
