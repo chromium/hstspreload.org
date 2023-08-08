@@ -23,6 +23,12 @@ var normalizeDomainTests = []struct {
 	{"eXamPle.coM", "example.com"},
 }
 
+func toAppEngineHttpRequest(r *http.Request) *http.Request {
+	r.Header.Set("X-Appengine-Cron", "true")
+	r.RemoteAddr = "0.1.0.2"
+	return r
+}
+
 func TestNormalizeDomain(t *testing.T) {
 	for _, c := range normalizeDomainTests {
 		result, err := normalizeDomain(c.input)
@@ -98,14 +104,19 @@ func TestAddIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
-	r.Header.Set("X-Appengine-Cron", "true")
-	r.RemoteAddr = "0.1.0.2"
+	// tests that a non-App Engine http request returns a 403 status code
+	invalidW := httptest.NewRecorder()
+	invalidW.Body = &bytes.Buffer{}
+	if api.RemoveIneligibleDomains(invalidW, r); invalidW.Code != 403 {
+		t.Errorf("HTTP Response INvalid: Status code for invalid http request is not 403")
+	}
+	r = toAppEngineHttpRequest(r)
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
 
 	if w.Code != 200 {
-		t.Errorf("HTTP Response Invalid: Status code is not 200")
+		t.Errorf("HTTP Response Invalid: Status code is not 200, it's %d", w.Code)
 	}
 
 	states, err := api.database.GetAllIneligibleDomainStates()
@@ -179,8 +190,7 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
-	r.Header.Set("X-Appengine-Cron", "true")
-	r.RemoteAddr = "0.1.0.2"
+	r = toAppEngineHttpRequest(r)
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
@@ -248,8 +258,7 @@ func TestStatusChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
-	r.Header.Set("X-Appengine-Cron", "true")
-	r.RemoteAddr = "0.1.0.2"
+	r = toAppEngineHttpRequest(r)
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
@@ -315,8 +324,7 @@ func TestDeletionAndStatusChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
-	r.Header.Set("X-Appengine-Cron", "true")
-	r.RemoteAddr = "0.1.0.2"
+	r = toAppEngineHttpRequest(r)
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)

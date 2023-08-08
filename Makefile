@@ -17,6 +17,7 @@ pre-commit: lint build test
 deploy: version
 	date
 	time gcloud app deploy app.yaml
+	gcloud app deploy cron.yaml
 	date
 
 # Version file.
