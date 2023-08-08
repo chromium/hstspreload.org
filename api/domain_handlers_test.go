@@ -98,6 +98,8 @@ func TestAddIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
+	r.Header.Set("X-Appengine-Cron", "true")
+	r.RemoteAddr = "0.1.0.2"
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
@@ -177,6 +179,8 @@ func TestDeleteIneligibleDomain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
+	r.Header.Set("X-Appengine-Cron", "true")
+	r.RemoteAddr = "0.1.0.2"
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
@@ -244,6 +248,8 @@ func TestStatusChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
+	r.Header.Set("X-Appengine-Cron", "true")
+	r.RemoteAddr = "0.1.0.2"
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
@@ -309,6 +315,8 @@ func TestDeletionAndStatusChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
+	r.Header.Set("X-Appengine-Cron", "true")
+	r.RemoteAddr = "0.1.0.2"
 
 	api.Update(w, r)
 	api.RemoveIneligibleDomains(w, r)
