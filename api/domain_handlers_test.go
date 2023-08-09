@@ -108,7 +108,7 @@ func TestAddIneligibleDomain(t *testing.T) {
 	invalidW := httptest.NewRecorder()
 	invalidW.Body = &bytes.Buffer{}
 	if api.RemoveIneligibleDomains(invalidW, r); invalidW.Code != http.StatusForbidden {
-		t.Errorf("HTTP Response INvalid: Status code for invalid http request is not 403")
+		t.Errorf("HTTP Response Invalid: Status code for invalid http request is not 403")
 	}
 	r = toAppEngineHttpRequest(r)
 
@@ -116,7 +116,7 @@ func TestAddIneligibleDomain(t *testing.T) {
 	api.RemoveIneligibleDomains(w, r)
 
 	if w.Code != 200 {
-		t.Errorf("HTTP Response Invalid: Status code is not 200, it's %d", w.Code)
+		t.Errorf("HTTP Response Invalid: Status code is not 200")
 	}
 
 	states, err := api.database.GetAllIneligibleDomainStates()
