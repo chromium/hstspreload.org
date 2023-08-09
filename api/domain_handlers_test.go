@@ -105,9 +105,9 @@ func TestAddIneligibleDomain(t *testing.T) {
 		t.Fatalf("[%s] %s", "NewRequest Failed", err)
 	}
 	// tests that a non-App Engine http request returns a 403 status code
-	invalidW := httptest.NewRecorder()
-	invalidW.Body = &bytes.Buffer{}
-	if api.RemoveIneligibleDomains(invalidW, r); invalidW.Code != 403 {
+	invalid := httptest.NewRecorder()
+	invalid.Body = &bytes.Buffer{}
+	if api.RemoveIneligibleDomains(invalid, r); invalid.Code != 403 {
 		t.Errorf("HTTP Response INvalid: Status code for invalid http request is not 403")
 	}
 	r = toAppEngineHttpRequest(r)
