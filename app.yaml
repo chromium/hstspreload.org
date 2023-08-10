@@ -1,8 +1,8 @@
-runtime: go1.15
+runtime: go
 env: flex
 
-env_variables:
-  GODEBUG: "tls13=1"
+runtime_config:
+  operating_system: "ubuntu22"
 
 handlers:
 - url: /.*
