@@ -16,8 +16,7 @@ pre-commit: lint build test
 .PHONY: deploy
 deploy: version
 	date
-	time gcloud app deploy app.yaml
-	gcloud app deploy cron.yaml
+	time gcloud app deploy app.yaml cron.yaml
 	date
 
 # Version file.

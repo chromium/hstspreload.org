@@ -33,6 +33,8 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 	}
 
 	switch {
+	case maybeAppEngineCron(r):
+		return true
 	case (r.Host == "hstspreload.appspot.com"):
 		redirectDomain := "hstspreload.appspot.com"
 		if isHTTPS {
@@ -41,7 +43,7 @@ func hsts(w http.ResponseWriter, r *http.Request) (cont bool) {
 		u := fmt.Sprintf("https://%s%s", redirectDomain, r.URL.Path)
 		http.Redirect(w, r, u, http.StatusMovedPermanently)
 		return false
-	case isHTTPS, isLocalhost(r.Host), maybeAppEngineCron(r):
+	case isHTTPS, isLocalhost(r.Host):
 		return true
 	default:
 		u := fmt.Sprintf("https://%s%s", r.Host, r.URL.Path)

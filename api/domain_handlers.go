@@ -390,7 +390,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 // Example: GET /remove-ineligible-domains
 func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// ensures endpoint requests can only come from App Engine
-	if r.Header.Get("X-Appengine-Cron") != "true" || r.RemoteAddr != "0.1.0.2" {
+	if r.Header.Get("X-Appengine-Cron") != "true" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
