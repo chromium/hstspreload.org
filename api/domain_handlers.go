@@ -2,8 +2,10 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/idna"
@@ -383,6 +385,11 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 	writeJSONOrBust(w, issues)
 }
 
+type DomainStateWithIssues struct {
+	DomainState database.DomainState
+	Issues hstspreload.Issues
+}
+
 // RemoveIneligibleDomains runs eligibility checks on domains present in the
 // database and change the status to PendingAutomatedRemoval if the domain
 // does not follow the requirements for more than 2 crawls
@@ -404,6 +411,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// ineligible domain database
 	var deleteEligibleDomains []string
 
+	log.Print("Fetching domains...")
 	// Get all domains
 	domains, err := api.database.AllDomainStates()
 	if err != nil {
@@ -411,6 +419,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+	log.Print("Filtering domains...")
 
 	// Filter Domains
 	for _, d := range domains {
@@ -418,6 +427,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			policyStates[d.Name] = d
 		}
 	}
+	log.Print("Getting ineligible domain states...")
 
 	// call GetIneligibleDomainStates, add to map
 	states := make(map[string]database.IneligibleDomainState)
@@ -437,30 +447,64 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Store ineligible domains in slice
-	for _, d := range policyStates {
-		//#TODO: parallelize all the calls to EligibleDomains
-		_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
+	log.Printf("Starting to scan %d domains\n", len(policyStates))
+	statesAndIssues := make(chan DomainStateWithIssues)
+	domainStates := make(chan database.DomainState)
+	var wg sync.WaitGroup
+	numWorkers := 500
+	for i := 0; i < numWorkers; i++ {
+		// Each worker receives DomainStates from the domainStates channel
+		// and scans that domain. The worker stops when the channel is
+		// closed.
+		go func() {
+			for d := range domainStates {
+				_, issues := api.hstspreload.EligibleDomain(d.Name, d.Policy)
+				statesAndIssues <- DomainStateWithIssues{d, issues}
+				wg.Done()
+			}
+		}()
+	}
+	log.Printf("Started %d workers\n", numWorkers)
+	go func() {
+		i := 0
+		for _, d := range policyStates {
+			i++
+			wg.Add(1)
+			domainStates <- d
+			if i % 1000 == 0 {
+				log.Printf("Sent %d domains to workers\n", i)
+			}
+		}
+
+		wg.Wait()
+		log.Println("... all goroutines done, closing channels")
+		close(domainStates)
+		close(statesAndIssues)
+	}()
+
+	for stateAndIssues := range statesAndIssues {
+		domainState := stateAndIssues.DomainState
+		issues := stateAndIssues.Issues
 
 		scan := database.Scan{
 			ScanTime: time.Now(),
 			Issues:   issues,
 		}
 
-		val, ok := states[d.Name]
+		val, ok := states[domainState.Name]
 		if len(issues.Errors) > 0 {
 			if ok {
 				val.Scans = append(val.Scans, scan)
 				ineligibleDomains = append(ineligibleDomains, val)
 			} else {
 				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
-					Name:   d.Name,
+					Name:   domainState.Name,
 					Scans:  []database.Scan{scan},
-					Policy: string(d.Policy),
+					Policy: string(domainState.Policy),
 				})
 			}
 		} else if ok {
-			deleteEligibleDomains = append(deleteEligibleDomains, d.Name)
+			deleteEligibleDomains = append(deleteEligibleDomains, domainState.Name)
 		}
 	}
 
@@ -473,10 +517,14 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("About to set %d domains as potentially ineligible\n", len(ineligibleDomains))
+
 	// Add ineligible domains to the database
-	err = api.database.SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {})
+	err = api.database.SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {
+		log.Printf(format, args...)
+	})
 	if err != nil {
-		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
+		msg := fmt.Sprintf("Internal error: could not set domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}

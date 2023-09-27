@@ -14,7 +14,7 @@ const (
 	prodProjectID  = "hstspreload"
 
 	batchSize = 450
-	timeout   = 45 * time.Second
+	timeout   = 90 * time.Second
 
 	domainStateKind           = "DomainState"
 	ineligibleDomainStateKind = "IneligibleDomainState"
@@ -285,9 +285,10 @@ func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainSt
 		values = append(values, state)
 		if len(keys) >= batchSize {
 			if err := set(keys, values); err != nil {
-				keys = keys[:0]
-				values = values[:0]
+				return err
 			}
+			keys = keys[:0]
+			values = values[:0]
 		}
 	}
 	return set(keys, values)
