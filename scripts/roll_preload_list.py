@@ -140,7 +140,7 @@ def main():
     print("\nWARNING\nDuplicate entries:")
     for dupe in dupes:
       print("- %s" % dupe)
-    print("\nYou'll need to manually deduplicate entries before commiting them to Chromium.")
+    print("\nYou'll need to manually deduplicate entries before committing them to Chromium.")
     print("\nNote: if there are a lot of duplicate entries, you may have accidentally run this script twice. Reset your checkout and try again.")
   else:
     print("\nSUCCESS\n")
