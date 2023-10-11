@@ -294,7 +294,7 @@ func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainSt
 	return set(keys, values)
 }
 
-// DeleteIneligibleDomainStates deletes the state for the given domain from the datbase
+// DeleteIneligibleDomainStates deletes the state for the given domain from the database
 func (db DatastoreBacked) DeleteIneligibleDomainStates(domains []string) (err error) {
 	// Set up the datastore context.
 	c, cancel := context.WithTimeout(context.Background(), timeout)
