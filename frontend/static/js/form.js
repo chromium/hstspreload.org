@@ -244,6 +244,7 @@ PreloadController.prototype = {
       case 'rejected':
       case 'removed':
       case 'pending-removal':
+      case 'pending-automated-removal':
         showForm = this.showPreloadEligibility(view, domain, issues);
         view.showIssues(issues);
         break;
@@ -260,7 +261,7 @@ PreloadController.prototype = {
         }
         break;
       default:
-        throw new Error('Unknown status');
+        throw new Error(`Unknown status ${status.status}`);
     }
 
     view.showResults();
@@ -334,6 +335,7 @@ RemovalController.prototype = {
       case 'rejected':
       case 'removed':
       case 'pending-removal':
+      case 'pending-automated-removal':
         view.setTheme('theme-red');
         break;
       case 'pending':
@@ -342,7 +344,7 @@ RemovalController.prototype = {
         view.showIssues(issues);
         break;
       default:
-        throw new Error('Unknown status');
+        throw new Error(`Unknown status ${status.status}`);
     }
 
     view.showResults();
