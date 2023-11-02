@@ -129,6 +129,7 @@ function statusString(status, issues, domain) {
           ' was previously rejected from the preload list.';
 
     case 'pending-removal':
+    case 'pending-automated-removal':
       return 'Status: ' + domain +
           ' was previously submitted to the preload list, but is now pending removal.';
     case 'removed':
