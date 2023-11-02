@@ -13,6 +13,8 @@ type PreloadStatus string
 
 // Values for PreloadStatus
 const (
+	// NOTE: If changing (or adding) these values, also update
+	// frontend/static/js/form.js.
 	StatusUnknown                 = "unknown"
 	StatusPending                 = "pending"
 	StatusPreloaded               = "preloaded"
