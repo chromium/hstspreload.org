@@ -224,6 +224,8 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		fallthrough
 	case database.StatusPendingRemoval:
 		fallthrough
+	case database.StatusPendingAutomatedRemoval:
+		fallthrough
 	case database.StatusRemoved:
 		putErr := api.database.PutState(database.DomainState{
 			Name:              domain,
