@@ -5,7 +5,7 @@ go 1.15
 require (
 	cloud.google.com/go/datastore v1.12.1
 	github.com/chromium/hstspreload v0.0.0-20230717215815-2404b4b967f9
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.17.0
 	google.golang.org/api v0.132.0
 	google.golang.org/grpc v1.56.3
 )
