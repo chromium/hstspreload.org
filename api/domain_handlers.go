@@ -222,8 +222,6 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		fallthrough
 	case database.StatusRejected:
 		fallthrough
-	case database.StatusPendingRemoval:
-		fallthrough
 	case database.StatusRemoved:
 		putErr := api.database.PutState(database.DomainState{
 			Name:              domain,
@@ -262,6 +260,26 @@ func (api API) Submit(w http.ResponseWriter, r *http.Request) {
 		issues = hstspreload.Issues{
 			Errors:   append(issues.Errors, issue),
 			Warnings: issues.Warnings,
+		}
+	case database.StatusPendingAutomatedRemoval:
+		fallthrough
+	case database.StatusPendingRemoval:
+		putErr := api.database.PutState(database.DomainState{
+			Name:              domain,
+			Status:            database.StatusPreloaded,
+			IncludeSubDomains: true,
+			SubmissionDate:    state.SubmissionDate,
+		})
+		if putErr != nil {
+			issue := hstspreload.Issue{
+				Code:    "internal.server.preload.save_failed",
+				Summary: "Internal error",
+				Message: "Unable to save to the preloaded list.",
+			}
+			issues = hstspreload.Issues{
+				Errors:   append(issues.Errors, issue),
+				Warnings: issues.Warnings,
+			}
 		}
 	default:
 		issue := hstspreload.Issue{

@@ -210,13 +210,6 @@ func TestAPI(t *testing.T) {
 				Warnings: []hstspreload.Issue{{Code: "server.preload.already_pending"}},
 			}}},
 
-		// pending automated removal
-		{"pending automated removal", data1, failNone, api.PendingAutomatedRemoval, "GET", "",
-			200, jsonContentType, wantBody{text: "[\n    \"pending-automated-removal.test\"\n]\n"}},
-		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
-			200, jsonContentType, wantBody{state: &database.DomainState{
-				Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval}}},
-
 		// update
 		{"garron.net pending", data1, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
@@ -229,6 +222,19 @@ func TestAPI(t *testing.T) {
 			200, textContentType, wantBody{text: "The preload list has 7 entries.\n- # of preloaded HSTS entries: 6\n- # to be added in this update: 6\n- # to be removed this update: 0\n- # to be self-rejected this update: 0\nSuccess. 6 domain states updated.\n"}},
 		{"pending 3", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
+
+	    // pending automated removal
+		{"pending automated removal", data1, failNone, api.PendingAutomatedRemoval, "GET", "",
+			200, jsonContentType, wantBody{text: "[\n    \"pending-automated-removal.test\"\n]\n"}},
+		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval}}},
+		// CHECK IF TEXT IS CORRECT vvv
+		{"submit previously pending automated removal", data1, failNone, api.Submit, "POST", "?domain=pending-automated-removal.test",
+			200, jsonContentType, wantBody{text: "", issues: &emptyIssues}},
+		{"pending-automated-removal.test status is now preloaded", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
+			200, jsonContentType, wantBody{state: &database.DomainState{
+				Name: "pending-automated-removal.test", Status: database.StatusPreloaded}}},
 
 		// create removable pending
 		{"create removable pending eligible", data1, failNone, api.Submit, "POST", "?domain=removal-pending-eligible.test",
@@ -325,7 +331,7 @@ func TestAPI(t *testing.T) {
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 4\n- # to be self-rejected this update: 2\nSuccess. 6 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 5\n- # to be self-rejected this update: 2\nSuccess. 7 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "garron.net", Status: database.StatusRemoved}}},
