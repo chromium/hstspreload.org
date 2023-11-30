@@ -229,7 +229,6 @@ func TestAPI(t *testing.T) {
 		{"pending automated removal status", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "pending-automated-removal.test", Status: database.StatusPendingAutomatedRemoval}}},
-		// CHECK IF TEXT IS CORRECT vvv
 		{"submit previously pending automated removal", data1, failNone, api.Submit, "POST", "?domain=pending-automated-removal.test",
 			200, jsonContentType, wantBody{text: "", issues: &emptyIssues}},
 		{"pending-automated-removal.test status is now preloaded", data1, failNone, api.Status, "GET", "?domain=pending-automated-removal.test",
