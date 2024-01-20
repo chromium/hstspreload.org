@@ -11,7 +11,6 @@ import (
 
 const (
 	localProjectID = "hstspreload-local"
-	prodProjectID  = "hstspreload"
 
 	batchSize = 450
 	timeout   = 90 * time.Second
@@ -50,8 +49,8 @@ func TempLocalDatabase() (db DatastoreBacked, shutdown func() error, err error) 
 
 // ProdDatabase gives a Database that will call out to
 // the real production instance of Google Cloud Datastore
-func ProdDatabase() (db DatastoreBacked) {
-	return DatastoreBacked{gcd.NewProdBackend(), prodProjectID}
+func ProdDatabase(projectID string) DatastoreBacked {
+	return DatastoreBacked{gcd.NewProdBackend(), projectID}
 }
 
 var blackholeLogf = func(format string, args ...interface{}) {}

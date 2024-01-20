@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -429,7 +428,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	// ineligible domain database
 	var deleteEligibleDomains []string
 
-	log.Print("Fetching domains...")
+	api.logger.Print("Fetching domains...")
 	// Get all domains
 	domains, err := api.database.AllDomainStates()
 	if err != nil {
@@ -437,7 +436,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	log.Print("Filtering domains...")
+	api.logger.Print("Filtering domains...")
 
 	// Filter Domains
 	for _, d := range domains {
@@ -445,7 +444,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			policyStates[d.Name] = d
 		}
 	}
-	log.Print("Getting ineligible domain states...")
+	api.logger.Print("Getting ineligible domain states...")
 
 	// call GetIneligibleDomainStates, add to map
 	states := make(map[string]database.IneligibleDomainState)
@@ -465,7 +464,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf("Starting to scan %d domains\n", len(policyStates))
+	api.logger.Printf("Starting to scan %d domains\n", len(policyStates))
 	statesAndIssues := make(chan DomainStateWithIssues)
 	domainStates := make(chan database.DomainState)
 	var wg sync.WaitGroup
@@ -482,7 +481,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			}
 		}()
 	}
-	log.Printf("Started %d workers\n", numWorkers)
+	api.logger.Printf("Started %d workers\n", numWorkers)
 	go func() {
 		i := 0
 		for _, d := range policyStates {
@@ -490,12 +489,12 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			wg.Add(1)
 			domainStates <- d
 			if i % 1000 == 0 {
-				log.Printf("Sent %d domains to workers\n", i)
+				api.logger.Printf("Sent %d domains to workers\n", i)
 			}
 		}
 
 		wg.Wait()
-		log.Println("... all goroutines done, closing channels")
+		api.logger.Println("... all goroutines done, closing channels")
 		close(domainStates)
 		close(statesAndIssues)
 	}()
@@ -535,11 +534,11 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("About to set %d domains as potentially ineligible\n", len(ineligibleDomains))
+	api.logger.Printf("About to set %d domains as potentially ineligible\n", len(ineligibleDomains))
 
 	// Add ineligible domains to the database
 	err = api.database.SetIneligibleDomainStates(ineligibleDomains, func(format string, args ...interface{}) {
-		log.Printf(format, args...)
+		api.logger.Printf(format, args...)
 	})
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not set domains. (%s)\n", err)
