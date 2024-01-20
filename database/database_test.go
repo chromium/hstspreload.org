@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"sort"
@@ -29,8 +30,7 @@ func ExampleTempLocalDatabase() {
 func TestMain(m *testing.M) {
 	localDatabase, shutdown, err := TempLocalDatabase()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not initialize local backend: %s", err)
-		os.Exit(1)
+		log.Fatalf("could not initialize local backend: %s", err)
 	}
 
 	testDB = localDatabase
