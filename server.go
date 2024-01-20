@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/logging"
 	"github.com/chromium/hstspreload.org/api"
 	"github.com/chromium/hstspreload.org/database"
+)
+
+const (
+	prodProjectID = "hstspreload"
 )
 
 func main() {
@@ -74,34 +81,35 @@ func origin(local bool) string {
 
 func mustSetupAPI(local bool) (a api.API, shutdown func() error) {
 	var db database.Database
+	ctx := context.Background()
+	logger := log.Default()
 
 	if local {
-		fmt.Printf("Setting up local database...")
+		logger.Print("Setting up local database...")
 		localDB, dbShutdown, err := database.TempLocalDatabase()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err)
-			os.Exit(1)
+			logger.Fatalf("Error creating database: %v", err)
 		}
 		db, shutdown = localDB, dbShutdown
 	} else {
-		fmt.Printf("Setting up prod database...")
-		db = database.ProdDatabase()
+		logger.Print("Setting up prod database...")
+		db = database.ProdDatabase(prodProjectID)
+		logClient, err := logging.NewClient(ctx, prodProjectID)
+		if err != nil {
+			logger.Fatalf("Failed to create logging client: %v", err)
+		}
+		logger = logClient.Logger("hstspreload-server").StandardLogger(logging.Info)
 		shutdown = func() error { return nil }
 	}
 
-	fmt.Printf(" checking database connection...")
+	logger.Print(" checking database connection...")
 
-	a = api.New(db)
+	a = api.New(db, logger)
 	err := a.CheckConnection()
-	exitIfNotNil(err)
-
-	fmt.Println(" done.")
-	return a, shutdown
-}
-
-func exitIfNotNil(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
-		os.Exit(1)
+		logger.Fatalf("%v", err)
 	}
+
+	logger.Print("API setup")
+	return a, shutdown
 }

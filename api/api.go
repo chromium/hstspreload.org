@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -17,6 +17,7 @@ type API struct {
 	hstspreload hstspreloadWrapper
 	preloadlist preloadlistWrapper
 	cache       *cache
+	logger      *log.Logger
 }
 
 const (
@@ -25,12 +26,13 @@ const (
 
 // New creates a new API struct with the given database and the proper
 // unexported fields.
-func New(db database.Database) API {
+func New(db database.Database, logger *log.Logger) API {
 	return API{
 		database:    db,
 		hstspreload: actualHstspreload{},
 		preloadlist: actualPreloadlist{},
 		cache:       cacheWithDuration(defaultCacheDuration),
+		logger:      logger,
 	}
 }
 
@@ -54,7 +56,7 @@ func (api API) CheckConnection() error {
 	_, err := api.database.StateForDomain("garron.net")
 	if err != nil {
 		if strings.Contains(err.Error(), "missing project/dataset id") {
-			fmt.Fprintf(os.Stderr, "Try running: make serve\n")
+			api.logger.Print("Try running: make serve")
 		}
 		return err
 	}
