@@ -57,6 +57,9 @@ func (s DomainState) MatchesWanted(wanted DomainState) bool {
 	if wanted.Status != s.Status {
 		return false
 	}
+	if wanted.Policy != s.Policy {
+		return false
+	}
 	if wanted.Message != "" && wanted.Message != s.Message {
 		return false
 	}
@@ -71,7 +74,8 @@ func (s DomainState) Equal(s2 DomainState) bool {
 	return s.Name == s2.Name && s.Status == s2.Status &&
 		s.Message == s2.Message &&
 		s.SubmissionDate.Equal(s2.SubmissionDate) &&
-		s.IncludeSubDomains == s2.IncludeSubDomains
+		s.IncludeSubDomains == s2.IncludeSubDomains &&
+		s.Policy == s2.Policy
 }
 
 // ToEntry converts a DomainState to a preloadlist.Entry.
