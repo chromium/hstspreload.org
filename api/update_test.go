@@ -118,8 +118,6 @@ func TestUpdate(t *testing.T) {
 					Name: "preloaded-custom.test",
 					Status: database.StatusRemoved,
 					IncludeSubDomains: true,
-					// TODO: the policy field should get cleared for removed domains.
-					Policy: preloadlist.Custom,
 				},
 			},
 		},
@@ -136,9 +134,7 @@ func TestUpdate(t *testing.T) {
 			[]database.DomainState{
 				{
 					Name: "preloaded.test",
-					Status: database.StatusRejected,
-					// TODO: This state transition should not have this message.
-					Message: "Domain was added and removed without being preloaded.",
+					Status: database.StatusRemoved,
 					IncludeSubDomains: true,
 				},
 			},
@@ -156,8 +152,7 @@ func TestUpdate(t *testing.T) {
 			[]database.DomainState{
 				{
 					Name: "preloaded.test",
-					// TODO: This should be StatusRejected.
-					Status: database.StatusPendingAutomatedRemoval,
+					Status: database.StatusRemoved,
 					IncludeSubDomains: true,
 				},
 			},
@@ -201,8 +196,7 @@ func TestUpdate(t *testing.T) {
 				},
 				{
 					Name: "pending-automated-removal.test",
-					// TODO: This should be StatusPendingAutomatedRemoval
-					Status: database.StatusPreloaded,
+					Status: database.StatusPendingAutomatedRemoval,
 					IncludeSubDomains: true,
 					Policy: preloadlist.Bulk1Year,
 				},
@@ -232,9 +226,7 @@ func TestUpdate(t *testing.T) {
 					Name: "preloaded.test",
 					Status: database.StatusPreloaded,
 					IncludeSubDomains: true,
-					// TODO: Uncomment the following line when
-					// the functionality under test is fixed.
-					// Policy: preloadlist.Bulk1Year,
+					Policy: preloadlist.Bulk1Year,
 				},
 			},
 		},

@@ -949,6 +949,8 @@ github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XL
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chromium/hstspreload v0.0.0-20230717215815-2404b4b967f9 h1:lUjpcxlnalltzHmS0ljbLvTVNyn+D9SlaVkFzNKvE6o=
 github.com/chromium/hstspreload v0.0.0-20230717215815-2404b4b967f9/go.mod h1:wnaDPQdV/ehNVGxLu9m5/NWnVHEizalu4/Z47anr3mg=
+github.com/chromium/hstspreload v0.0.0-20240911231609-cc9e2f8f2623 h1:XEjUCFrFn3Xml+OHwg+rmRJ2C7PoBtT9BmvRpdiukpw=
+github.com/chromium/hstspreload v0.0.0-20240911231609-cc9e2f8f2623/go.mod h1:aL/chD5x+u+u7eA4Ql7XCp8K2bAoy4qEiR7pgdWSDJk=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=

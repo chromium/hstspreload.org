@@ -18,6 +18,7 @@ const (
 	StatusUnknown                 = "unknown"
 	StatusPending                 = "pending"
 	StatusPreloaded               = "preloaded"
+	// StatusRejected is deprecated. StatusRemoved should be used instead.
 	StatusRejected                = "rejected"
 	StatusRemoved                 = "removed"
 	StatusPendingRemoval          = "pending-removal"
@@ -83,7 +84,7 @@ func (s DomainState) Equal(s2 DomainState) bool {
 // Only the name, preload status, include subdomains boolean and policy is preserved during the conversion.
 func (s DomainState) ToEntry() preloadlist.Entry {
 	mode := preloadlist.ForceHTTPS
-	if s.Status != StatusPreloaded {
+	if s.Status != StatusPreloaded && s.Status != StatusPendingRemoval && s.Status != StatusPendingAutomatedRemoval {
 		mode = ""
 	}
 	return preloadlist.Entry{Name: s.Name, Mode: mode, IncludeSubDomains: s.IncludeSubDomains, Policy: s.Policy}

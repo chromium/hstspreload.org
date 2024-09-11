@@ -8,21 +8,6 @@ import (
 	"github.com/chromium/hstspreload/chromium/preloadlist"
 )
 
-func difference(from []preloadlist.Entry, take []preloadlist.Entry) (diff []preloadlist.Entry) {
-	takeSet := make(map[string]bool)
-	for _, elem := range take {
-		takeSet[elem.Name] = true
-	}
-
-	for _, elem := range from {
-		if !takeSet[elem.Name] {
-			diff = append(diff, elem)
-		}
-	}
-
-	return diff
-}
-
 // Update tells the server to update pending/removed entries based
 // on the HSTS preload list source.
 //
@@ -40,73 +25,74 @@ func (api API) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	var actualPreload []preloadlist.Entry
-	for _, entry := range preloadList.Entries {
-		if entry.Mode == preloadlist.ForceHTTPS {
-			actualPreload = append(actualPreload, entry)
+
+	domainStates := make(map[string]database.DomainState)
+	addDomainStatesWithStatus := func(status database.PreloadStatus) bool {
+		domains, err := api.database.StatesWithStatus(status)
+		if err != nil {
+			msg := fmt.Sprintf("Internal error: could not retrieve domain names previously marked as %s. (%s)\n", status, err)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return false
 		}
+		for _, domain := range domains {
+			domainStates[domain.Name] = domain
+		}
+		return true
 	}
-
-	// Get domains currently recorded as preloaded.
-	preloadedDomains, dbErr := api.database.StatesWithStatus(database.StatusPreloaded)
-	if dbErr != nil {
-		msg := fmt.Sprintf(
-			"Internal error: could not retrieve domain names previously marked as preloaded. (%s)\n",
-			dbErr,
-		)
-		http.Error(w, msg, http.StatusInternalServerError)
+	// Get domains currently recorded as preloaded, pending removal, or
+	// pending automated removal.
+	if !addDomainStatesWithStatus(database.StatusPreloaded) ||
+		!addDomainStatesWithStatus(database.StatusPendingRemoval) ||
+		!addDomainStatesWithStatus(database.StatusPendingAutomatedRemoval) {
 		return
 	}
-	var databasePreload []preloadlist.Entry
-	for _, ds := range preloadedDomains {
-		databasePreload = append(databasePreload, ds.ToEntry())
-	}
 
-	// Get domains currently recorded as pending removal.
-	pendingRemovalDomains, dbErr := api.database.StatesWithStatus(database.StatusPendingRemoval)
-	if dbErr != nil {
-		msg := fmt.Sprintf(
-			"Internal error: could not retrieve domain names previously marked as pending removal. (%s)\n",
-			dbErr,
-		)
-		http.Error(w, msg, http.StatusInternalServerError)
-		return
-	}
-	var databasePendingRemoval []preloadlist.Entry
-	for _, ds := range pendingRemovalDomains {
-		databasePendingRemoval = append(databasePendingRemoval, ds.ToEntry())
-	}
-
-	// Calculate values that are out of date.
 	var updates []database.DomainState
-
-	added := difference(difference(actualPreload, databasePreload), databasePendingRemoval)
-	for _, entry := range added {
-		updates = append(updates, database.EntryToDomainState(entry, database.StatusPreloaded))
+	added := 0
+	updated := 0
+	removed := 0
+	for _, entry := range preloadList.Entries {
+		if entry.Mode != preloadlist.ForceHTTPS {
+			continue
+		}
+		domainState, found := domainStates[entry.Name]
+		if !found {
+			// entry is on the preload list but not marked as
+			// preloaded, pending removal, or pending automated
+			// removal in the database. Mark it as preloaded in the
+			// database.
+			updates = append(updates, database.EntryToDomainState(entry, database.StatusPreloaded))
+			added++
+			continue
+		}
+		delete(domainStates, entry.Name)
+		// entry is in both the preload list and in one of the states of
+		// preloaded, pending removal, or pending automated removal. If
+		// the preload list entry differs from what's in the database,
+		// update the database to match.
+		if domainState.ToEntry().Equal(entry) {
+			continue
+		}
+		domainState.Policy = entry.Policy
+		domainState.IncludeSubDomains = entry.IncludeSubDomains
+		updates = append(updates, domainState)
+		updated++
 	}
-
-	removed := difference(databasePreload, actualPreload)
-	for _, entry := range removed {
-		updates = append(updates, database.EntryToDomainState(entry, database.StatusRemoved))
-	}
-
-	selfRejected := difference(databasePendingRemoval, actualPreload)
-	for _, entry := range selfRejected {
-		updates = append(updates, database.EntryToDomainStateWithMessage(entry, database.StatusRejected, "Domain was added and removed without being preloaded."))
+	// domainStates now only contains domains that aren't on the preload
+	// list. Update their state in the database to mark them as removed.
+	for _, domainState := range domainStates {
+		domainState.Status = database.StatusRemoved
+		domainState.Policy = preloadlist.UnspecifiedPolicyType
+		updates = append(updates, domainState)
+		removed++
 	}
 
 	fmt.Fprintf(w, `The preload list has %d entries.
-- # of preloaded HSTS entries: %d
 - # to be added in this update: %d
+- # to be updated in this update: %d
 - # to be removed this update: %d
-- # to be self-rejected this update: %d
 `,
-		len(preloadList.Entries),
-		len(actualPreload),
-		len(added),
-		len(removed),
-		len(selfRejected),
-	)
+		len(preloadList.Entries), added, updated, removed)
 
 	// Create log function to show progress.
 	written := false
