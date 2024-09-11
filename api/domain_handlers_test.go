@@ -76,7 +76,7 @@ func TestAddIneligibleDomain(t *testing.T) {
 		"preloaded-bulk-18-weeks-errors.test": {errorScan},
 	}
 
-	expectedPolicies := map[string]string{
+	expectedPolicies := map[string]preloadlist.PolicyType{
 		"preloaded-bulk-1-year-errors.test":   preloadlist.Bulk1Year,
 		"preloaded-bulk-18-weeks-errors.test": preloadlist.Bulk18Weeks,
 	}

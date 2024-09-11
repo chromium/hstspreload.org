@@ -518,7 +518,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 				ineligibleDomains = append(ineligibleDomains, database.IneligibleDomainState{
 					Name:   domainState.Name,
 					Scans:  []database.Scan{scan},
-					Policy: string(domainState.Policy),
+					Policy: domainState.Policy,
 				})
 			}
 		} else if ok {
