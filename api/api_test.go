@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,6 +61,7 @@ func mockAPI(cacheDuration time.Duration) (api API, mc *database.MockController,
 		hstspreload: h,
 		preloadlist: c,
 		cache:       cacheWithDuration(cacheDuration),
+		logger:      log.Default(),
 	}
 	return api, mc, h, c
 }
