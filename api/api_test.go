@@ -135,6 +135,7 @@ func TestAPI(t *testing.T) {
 		{Name: "removal-preloaded-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk18Weeks},
 		{Name: "removal-preloaded-not-bulk-eligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
 		{Name: "removal-preloaded-bulk-ineligible.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.BulkLegacy},
+		{Name: "pending-automated-removal.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Test},
 		{Name: "godoc.og", Mode: "", IncludeSubDomains: true},
 		{Name: "dev", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true},
 	}}
@@ -221,7 +222,7 @@ func TestAPI(t *testing.T) {
 		{"update database failure", data1, failDatabase, api.Update, "GET", "",
 			500, textContentType, wantBody{text: "Internal error: could not retrieve domain names previously marked as preloaded. (forced failure)\n\n"}},
 		{"update success", data1, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 7 entries.\n- # of preloaded HSTS entries: 6\n- # to be added in this update: 6\n- # to be removed this update: 0\n- # to be self-rejected this update: 0\nSuccess. 6 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 8 entries.\n- # to be added in this update: 6\n- # to be updated in this update: 0\n- # to be removed this update: 0\nSuccess. 6 domain states updated.\n"}},
 		{"pending 3", data1, failNone, api.Pending, "GET", "",
 			200, jsonContentType, wantBody{text: "[\n]\n"}},
 
@@ -332,7 +333,7 @@ func TestAPI(t *testing.T) {
 
 		// update with removal
 		{"update with removal", data2, failNone, api.Update, "GET", "",
-			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # of preloaded HSTS entries: 1\n- # to be added in this update: 0\n- # to be removed this update: 5\n- # to be self-rejected this update: 2\nSuccess. 7 domain states updated.\n"}},
+			200, textContentType, wantBody{text: "The preload list has 2 entries.\n- # to be added in this update: 0\n- # to be updated in this update: 0\n- # to be removed this update: 7\nSuccess. 7 domain states updated.\n"}},
 		{"garron.net after update with removal", data2, failNone, api.Status, "GET", "?domain=garron.net",
 			200, jsonContentType, wantBody{state: &database.DomainState{
 				Name: "garron.net", Status: database.StatusRemoved}}},
@@ -371,7 +372,7 @@ func TestAPI(t *testing.T) {
 		if tt.wantBody.text != "" {
 			text := w.Body.String()
 			if text != tt.wantBody.text {
-				t.Errorf("[%s] Body text does not match wanted: %#v", tt.description, text)
+				t.Errorf("[%s] Wanted body text %q, got %q", tt.description, tt.wantBody.text, text)
 			}
 		}
 
