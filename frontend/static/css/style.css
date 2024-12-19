@@ -56,6 +56,10 @@ section:target {
   color: black;
 }
 
+section#submission-form:target {
+  border: none;
+}
+
 a.hash-link {
   text-decoration: none;
   color: inherit;
