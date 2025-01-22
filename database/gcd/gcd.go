@@ -140,6 +140,7 @@ func (db LocalBackend) NewClient(ctx context.Context, projectID string) (*datast
 		return nil, errors.New("empty addr, uninitialized local backend?")
 	}
 
+	//lint:ignore SA1019 ignoring that Dial is deprecated for now
 	conn, err := grpc.Dial(db.addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.Dial: %v", err)
