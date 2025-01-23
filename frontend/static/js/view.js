@@ -19,14 +19,8 @@ var PreloadView = function(controller, submitDomain, urlParam) {
   $('#submit-form').addEventListener('submit', submitDomainHandler);
 
   if (this._controller.formHasCheckboxes()) {
-    $('#checkbox-owner')
-      .addEventListener('change', this._checkboxChangedHandler.bind(this));
     $('#checkbox-subdomains')
       .addEventListener('change', this._checkboxChangedHandler.bind(this));
-  }
-
-  if (location.hash === '') {
-    $('#domain').focus();
   }
 };
 
@@ -37,9 +31,7 @@ PreloadView.prototype = {
   },
 
   _checkboxChangedHandler: function() {
-    $('#submit')
-      .disabled =
-        !($('#checkbox-owner').checked && $('#checkbox-subdomains').checked);
+    $('#submit').disabled = !$('#checkbox-subdomains').checked;
   },
 
   clearTheme: function() {
@@ -98,11 +90,7 @@ PreloadView.prototype = {
 
   showSubmission: function(domain) {
     if (this._controller.formHasCheckboxes()) {
-      $('#checkbox-owner').checked = false;
       $('#checkbox-subdomains').checked = false;
-      document.getElementById('oops-mailto').href =
-          'mailto:hstspreload@chromium.org?subject=Domain%20with%20possible%20accidental%20preload:%20' +
-          domain;
       $('#submit').disabled = true;
     } else {
       $('#submit').disabled = false;

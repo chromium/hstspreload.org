@@ -23,81 +23,87 @@
 <body class="theme-green">
 <a class="github-fork-ribbon" href="https://github.com/chromium/hstspreload.org" data-ribbon="On GitHub" title="On GitHub">On GitHub</a>
 
-<div class="content form">
-  <form id="domain-form" class="hidden">
-    <h2><label for="domain">
-      Enter a domain:
-    </label></h2>
+<div class="content">
+  <section id="hsts">
+    <h2><a class="hash-link" href="#hsts">HTTP Strict Transport Security (HSTS)</a></h2>
+    <p>
+      <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> is a mechanism for websites to instruct web browsers that the site should only be accessed over HTTPS. This mechanism works by sites sending a <code>Strict-Transport-Security</code> HTTP response header containing the site's policy.
+    </p>
 
-    <input id="domain" name="domain" type="text" placeholder="example.com"
-      autocorrect="off" autocapitalize="off" spellcheck="false">
-    <br>
-    <input id="check" type="submit" value="Check HSTS preload status and eligibility">
+    <p>
+      HSTS is supported by <a href="https://caniuse.com/stricttransportsecurity">most major browsers</a>.  For more details on HSTS, see <a href="https://tools.ietf.org/html/rfc6797">RFC 6797</a>.
+    </p>
+  </section>
 
-  </form>
+  <section id="benefits">
+    <h2><a class="hash-link" href="#benefits">Benefits of HSTS</a></h2>
+    <p>
+      When a web browser enforces a domain's HSTS policy, it will upgrade all <code>http://</code> URLs for that domain to HTTPS. If the policy also sets <code>includeSubDomains</code>, it will do this for all subdomains as well.
+    </p>
+    <p>
+      A site that enables HSTS helps protect its users from the following attacks done by an on-path attacker:
+    </p>
+    <ul>
+      <li><strong>Browsing history leaks</strong>: If a user clicks on an HTTP link to a site, an on-path network observer can see that URL. If the site has an HSTS policy that is enforced, the browser upgrades that URL to HTTPS and the path is not visible to the network observer.</li>
+      <li><strong>Protocol downgrades</strong>: If a site redirects from HTTP to HTTPS, an on-path network attacker can intercept and re-write the redirect to keep the browser using plaintext HTTP.</li>
+      <li><strong>Cookie hijacking</strong>: On HTTP requests, an on-path network attacker can see and modify cookies. Even if the site redirects to HTTPS, the on-path attacker can inject cookies into the redirect response.</li>
+    </ul>
+  </section>
 
-  <!-- We un-hide the form using inline JS so that (when JS is enabled)
-       it shows in the normal rendering order as if it was never hidden. -->
-  <script>document.getElementById("domain-form").classList.remove("hidden");</script>
-  <noscript>Submitting entries to the HSTS preload list via this site requires JavaScript.</noscript>
+  <section id="deployment-recommendations">
+    <h2><a class="hash-link" href="#deployment-recommendations">Deployment Recommendations</a></h2>
 
-  <div id="result-waiting" class="hidden">
-    <div id="spinner" class="spinner"></div>
-    <br>
-    <p id="checking"></p>
-  </div>
+    <p>
+      If your site is committed to HTTPS and you want browsers to enforce that your page is loaded only over HTTPS, we suggest the following steps to enable HSTS:
+    </p>
 
-  <div id="result" class="hidden">
-    <p id="status"></p>
-    <p id="summary"></p>
-    <div id="issues-wrapper"></div>
-  </div>
+    <ol>
+      <li>Examine all subdomains (and nested subdomains) of your site and make sure that they work properly over HTTPS.
+        <ul>
+          <li><strong>Note:</strong> This also includes internal subdomains that are not publicly accessible.</li>
+        </ul>
+      </li>
+      <li>Add the <code>Strict-Transport-Security</code> header to all HTTPS responses and ramp up the <code>max-age</code> in stages, using the following header values:
+        <ul>
+          <li>
+            5 minutes:<br>
+            <code class="header-example">max-age=300; includeSubDomains</code>
+          </li>
+          <li>
+            1 week:<br>
+            <code class="header-example">max-age=604800; includeSubDomains</code>
+          </li>
+          <li>
+            1 month:<br>
+            <code class="header-example">max-age=2592000; includeSubDomains</code>
+          </li>
+        </ul>
+        During each stage, check for broken pages and monitor your site's metrics (e.g. traffic, revenue). Fix any problems that come up and then wait the full <code>max-age</code> of the stage before you move on. For example, wait a month in the last stage.
+    </ol>
 
-  <form id="submit-form" class="hidden">
-  <hr>
-    <h2>Submit</h2>
-    <div id="checkboxes">
-      <label>
-        <input type="checkbox" id="checkbox-owner"><span>I am the site owner of <code><span class="domain-text">example.com</span></code> or have their permission to preload HSTS.</span>
-      </label>
-      <span id="oops">
-        (If this is not the case, <code><span class="domain-text">example.com</span></code> may be sending the HSTS <code>preload</code> directive by accident. Please <a id="oops-mailto" href="mailto:hstspreload@chromium.org">contact hstspreload@chromium.org</a> to let us know.)
-      </span>
-      <br><br>
-      <label>
-        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <code><span class="domain-text">example.com</span></code> through this form will prevent <strong>all subdomains and nested subdomains</strong> from being accessed without a valid HTTPS certificate:
-        <span class="subdomain-example"><code>*.<span class="domain-text">example.com</span></code></span>
-        <span class="subdomain-example"><code>*.*.<span class="domain-text">example.com</span></code></span>
-        <span class="subdomain-example"><code>...</code></span>
-        </span></label>
-    </div>
-    <br>
-    <input id="submit" type="submit" disabled value="Submit to the HSTS preload list">
-    <div id="submit-success" class="submit-feedback hidden">
-      <hr>
-      <h2>Success</h2>
-        <p><code class="domain-text">example.com</code> is now pending inclusion in the HSTS preload list!
-        </p>
-        <p>Please make sure that <code class="domain-text">example.com</code> <strong>continues</strong> to satisfy all preload requirements, or it will be removed. Please revisit this site over the next few weeks to check on the status of your domain.</p>
-        <p>Also consider scanning for TLS issues <a id="ssl-labs-link" href="https://www.ssllabs.com/ssltest/analyze.html">using SSL Labs</a>.</p>
-    </div>
-    <div id="submit-failure" class="submit-feedback hidden">
-      <hr>
-      <h2>Failure</h2>
-      An error occurred. Please start over.
-    </div>
-  </form>
+    <p>
+      If you have a group of employees or users who can beta test the deployment, consider trying the first few ramp-up stages on those users. Then make sure to go through all stages for all users, starting over from the beginning.
+    </p>
+
+    <p>
+      Consult the <a href="https://wiki.mozilla.org/Security/Guidelines/Web_Security">Mozilla Web Security guidelines</a> and the <a href="https://web.dev/explore/secure?hl=en">Google Web Fundamentals pages on security</a> for more concrete advice about HTTPS deployment.
+    </p>
+  </section>
 </div>
 
 <div class="content">
-  <section id="information">
-    <h2><a class="hash-link" href="#information">Information</a></h2>
+  <section id="preloading">
+    <h2><a class="hash-link" href="#preloading">Preloading HSTS</a></h2>
     <p>
-      This form is used to submit domains for inclusion in Chrome's <a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">HTTP Strict Transport Security (HSTS)</a> preload list.
-      This is a list of sites that are hardcoded into Chrome as being HTTPS only.
+      Since sites tell the browser that they support HSTS when the browser visits, the browser cannot know a site's HSTS policy before the user has visited the site for the first time. As a result, the browser can not require HTTPS until after the first time it has connected to the site, possibly leaving the user unprotected. After this first load, the web browser has the site's HSTS policy and is able to require HTTPS for all subsequent loads.
     </p>
     <p>
-      Most major browsers (Chrome, <a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Opera, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a>) also have HSTS preload lists based on the Chrome list. (See the <a href="https://caniuse.com/stricttransportsecurity">HSTS compatibility matrix</a>.)
+      To account for this first-load problem, Chrome maintains a list of domains that have a strong HSTS policy and are HTTPS only. This HSTS preload list is built into Chrome. Requests to these domains will only be made over HTTPS; any HTTP requests will be upgraded to HTTPS and fail to connect if HTTPS is unavailable.
+      Other major browsers (<a href="https://blog.mozilla.org/security/2012/11/01/preloading-hsts/">Firefox</a>, Safari, <a href="https://blogs.windows.com/msedgedev/2015/06/09/http-strict-transport-security-comes-to-internet-explorer-11-on-windows-8-1-and-windows-7/">IE 11 and Edge</a>) also have HSTS preload lists based on the Chrome list.
+    </p>
+    <p>
+      Many browsers (<a href="https://blog.chromium.org/2023/08/towards-https-by-default.html">Chrome</a>, <a href="https://developer.apple.com/documentation/safari-release-notes/safari-18_2-release-notes#Security">Safari</a>) will automatically upgrade all HTTP navigations to HTTPS, regardless of the domain's HSTS policy. HSTS preloading only provides value when these upgrades fail in the presence of an active attacker.
+      The benefits provided by HSTS preloading are minimal compared to the benefits provided by HSTS. While HSTS is recommended, <strong>HSTS <em>preloading</em> is not recommended</strong>.
     </p>
   </section>
 
@@ -151,65 +157,78 @@
     </p>
   </section>
 
-  <section id="deployment-recommendations">
-    <h2><a class="hash-link" href="#deployment-recommendations">Deployment Recommendations</a></h2>
-
-    <p>
-      If your site is committed to HTTPS and you want to preload HSTS, we suggest the following steps:
-    </p>
-
-    <ol>
-      <li>Examine all subdomains (and nested subdomains) of your site and make sure that they work properly over HTTPS.
-        <ul>
-          <li><strong>Note:</strong> This also includes internal subdomains that are not publicly accessible.</li>
-        </ul>
-      </li>
-      <li>Add the <code>Strict-Transport-Security</code> header to all HTTPS responses and ramp up the <code>max-age</code> in stages, using the following header values:
-        <ul>
-          <li>
-            5 minutes:<br>
-            <code class="header-example">max-age=300; includeSubDomains</code>
-          </li>
-          <li>
-            1 week:<br>
-            <code class="header-example">max-age=604800; includeSubDomains</code>
-          </li>
-          <li>
-            1 month:<br>
-            <code class="header-example">max-age=2592000; includeSubDomains</code>
-          </li>
-        </ul>
-        During each stage, check for broken pages and monitor your site's metrics (e.g. traffic, revenue). Fix any problems that come up and then wait the full <code>max-age</code> of the stage before you move on. For example, wait a month in the last stage.
-      <li>Once you're confident that there will be no more issues, increase the <code>max-age</code> to 2 years and submit your site to the preload list:
-        <ul>
-          <li>
-            2 years, requesting to be preloaded:<br>
-            <code class="header-example">max-age=63072000; includeSubDomains; preload</code>
-          </li>
-        </ul>
-      </li>
-    </ol>
-
-    <p>
-      If you have a group of employees or users who can beta test the deployment, consider trying the first few ramp-up stages on those users. Then make sure to go through all stages for all users, starting over from the beginning.
-    </p>
-
-    <p>
-      Consult the <a href="https://wiki.mozilla.org/Security/Guidelines/Web_Security">Mozilla Web Security guidelines</a> and the <a href="https://developers.google.com/web/fundamentals/security/?hl=en">Google Web Fundamentals pages on security</a> for more concrete advice about HTTPS deployment.
-    </p>
-
-  </section>
-
   <section id="opt-in">
     <h2><a class="hash-link" href="#opt-in">Preloading Should Be Opt-In</a></h2>
     <p>
-      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <strong>do not include the <code>preload</code> directive by default</strong>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list by the time they find they need to remove HSTS to access certain subdomains. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
+      If you maintain a project that provides HTTPS configuration advice or provides an option to enable HSTS, <strong>do not include the <code>preload</code> directive by default</strong>. We get regular emails from site operators who tried out HSTS this way, only to find themselves on the preload list without realizing that some subdomains cannot support HTTPS. <a href="#removal">Removal</a> tends to be slow and painful for those sites.
     </p>
     <p>
       Projects that support or advise about HSTS and HSTS preloading should ensure that site operators understand the long-term consequences of preloading before they turn it on for a given domain. They should also be informed that they need to meet additional requirements and submit their site to <a href="https://hstspreload.org/">hstspreload.org</a> to ensure that it is successfully preloaded (i.e. to get the full protection of the intended configuration).
     </p>
   </section>
+</div>
 
+<div class="content form">
+  <section id="submission-form" class="form">
+    <h2><a class="hash-link" href="#submission-form">Submission Form</a></h2>
+    <p>
+      If you still wish to submit your domain for inclusion in Chrome's HSTS preload list and you have followed our <a href="#deployment-recommendations">deployment recommendations</a> of slowly ramping up the <code>max-age</code> of your site's <code>Strict-Transport-Security</code> header, you can use this form to do so:
+    </p>
+
+    <form id="domain-form" action="#submission-form" class="hidden">
+      <p>
+        <label for="domain">Domain to preload:</label>
+        <input id="domain" name="domain" type="text" placeholder="example.com"
+          autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input id="check" type="submit" value="Check HSTS preload status and eligibility">
+      </p>
+    </form>
+    <!-- We un-hide the form using inline JS so that (when JS is enabled)
+         it shows in the normal rendering order as if it was never hidden. -->
+    <script>document.getElementById("domain-form").classList.remove("hidden");</script>
+    <p><noscript>Submitting entries to the HSTS preload list via this site requires JavaScript.</noscript></p>
+  </section>
+
+  <div id="result-waiting" class="result hidden">
+    <p><span id="checking"></span><span id="spinner" class="spinner"></span></p>
+  </div>
+
+  <div id="result" class="result hidden">
+    <p id="status"></p>
+    <p id="summary"></p>
+    <div id="issues-wrapper"></div>
+  </div>
+
+  <form id="submit-form" class="hidden">
+  <hr>
+    <h2>Submit</h2>
+    <div id="checkboxes">
+      <label>
+        <input type="checkbox" id="checkbox-subdomains"><span>I understand that preloading <code><span class="domain-text">example.com</span></code> through this form will prevent <strong>all subdomains and nested subdomains</strong> from being accessed without a valid HTTPS certificate:
+        <span class="subdomain-example"><code>*.<span class="domain-text">example.com</span></code></span>
+        <span class="subdomain-example"><code>*.*.<span class="domain-text">example.com</span></code></span>
+        <span class="subdomain-example"><code>...</code></span>
+        </span></label>
+    </div>
+    <br>
+    <input id="submit" type="submit" disabled value="Submit to the HSTS preload list">
+    <div id="submit-success" class="submit-feedback hidden">
+      <hr>
+      <h2>Success</h2>
+        <p><code class="domain-text">example.com</code> is now pending inclusion in the HSTS preload list!
+        </p>
+        <p>Please make sure that <code class="domain-text">example.com</code> <strong>continues</strong> to satisfy all preload requirements, or it will be removed. Please revisit this site over the next few weeks to check on the status of your domain.</p>
+        <p>Also consider scanning for TLS issues <a id="ssl-labs-link" href="https://www.ssllabs.com/ssltest/analyze.html">using SSL Labs</a>.</p>
+    </div>
+    <div id="submit-failure" class="submit-feedback hidden">
+      <hr>
+      <h2>Failure</h2>
+      An error occurred. Please start over.
+    </div>
+  </form>
+</div>
+
+<div class="content">
   <section id="removal">
     <h2><a class="hash-link" href="#removal">Removal</a></h2>
     <p>
@@ -241,6 +260,7 @@
     </p>
   </section>
 </div>
+
 
 </body>
 </html>

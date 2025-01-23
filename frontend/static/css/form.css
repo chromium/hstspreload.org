@@ -1,51 +1,24 @@
-.form {
-  padding: 2em 0;
-  text-align: center;
-}
-
-.form p {
-  margin: auto 4em;
-}
-
 /******** inputs ********/
-
-.form input[type=text],
-.form input[type=submit] {
-  text-align: center;
-  font-size: 1.4em;
-
-  width: 80%;
-  max-width: 22em;
-
-  margin: 0 auto 0.5em;
-}
 
 noscript {
   display: block;
-  margin: 2em 4em;
-  font-size: 1.5em;
   color: #808080;
 }
 
 /******** result-waiting ********/
 
-#result-waiting {
-  text-align: center;
-  padding: 2em;
-}
-
 .spinner {
   display: inline-block;
-  width: 2em;
-  height: 2em;
-  border-radius: 1.25em;
+  width: 1em;
+  height: 1em;
+  border-radius: 1em;
+  margin-left: 1em;
 
   border: 0.25em solid rgba(0, 0, 0, 0);
   border-top: 0.25em solid rgba(0, 0, 0, 0.7);
   border-right: 0.25em solid rgba(0, 0, 0, 0.7);
 
   animation: spinnerRotate 1s linear infinite;
-  margin-bottom: 1em;
 }
 
 @keyframes spinnerRotate {
@@ -60,19 +33,23 @@ noscript {
 
 /******** result ********/
 
-#result {
+.result {
   padding: 1em 0;
 }
 
-#result .issues {
+.result p {
+  margin: auto 4em;
+}
+
+.result .issues {
   margin: 2em 0;
 }
 
-#result .issues-list {
+.result .issues-list {
   text-align: left;
 }
 
-#result .issues-list div {
+.result .issues-list div {
   border-top: 1px solid #7f7f7f;
   /*background: rgba(255, 0, 0, 0.25);*/
   display: block;
@@ -80,11 +57,11 @@ noscript {
   margin-bottom: -1px;
 }
 
-#result .issues .summary {
+.result .issues .summary {
   font-weight: 700;
 }
 
-#result .issues .message {
+.result .issues .message {
   display: block;
 }
 
@@ -94,11 +71,15 @@ noscript {
   vertical-align: -40%;
 }
 
-#result .issues-list div:last-child {
+.result .issues-list div:last-child {
   border-bottom: 1px solid #7f7f7f;
 }
 
 /******** submit-form ********/
+
+#submit-form {
+  margin: auto 4em;
+}
 
 hr {
   border: 1px solid #aaa;
@@ -107,10 +88,7 @@ hr {
 }
 
 #checkboxes {
-  text-align: left;
-  width: 80%;
-  max-width: 30em;
-  margin: 0 auto;
+  padding-left: 2em;
 }
 
 #checkboxes input[type=checkbox] {
@@ -123,26 +101,12 @@ hr {
   display: inline-block;
 }
 
-#oops {
-  color: #a0aaa0;
-}
-
-#oops a {
-  color: #82828c;
-}
-
 .subdomain-example {
   display: block;
   margin-left: 2em;
-  /*text-align: center;*/
-}
-
-.submit-feedback h2 {
-  text-align: center;
 }
 
 .submit-feedback p {
-  max-width: 30em;
   margin: 1em auto;
   text-align: justify;
 }
