@@ -27,15 +27,20 @@ body {
   min-width: 30em;
 }
 
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  padding: 0.5em 2em;
+}
+
 h2 {
+  font-size: 1.5em;
   margin-top: 0;
 }
 
 h3 {
-  font-weight: 400;
-  margin: 48px 0 24px;
-  font-size: 2em;
-  line-height: 40px;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 p {

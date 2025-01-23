@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.5">
+  <title>HSTS Preload List Contact</title>
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/app-icon.png">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/form.css">
+  <link rel="stylesheet" href="/static/css/github.css">
+</head>
+<body class="theme-green">
+<a class="github-fork-ribbon" href="https://github.com/chromium/hstspreload.org" data-ribbon="On GitHub" title="On GitHub">On GitHub</a>
+
+<div class="content">
+  <h1>Frequently Asked Questions</h1>
+  <section id="general">
+    <h2><a class="hash-link" href="#general">General</a></h2>
+
+    <h3 class="question">
+      What does the <code>Strict-Transport-Security</code> header mean?
+    </h3>
+    <p>
+      A <code>Strict-Transport-Security</code> header contains a domain's HSTS policy. It specifies a <code>max-age</code> of how many seconds a browser should remember to connect to the domain only over HTTPS. It can optionally contain a <code>includeSubDomains</code> directive that indicates that the policy should apply to subdomains as well. This site also defines the <code>preload</code> directive, which is used to indicate that the domain is requesting inclusion in the HSTS preload list. For example, suppose <code>example.com</code> sends the header <code>Strict-Transport-Security: max-age=31536000; includeSubDomains</code> on all of its HTTP responses. A web browser that receives this header will remember for 1 year (31536000 seconds) to upgrade all requests to <code>example.com</code> and its subdomains to HTTPS.
+    </p>
+    <p>
+      For more information on the <code>Strict-Transport-Security</code> header, see this <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security">MDN article</a> or <a href="https://datatracker.ietf.org/doc/html/rfc6797">RFC 6797</a>.
+    </p>
+  </section>
+
+  <section id="scanner">
+    <h2><a class="hash-link" href="#scanner">Scanning results from hstspreload.org</a></h2>
+
+    <h3>The hstspreload.org scanner is displaying an error for my domain. What do I need to do?</h3>
+    <p>
+      The form on hstspreload.org is not intended as a web security scanner or to provide judgement on how secure a website is. An error for a domain on hstspreload.org does not mean that there are any security issues with that domain. The sole purpose of hstspreload.org's form is to request that a domain be included on the HSTS preload list, and the sole purpose of its error messages is to act as a diagnostic tool. No action is required in response to errors listed on hstspreload.org.
+    </p>
+
+    <h3>Other tools report that my domain is sending the HSTS header, but hstspreload.org doesn't. Is something wrong with hstspreload.org?</h3>
+    <p>
+      Some popular web security scanning tools will report the headers seen after following all redirects. The hstspreload.org scanner requires that the <code>Strict-Transport-Security</code> header be present on the first HTTP response, even if that response is a redirect and the page it redirects to has the <code>Strict-Transport-Security</code> header on its response. A common configuration mistake is that <code>example.com</code> is configured without the <code>Strict-Transport-Security</code> header and redirects to <code>www.example.com</code> which does send the header.
+    </p>
+    <p>
+      The difference in results between what hstspreload.org displays and other tools is due to checking for different things.
+    </p>
+  </section>
+
+  <section id="preloading">
+    <h2><a class="hash-link" href="#preloading">Preloading</a></h2>
+
+    <h3>My domain has been pending submission for a few weeks now. How long should it take for it to be added to the preload list?</h3>
+    <p>
+      It is normal for your domain to be pending submission for a few weeks. The preload list is updated once every Chrome release, which is approximately every 4 weeks. Submitting a domain to be preloaded is the last step of a long deployment process that starts with <a href="/#deployment-recommendations">gradually ramping up the <code>max-age</code></a> of the <code>Strict-Transport-Security</code> header. There is no need to rush this last part of the process.
+    </p>
+    <p>
+      If your domain has been pending submission for over 8 weeks, check the configuration of your site. Before a domain is added to the preload list, its eligibility is verified a second time. If your server's configuration has changed, or if your server's configuration does anything to special-case the hstspreload.org infrastructure, it could be failing this second verification check.
+    </p>
+
+    <h3>I'm trying to preload my domain but hstspreload.org is showing an error. How do I fix it?</h3>
+    <p>
+      The error message should indicate what needs to change to meet the <a href="/#submission-requirements">preloading requirements</a>. Common configuration mistakes include not sending the <code>Strict-Transport-Security</code> header on all responses or only configuring the header for the <code>www</code> subdomain. The <code>Strict-Transport-Security</code> header must be sent on all responses for your domain, including redirects. It must be configured on the bare domain (e.g. <code>example.com</code>) and not just the <code>www</code> subdomain, even if you redirect from e.g. <code>example.com</code> to <code>www.example.com</code>.
+    </p>
+    <p>
+      Other configuration errors include configuring a firewall to reject requests before the <code>Strict-Transport-Security</code> header has been added to the response, or to condition the presence of the <code>Strict-Transport-Security</code> header on the <code>User-Agent</code> sent by the client.
+    </p>
+
+    <h3>Can you help me configure my domain to resolve an issue with a specific error from hstspreload.org?</h3>
+    <p>
+      Every web server stack is different, so we can't provide advice on how to configure a specific server or help you debug your setup. See the above answers for general advice. We will not respond to questions asking for help configuring your domain.
+    </p>
+
+    <h3>What regions or locations should I unblock so that my geographically restricted website can be preloaded?</h3>
+    <p>
+      We expect that domains on the HSTS preload list are broadly available and accessible to browser end-users. If you are blocking access to your domain in certain regions, then your domain is not a good candidate for inclusion on the HSTS preload list. You can still set an HSTS policy for your domain without preloading it, and <a href="/#benefits">most of the benefit</a> comes from enabling HSTS rather than the additional step of preloading.
+    </p>
+
+    <h3>What IP addresses should I unblock on my WAF or other firewall to allow hstspreload.org to scan my domain?</h3>
+    <p>
+      We expect that preloaded domains are broadly accessible, and we do not provide a list of IP addresses to allowlist or other firewall configuration advice.
+    </p>
+  </section>
+
+  <section id="authentication">
+    <h2><a class="hash-link" href="#authentication">Authenticating requests to preload</a></h2>
+
+    <h3>Why is there no authentication on the form to preload a domain?</h3>
+    <p>
+      Requests to preload a domain are authenticated by verifying the server's TLS certificate and authorized by the presence of the <code>preload</code> directive on the <code>Strict-Transport-Security</code> header sent over HTTPS. No additional authorization is needed. <a href="https://datatracker.ietf.org/doc/html/rfc6797">RFC 6797</a> specifies that the <code>Strict-Transport-Security</code> header instructs browsers to upgrade all requests to HTTPS with only the TLS certificate used for authentication; HSTS preloading has the same effect of upgrading requests to HTTPS and is authenticated in the same way.
+    </p>
+
+    <h3>My domain was added to the HSTS preload list but no one at my company requested that it be added. Who added it? Where did the request come from?</h3>
+    <p>
+      We're unable to provide information about where the request to preload a domain came from. To determine where the request came from, review your change management system for the configuration of the web server(s) handling requests to the bare domain, and look for changes to the <code>Strict-Transport-Security</code> header.
+    </p>
+  </section>
+
+  <section id="removal">
+    <h2><a class="hash-link" href="#removal">Removal</a></h2>
+
+    <h3>How do I protect my domain from removal from the HSTS preload list?</h3>
+    <p>
+      To keep your domain from getting removed from the HSTS preload list, it must continue to meet the <a href="/#submission-requirements">requirements</a> for preloading. We understand that sites occasionally have outages, so temporary outages won't result in removal. However, if the site is unavailable for an extended period of time or otherwise doesn't meet the <a href="/#continued-requirements">continued requirements</a>, it may be removed from the list. If your domain serves a <code>Strict-Transport-Security</code> header without the <code>preload</code> directive, it may be eligible for <a href="/removal/#removal-requirements">immediate removal</a>.
+    </p>
+
+    <h3>How do I remove my domain from the HSTS preload list?</h3>
+    <p>
+      To remove your domain from the HSTS preload list, use the form at <a href="/removal">hstspreload.org/removal</a>. To be eligible for removal, your domain needs to send a valid <code>Strict-Transport-Security</code> header that doesn't contain the <code>preload</code> directive.
+    </p>
+
+    <h3>How long does it take to process a removal request?</h3>
+    <p>
+      Removals are processed at the same speed as additions to the list. Once a removal has been processed, expect it to take several additional months before the domain is no longer preloaded in most users' browsers.
+    </p>
+
+    <h3>My domain (or one of its subdomains) is broken due to preloading, and waiting for it to be removed from the preload list is taking too long. What else can I do?</h3>
+    <p>
+      The quickest and easiest fix is to configure the webservers on your domain (and its subdomains) to serve HTTPS with a valid TLS certificate. Another option is to configure a different domain name to point to the same servers and access HTTP resources via that domain. If breakage is due to old clients that can't connect via HTTPS, you can configure the server to not redirect HTTP to HTTPS while waiting for the removal to process.
+    </p>
+    <p>
+      If you noticed breakage of your domain or one of its subdomains due to HSTS preloading, the cause of the breakage is due to an issue with the HSTS policy. When removing the <code>preload</code> directive from the <code>Strict-Transport-Security</code> header, you should change the corresponding issue with the HSTS policy as well, e.g. removing <code>includeSubDomains</code> or setting a knockout entry to disable HSTS entirely (e.g. <code>Strict-Transport-Security: max-age=0</code>).
+    </p>
+  </section>
+
+  <section id="other">
+    <h2><a class="hash-link" href="#other">Other questions</a></h2>
+    <p>
+      If you have other questions that aren't covered by this site, you can <a href="mailto:hstspreload@chromium.org">send us an email</a>. We will not respond to emails asking questions that are answered on this site.
+    </p>
+  </section>
+</div>
+
+</body>
+</html>
