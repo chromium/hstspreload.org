@@ -19,9 +19,7 @@
   <section id="general">
     <h2><a class="hash-link" href="#general">General</a></h2>
 
-    <h3 class="question">
-      What does the <code>Strict-Transport-Security</code> header mean?
-    </h3>
+    <h3>What does the <code>Strict-Transport-Security</code> header mean?</h3>
     <p>
       A <code>Strict-Transport-Security</code> header contains a domain's HSTS policy. It specifies a <code>max-age</code> of how many seconds a browser should remember to connect to the domain only over HTTPS. It can optionally contain a <code>includeSubDomains</code> directive that indicates that the policy should apply to subdomains as well. This site also defines the <code>preload</code> directive, which is used to indicate that the domain is requesting inclusion in the HSTS preload list. For example, suppose <code>example.com</code> sends the header <code>Strict-Transport-Security: max-age=31536000; includeSubDomains</code> on all of its HTTP responses. A web browser that receives this header will remember for 1 year (31536000 seconds) to upgrade all requests to <code>example.com</code> and its subdomains to HTTPS.
     </p>
@@ -125,8 +123,23 @@
 
   <section id="other">
     <h2><a class="hash-link" href="#other">Other questions</a></h2>
+
+    <h3>My service provider told me to contact you for support</h3>
     <p>
-      If you have other questions that aren't covered by this site, you can <a href="mailto:hstspreload@chromium.org">send us an email</a>. We will not respond to emails asking questions that are answered on this site.
+      Unfortunately, we're unable to provide support to help individual sites troubleshoot their HSTS configuration. Your service provider is better equipped to help you.
+    </p>
+    <p>
+      If you are attempting to remove your domain from the HSTS preload list, use the form at <a href="/removal">hstspreload.org/removal</a> and see other questions in the <a href="#removal">removal</a> section of this FAQ. Your service provider's customer support department should be able to provide all needed support to help you remove your domain from the HSTS preload list.
+    </p>
+
+    <h3>I have an HSTS question that is not related to HSTS preloading</h3>
+    <p>
+      We do not provide technical support or answer questions about anything not directly related to HSTS preloading. You will need to find support for your HSTS question elsewhere.
+    </p>
+
+    <h3>My question isn't answered on this page</h3>
+    <p>
+      If you have an HSTS preloading question that isn't covered by this site, you can <a href="mailto:hstspreload@chromium.org">send us an email</a>. We will not respond to emails asking questions that are answered on this site.
     </p>
   </section>
 </div>
