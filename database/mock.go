@@ -87,6 +87,21 @@ func (m Mock) AllDomainStates() (states []DomainState, err error) {
 	return states, nil
 }
 
+// DomainStatesInRange mock method
+func (m Mock) DomainStatesInRange(start, end string) ([]DomainState, error) {
+	if m.state.FailCalls{
+		return nil, errors.New("forced failure")
+	}
+
+	states := []DomainState{}
+	for name, state := range m.ds {
+		if (start == "" || name >= start) && (end == "" || name < end) {
+			states = append(states, state)
+		}
+	}
+	return states, nil
+}
+
 // StatesWithStatus mock method
 func (m Mock) StatesWithStatus(status PreloadStatus) (domains []DomainState, err error) {
 	if m.state.FailCalls {

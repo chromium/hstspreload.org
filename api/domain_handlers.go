@@ -404,7 +404,7 @@ func (api API) Remove(w http.ResponseWriter, r *http.Request) {
 
 type DomainStateWithIssues struct {
 	DomainState database.DomainState
-	Issues hstspreload.Issues
+	Issues      hstspreload.Issues
 }
 
 // RemoveIneligibleDomains runs eligibility checks on domains present in the
@@ -429,14 +429,22 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	var deleteEligibleDomains []string
 
 	api.logger.Print("Fetching domains...")
-	// Get all domains
-	domains, err := api.database.AllDomainStates()
+	var start, end string
+	if s, ok := r.URL.Query()["start"]; ok && len(s) > 0 {
+		start = s[0]
+	}
+	if e, ok := r.URL.Query()["end"]; ok && len(e) > 0 {
+		end = e[0]
+	}
+	// Get domains
+	api.logger.Printf("using start %q, end %q", start, end)
+	domains, err := api.database.DomainStatesInRange(start, end)
 	if err != nil {
 		msg := fmt.Sprintf("Internal error: could not retrieve domains. (%s)\n", err)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
-	api.logger.Print("Filtering domains...")
+	api.logger.Printf("Filtering %d domains...", len(domains))
 
 	// Filter Domains
 	for _, d := range domains {
@@ -446,7 +454,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 	}
 	api.logger.Print("Getting ineligible domain states...")
 
-	// call GetIneligibleDomainStates, add to map
+	// call GetIneligibleDomainStates and store them in a map by domain name
 	states := make(map[string]database.IneligibleDomainState)
 	state, err := api.database.GetAllIneligibleDomainStates()
 	if err != nil {
@@ -455,10 +463,15 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// delete domains that exist in the ineligible database but not
-	// on the preload list
 	for _, s := range state {
+		// ignore IneligibleDomainStates for domain names not in the [start, end)
+		// range we're processing.
+		if (start != "" && s.Name < start) || (end != "" && s.Name >= end) {
+			continue
+		}
 		states[s.Name] = s
+		// Delete IneligibleDomainStates for names that are no longer on the
+		// preload list.
 		if _, ok := policyStates[s.Name]; !ok {
 			deleteEligibleDomains = append(deleteEligibleDomains, s.Name)
 		}
@@ -488,7 +501,7 @@ func (api API) RemoveIneligibleDomains(w http.ResponseWriter, r *http.Request) {
 			i++
 			wg.Add(1)
 			domainStates <- d
-			if i % 1000 == 0 {
+			if i%1000 == 0 {
 				api.logger.Printf("Sent %d domains to workers\n", i)
 			}
 		}

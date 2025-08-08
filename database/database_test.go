@@ -276,6 +276,100 @@ func TestStatesWithStatus(t *testing.T) {
 	}
 }
 
+func TestDomainStatesInRange(t *testing.T) {
+	resetDB()
+
+	testNames := []string{
+		"1.test",
+		"a.test",
+		"aaa.test",
+		"b.test",
+		"g.test",
+		"h.test",
+		"y.test",
+		"z.test",
+	}
+	for _, name := range testNames {
+		state := DomainState{Name: name}
+		if err := testDB.PutState(state); err != nil {
+			t.Fatalf("failed to set test state for TestDomainStatesInRange: %v", err)
+		}
+	}
+
+	tests := []struct {
+		name          string
+		start         string
+		end           string
+		expectedNames []string
+	}{
+		{
+			"empty start and end",
+			"",
+			"",
+			testNames,
+		},
+		{
+			"empty start",
+			"",
+			"a",
+			[]string{"1.test"},
+		},
+		{
+			"empty end",
+			"z",
+			"",
+			[]string{"z.test"},
+		},
+		{
+			"intervals are half-open",
+			"a",
+			"b",
+			[]string{"a.test", "aaa.test"},
+		},
+		{
+			"larger interval",
+			"a",
+			"h",
+			[]string{"a.test", "aaa.test", "b.test", "g.test"},
+		},
+		{
+			"same non-empty start and end returns empty list",
+			"a.test",
+			"a.test",
+			nil,
+		},
+		{
+			"start after end returns empty list",
+			"b",
+			"a",
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			states, err := testDB.DomainStatesInRange(test.start, test.end)
+			if err != nil {
+				t.Fatalf("DomainStatesInRange unexpectedly failed: %v", err)
+			}
+			// check that the names in the returned states match the ones in test.expectedNames
+			nameSet := make(map[string]bool)
+			for _, state := range states {
+				nameSet[state.Name] = true
+			}
+			for _, name := range test.expectedNames {
+				if !nameSet[name] {
+					t.Errorf("%q was not returned by DomainStatesInRange but should have been", name)
+				}
+				delete(nameSet, name)
+			}
+			for name := range nameSet {
+				t.Errorf("%q was returned by DomainStatesInRange but not expected", name)
+			}
+		})
+	}
+}
+
 func TestSetPendingAutomatedRemoval(t *testing.T) {
 	resetDB()
 

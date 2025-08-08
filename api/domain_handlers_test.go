@@ -363,3 +363,130 @@ func TestDeletionAndStatusChange(t *testing.T) {
 		t.Errorf("Status changed")
 	}
 }
+
+func TestRemoveIneligibleDomainsSharding(t *testing.T) {
+	api, _, mockHstspreload, mockPreloadlist := mockAPI(0 * time.Second)
+
+	testPreloadlist := preloadlist.PreloadList{Entries: []preloadlist.Entry{
+		{Name: "a.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "n.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+		{Name: "z.test", Mode: preloadlist.ForceHTTPS, IncludeSubDomains: true, Policy: preloadlist.Bulk1Year},
+	}}
+	testEligibleResponses := map[string]hstspreload.Issues{
+		"a.test": issuesWithErrors,
+		"n.test": issuesWithErrors,
+		"z.test": issuesWithErrors,
+	}
+	mockPreloadlist.list = testPreloadlist
+	mockHstspreload.eligibleResponses = testEligibleResponses
+
+	w := httptest.NewRecorder()
+	w.Body = &bytes.Buffer{}
+
+	r, err := http.NewRequest("GET", "", nil)
+	if err != nil {
+		t.Fatalf("[%s] %s", "NewRequest Failed", err)
+	}
+
+	api.Update(w, r)
+
+	// These test cases are structured to be run in this specific order and
+	// each case depends on the behavior of the previous ones.
+	tests := []struct {
+		name           string
+		query          string
+		expectedCounts map[string]int
+	}{
+		{
+			// Start by running RemoveIneligibleDomains with no query
+			// parameters - it should process every domain.
+			"no range specified",
+			"",
+			map[string]int{
+				"a.test": 1,
+				"n.test": 1,
+				"z.test": 1,
+			},
+		},
+		{
+			// Specifying an end of "n" (the [start, end) interval is half-open)
+			// should result in only a.test being processed. Every time a domain
+			// is processed, the number of scans in its IneligibleDomainState
+			// increases.
+			"query range only has end",
+			"end=n",
+			map[string]int{
+				"a.test": 2,
+				"n.test": 1,
+				"z.test": 1,
+			},
+		},
+		{
+			// With an interval of ["n","z"), only n.test should match.
+			"start and end",
+			"start=n&end=z",
+			map[string]int{
+				"a.test": 2,
+				"n.test": 2,
+				"z.test": 1,
+			},
+		},
+		{
+			// A start of "z" with no end should only match z.test from the
+			// test preload list.
+			"only start",
+			"start=z",
+			map[string]int{
+				"a.test": 2,
+				"n.test": 2,
+				"z.test": 2,
+			},
+		},
+		{
+			// A bad range (start after end) does nothing.
+			"bad range",
+			"start=b&end=a",
+			map[string]int{
+				"a.test": 2,
+				"n.test": 2,
+				"z.test": 2,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		// Make request with the specified query
+		r, err := http.NewRequest("GET", "", nil)
+		if err != nil {
+			t.Fatalf("[%s] %s", "NewRequest Failed", err)
+		}
+		r = toAppEngineHttpRequest(r)
+		r.URL.RawQuery = test.query
+		w := httptest.NewRecorder()
+		w.Body = &bytes.Buffer{}
+		api.RemoveIneligibleDomains(w, r)
+
+		// Look at the IneligibleDomainStates created or updated by
+		// RemoveIneligibleDomains and check that the number of scans for
+		// each domain matches the expected count.
+		states, err := api.database.GetAllIneligibleDomainStates()
+		if err != nil {
+			t.Fatalf("Couldn't get the states of all domains in the database.")
+		}
+		seenNames := make(map[string]bool)
+		for _, state := range states {
+			expectedCount, found := test.expectedCounts[state.Name]
+			if !found {
+				t.Errorf("[%s] found unexpected domain %q in IneligibleDomainStates list", test.name, state.Name)
+				continue
+			}
+			if len(state.Scans) != expectedCount {
+				t.Errorf("[%s] Unexpected number of scans for domain %q: got %d, want %d", test.name, state.Name, len(state.Scans), expectedCount)
+			}
+			seenNames[state.Name] = true
+		}
+		if len(seenNames) != len(test.expectedCounts) {
+			t.Errorf("[%s] Wrong number of IneligibleDomainStates: got %d, want %d", test.name, len(seenNames), len(test.expectedCounts))
+		}
+	}
+}
