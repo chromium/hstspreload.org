@@ -3,6 +3,7 @@ package gcd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -102,6 +103,7 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 		"--testing",
 	)
 	db.cmd = cmd
+	stderr, _ := cmd.StderrPipe()
 
 	err = cmd.Start()
 	if err != nil {
@@ -124,6 +126,19 @@ func NewLocalBackend() (db LocalBackend, shutdown func() error, err error) {
 		}
 		if !strings.Contains(err.Error(), "connection refused") {
 			return db, shutdown, err
+		}
+	}
+
+	// try to read some from stderr to see if we can get a more useful error message:
+	if stderr != nil {
+		msg := make([]byte, 2048)
+		n, err := stderr.Read(msg)
+		if err != nil && err != io.EOF {
+			return db, shutdown, fmt.Errorf("failed to connect, failure reading stderr: %v", err)
+		}
+		msg = msg[:n]
+		if strings.Contains(string(msg), "Unable to locate a Java Runtime.") {
+			return db, shutdown, fmt.Errorf("failed to connect, unable to locate Java runtime to run datastore emulator")
 		}
 	}
 
