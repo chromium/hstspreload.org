@@ -27,6 +27,7 @@ type Database interface {
 	StateForDomain(string) (DomainState, error)
 	StatesForDomains([]string) ([]DomainState, error)
 	AllDomainStates() ([]DomainState, error)
+	DomainStatesInRange(start, end string) ([]DomainState, error)
 	StatesWithStatus(PreloadStatus) ([]DomainState, error)
 	GetIneligibleDomainStates(domains []string) (states []IneligibleDomainState, err error)
 	SetIneligibleDomainStates(updates []IneligibleDomainState, logf func(format string, args ...interface{})) error
@@ -206,6 +207,17 @@ func (db DatastoreBacked) StatesForDomains(domains []string) (states []DomainSta
 // AllDomainStates gets the states of all domains in the database.
 func (db DatastoreBacked) AllDomainStates() (states []DomainState, err error) {
 	return db.statesForQuery(datastore.NewQuery("DomainState"))
+}
+
+func (db DatastoreBacked) DomainStatesInRange(start, end string) ([]DomainState, error) {
+	query := datastore.NewQuery(domainStateKind)
+	if start != "" {
+		query = query.FilterField("__key__", ">=", datastore.NameKey(domainStateKind, start, nil))
+	}
+	if end != "" {
+		query = query.FilterField("__key__", "<", datastore.NameKey(domainStateKind, end, nil))
+	}
+	return db.statesForQuery(query)
 }
 
 // StatesWithStatus returns the states of domains with the given status in the database.

@@ -1,6 +1,17 @@
 cron: 
-- description: "Removes ineligible domains"
-  url: "/api/v2/remove-ineligible-domains"
-  schedule: every monday 09:00
+- description: "Remove ineligible domains ['','e')"
+  url: "/api/v2/remove-ineligible-domains?end=e"
+  schedule: every monday 9:00
   timezone: America/New_York
-
+- description: "Remove ineligible domains ['e','l')"
+  url: "/api/v2/remove-ineligible-domains?start=e&end=l"
+  schedule: every monday 11:00
+  timezone: America/New_York
+- description: "Remove ineligible domains ['l','s')"
+  url: "/api/v2/remove-ineligible-domains?start=l&end=s"
+  schedule: every monday 13:00
+  timezone: America/New_York
+- description: "Remove ineligible domains ['s','')"
+  url: "/api/v2/remove-ineligible-domains?start=s"
+  schedule: every monday 15:00
+  timezone: America/New_York
