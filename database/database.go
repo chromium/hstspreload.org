@@ -77,7 +77,7 @@ func (db DatastoreBacked) PutStates(updates []DomainState, logf func(format stri
 		logf("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
-			logf(" failed.\n")
+			logf(" failed: %v\n", err)
 			return err
 		}
 
@@ -280,7 +280,7 @@ func (db DatastoreBacked) SetIneligibleDomainStates(updates []IneligibleDomainSt
 		logf("Updating %d entries...", len(keys))
 
 		if _, err := client.PutMulti(c, keys, values); err != nil {
-			logf(" failed.\n")
+			logf(" failed: %v\n", err)
 			return err
 		}
 
@@ -367,7 +367,7 @@ func SetPendingAutomatedRemoval(db Database, domains []string, logf func(fomat s
 		logf("Updating %d entries...", len(domainStates))
 
 		if err := db.PutStates(domainStates, logf); err != nil {
-			logf(" failed.\n")
+			logf(" failed: %v\n", err)
 			return err
 		}
 		logf(" done.\n")
