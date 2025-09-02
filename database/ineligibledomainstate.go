@@ -15,7 +15,7 @@ type IneligibleDomainState struct {
 	// in the stored value.
 	Name string `datastore:"-" json:"name"`
 	// Scans is where information of the checks are stored
-	Scans []Scan `json:"-"`
+	Scans []Scan `datastore:",noindex" json:"-"`
 	//  The policy under which the domain is part of the
 	//  preload list. “bulk-18-weeks” or “bulk-1-year”
 	Policy preloadlist.PolicyType `json:"policy"`
