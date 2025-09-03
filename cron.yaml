@@ -1,4 +1,7 @@
 cron: 
+- description: "Update list"
+  url: "/api/v2/update"
+  schedule: every 12 hours
 - description: "Remove ineligible domains ['','e')"
   url: "/api/v2/remove-ineligible-domains?end=e"
   schedule: every monday 9:00
