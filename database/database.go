@@ -1,9 +1,8 @@
 package database
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"cloud.google.com/go/datastore"
 	"github.com/chromium/hstspreload.org/database/gcd"
