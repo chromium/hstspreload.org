@@ -2,7 +2,8 @@ runtime: go
 env: flex
 
 runtime_config:
-  operating_system: "ubuntu22"
+  operating_system: "ubuntu24"
+  runtime_version: "1.26"
 
 handlers:
 - url: /.*
